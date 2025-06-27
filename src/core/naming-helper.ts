@@ -5,7 +5,7 @@
  * 分析結果を基に、より精密な命名提案を行う
  */
 
-import { LogPatternAnalyzer } from './log-pattern-analyzer';
+import { LogPatternAnalyzer } from './log-pattern-analyzer.js';
 
 interface NamingContext {
   currentPhase?: string;
@@ -311,7 +311,8 @@ class NamingHelper {
 }
 
 // 使用例
-if (require.main === module) {
+// テスト実行用（直接実行時のみ）
+if (import.meta.url === `file://${process.argv[1]}`) {
   const helper = new NamingHelper();
   
   // 既存ログで初期化

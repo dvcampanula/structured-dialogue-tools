@@ -466,7 +466,8 @@ const sampleLogContents = new Map([
 ]);
 
 // 実行
-if (require.main === module) {
+// テスト実行用（直接実行時のみ）
+if (import.meta.url === `file://${process.argv[1]}`) {
   const analyzer = new LogFormatAnalyzer();
   
   console.log('📋 構造的対話ログ書式分析ツール');

@@ -450,17 +450,5 @@ ${content}
   }
 }
 
-// 使用例とテスト
-if (require.main === module) {
-  const splitter = new RawLogSplitter({
-    targetChunkSize: 8000,  // テスト用に小さく設定
-    maxChunkSize: 10000,
-    preserveContext: true,
-    addChunkHeaders: true,
-    overlapSize: 300
-  });
-  
-  // サンプル生ログ（長い対話のシミュレーション）
-  const sampleRawLog = `
-User: 構造的対話について詳しく教えてください。
-特に、AIとの対話における構造化の意義について知りたいです。
+// エクスポート
+export { RawLogSplitter, type SplitOptions, type LogChunk, type ChunkMetadata, type BoundaryInfo };

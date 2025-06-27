@@ -8,9 +8,13 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import { RawLogSplitter } from './raw-log-splitter';
-import { NamingHelper } from './naming-helper';
-import { LogFormatUnifier } from './log-format-unifier';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+import { RawLogSplitter } from '../core/raw-log-splitter.js';
+import { NamingHelper } from '../core/naming-helper.js';
+import { LogFormatUnifier } from '../core/log-format-unifier.js';
 
 interface ProcessRequest {
   rawLog: string;
@@ -419,7 +423,8 @@ class StructuredDialogueApp {
 }
 
 // 実行
-if (require.main === module) {
+// アプリケーション絶対実行用（直接実行時のみ）
+if (import.meta.url === `file://${process.argv[1]}`) {
   const app = new StructuredDialogueApp(3000);
   app.start();
 }

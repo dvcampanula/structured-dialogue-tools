@@ -315,7 +315,8 @@ const existingLogFiles = [
 ];
 
 // 実行
-if (require.main === module) {
+// テスト実行用（直接実行時のみ）
+if (import.meta.url === `file://${process.argv[1]}`) {
   const analyzer = new LogPatternAnalyzer();
   
   console.log('🚀 構造的対話ログ分析ツール');

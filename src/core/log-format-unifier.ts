@@ -364,7 +364,8 @@ class LogFormatUnifier {
 }
 
 // 使用例とテスト
-if (require.main === module) {
+// テスト実行用（直接実行時のみ）
+if (import.meta.url === `file://${process.argv[1]}`) {
   const unifier = new LogFormatUnifier();
   
   console.log('🔧 構造的対話ログ書式統一化ツール');
