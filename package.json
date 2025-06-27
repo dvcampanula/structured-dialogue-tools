@@ -1,0 +1,37 @@
+{
+  "name": "structured-dialogue-tools",
+  "version": "1.0.0",
+  "description": "AIとの構造的対話ログを自動分割・命名・書式統一するツール群",
+  "main": "structured-dialogue-app.ts",
+  "type": "module",
+  "scripts": {
+    "start": "tsx structured-dialogue-app.ts",
+    "dev": "tsx --watch structured-dialogue-app.ts",
+    "test:split": "tsx raw-log-splitter.ts",
+    "test:naming": "tsx naming-helper.ts",
+    "test:format": "tsx log-format-unifier.ts",
+    "analyze:logs": "tsx log-pattern-analyzer.ts",
+    "build": "tsc",
+    "test": "echo \"テストは未実装\" && exit 0"
+  },
+  "keywords": [
+    "structured-dialogue",
+    "ai-chat",
+    "log-processing",
+    "automation",
+    "typescript"
+  ],
+  "author": "dvcampanula",
+  "license": "MIT",
+  "dependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.0.4",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
