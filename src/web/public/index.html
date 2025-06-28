@@ -558,17 +558,20 @@
                         <div class="chunk-meta">
                             文字範囲: ${chunk.characterRange}
                             <button class="copy-btn" onclick="copyToClipboard(\`${chunk.continuationPrompt.replace(/`/g, '\\`')}\`, this)">
-                                📋 プロンプトをコピー
+                                🚀 AIに送信（完全版）
                             </button>
                         </div>
                     </div>
                     <div class="chunk-content">
-                        <h4>🎯 AI送信用プロンプト</h4>
-                        <pre>${escapeHtml(chunk.continuationPrompt)}</pre>
+                        <h4>🎯 AI送信用完全プロンプト（指示 + 実際のログ内容）</h4>
+                        <p style="color: #6b7280; font-size: 14px; margin-bottom: 8px;">
+                            「🚀 AIに送信（完全版）」ボタンで、このプロンプトをClaude/ChatGPTに直接貼り付けて構造化できます
+                        </p>
+                        <pre style="max-height: 300px; overflow-y: auto;">${escapeHtml(chunk.continuationPrompt)}</pre>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
-                            <h4>📄 分割後の完全な原文</h4>
-                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`, this)">
-                                📄 原文をコピー
+                            <h4>📄 分割後の原文（参考用）</h4>
+                            <button class="copy-btn btn-secondary" onclick="copyToClipboard(\`${chunk.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`, this)" style="background: #6b7280;">
+                                📄 原文のみコピー
                             </button>
                         </div>
                         <pre style="max-height: 400px; overflow-y: auto; background: #f8f9fa; white-space: pre-wrap;">${escapeHtml(chunk.content)}</pre>
@@ -580,8 +583,13 @@
             const promptsContent = document.getElementById('prompts-content');
             promptsContent.innerHTML = `
                 <div style="margin-bottom: 20px; padding: 16px; background: #ecfdf5; border-radius: 8px;">
-                    <h3 style="color: #065f46;">✨ 統一ログヘッダーアプローチ</h3>
-                    <p>このログは全体として一貫したテーマで処理されます。各チャンクで上記の「プロンプトをコピー」ボタンを使用してAIに送信してください。</p>
+                    <h3 style="color: #065f46;">🚀 簡単3ステップで構造化</h3>
+                    <ol style="margin: 12px 0; padding-left: 20px;">
+                        <li>各チャンクの「🚀 AIに送信（完全版）」ボタンをクリック</li>
+                        <li>Claude/ChatGPTに貼り付けてエンター</li>
+                        <li>構造化完了！</li>
+                    </ol>
+                    <p style="color: #065f46; font-weight: 500;">※ プロンプトには指示 + 実際のログ内容が含まれています</p>
                 </div>
                 <pre style="white-space: pre-wrap; font-size: 13px; line-height: 1.5;">${escapeHtml(result.unified.output)}</pre>
             `;
