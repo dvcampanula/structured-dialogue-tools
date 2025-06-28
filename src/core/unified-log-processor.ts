@@ -21,7 +21,7 @@ interface LogHeader {
   discussionScope: string;         // 議論の範囲・テーマ
   totalCharacters: number;         // 総文字数
   totalChunks: number;            // 総チャンク数
-  dialogueType: 'human_led' | 'ai_led' | 'collaborative' | 'free_form';
+  dialogueType: 'human_led' | 'ai_led' | 'collaborative' | 'ai_collaborative' | 'free_form';
   suggestedFilename: string;       // log_p01_xxx_yyy.md 形式
 }
 
@@ -134,29 +134,64 @@ class UnifiedLogProcessor {
    * 全体から主要概念を抽出
    */
   private extractMainConcepts(rawLog: string): string[] {
-    const concepts: string[] = [];
+    const conceptScores: Record<string, number> = {};
     
-    // 引用された概念
+    // 1. コア概念（高重み）
+    const coreConcepts = [
+      '構造的対話', '構造的協働思考', 'メタ認知', 'AI能力',
+      '文脈保持', '概念創発', '思考パートナー', 'セーブポイント'
+    ];
+    
+    coreConcepts.forEach(concept => {
+      const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
+      if (occurrences > 0) {
+        conceptScores[concept] = occurrences * 3; // 高重み
+      }
+    });
+    
+    // 2. 関連概念（中重み）
+    const relatedConcepts = [
+      '意識', '認知', '感情理解', 'パーソナル', '寄り添い',
+      '継続学習', '品質向上', 'AIとの協働', '思考の仲間'
+    ];
+    
+    relatedConcepts.forEach(concept => {
+      const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
+      if (occurrences > 0) {
+        conceptScores[concept] = occurrences * 2; // 中重み
+      }
+    });
+    
+    // 3. 引用された概念（標準重み、ただし適切な長さのもの）
     const quotedConcepts = [...rawLog.matchAll(/「([^」]+)」/g)]
       .map(match => match[1])
-      .filter(concept => concept.length > 2 && concept.length < 20);
+      .filter(concept => concept.length > 2 && concept.length < 20)
+      .filter(concept => !coreConcepts.includes(concept)); // コア概念と重複排除
     
-    // 頻出する重要語句
-    const importantTerms = [
-      '構造的対話', '構造的協働思考', 'メタ認知', 'AI能力',
-      '文脈保持', '概念創発', '思考パートナー', 'セーブポイント',
-      '意識', '認知', '感情理解', 'パーソナル', '寄り添い'
-    ].filter(term => rawLog.includes(term));
+    quotedConcepts.forEach(concept => {
+      conceptScores[concept] = (conceptScores[concept] || 0) + 1; // 標準重み
+    });
     
-    // 概念の重み付けと選別
-    const allConcepts = [...quotedConcepts, ...importantTerms];
-    const conceptFreq = allConcepts.reduce((acc, concept) => {
-      acc[concept] = (acc[concept] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    // 4. 文書中頻出語（低重み、最小3回出現）
+    const wordMatches = rawLog.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]{3,}/g) || [];
+    const wordFreq: Record<string, number> = {};
     
-    // 上位5-8概念を選択
-    return Object.entries(conceptFreq)
+    wordMatches.forEach(word => {
+      if (word.length >= 3 && word.length <= 10) {
+        wordFreq[word] = (wordFreq[word] || 0) + 1;
+      }
+    });
+    
+    Object.entries(wordFreq)
+      .filter(([word, freq]) => freq >= 3)
+      .forEach(([word, freq]) => {
+        if (!conceptScores[word] && !coreConcepts.some(core => word.includes(core))) {
+          conceptScores[word] = freq * 0.5; // 低重み
+        }
+      });
+    
+    // 5. スコア順でソート、上位6概念を選択
+    return Object.entries(conceptScores)
       .sort(([,a], [,b]) => b - a)
       .slice(0, 6)
       .map(([concept]) => concept);
@@ -193,6 +228,12 @@ class UnifiedLogProcessor {
   private detectDialogueType(rawLog: string): LogHeader['dialogueType'] {
     const userMarkers = (rawLog.match(/^(User|Human|ユーザー)[:：]/gm) || []).length;
     const aiMarkers = (rawLog.match(/^(Assistant|AI|Claude|GPT)[:：]/gm) || []).length;
+    
+    // AI×AI対話の検出
+    const aiVsAiMarkers = (rawLog.match(/^(AI-[A-Z]|Claude-[A-Z]|GPT-[A-Z]|Assistant-[A-Z])[:：]/gm) || []).length;
+    if (aiVsAiMarkers >= 2) {
+      return 'ai_collaborative'; // 新しい分類
+    }
     
     if (userMarkers > aiMarkers * 1.5) return 'human_led';
     if (aiMarkers > userMarkers * 1.5) return 'ai_led';
