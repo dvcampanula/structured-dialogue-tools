@@ -69,7 +69,10 @@ class UnifiedLogProcessor {
     // 3. 統一チャンク処理
     const processedChunks = this.processChunksWithUnifiedContext(rawChunks, header);
     
-    // 4. メタデータ生成
+    // 4. ヘッダーのチャンク数更新
+    header.totalChunks = processedChunks.length;
+    
+    // 5. メタデータ生成
     const metadata = this.generateProcessingMetadata(startTime, header, processedChunks);
     
     return {

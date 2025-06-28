@@ -275,6 +275,22 @@
             display: block;
         }
         
+        .copy-btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+            margin-left: 12px;
+            transition: background-color 0.2s;
+        }
+        
+        .copy-btn:hover {
+            background: #2563eb;
+        }
+        
         .tabs {
             display: flex;
             border-bottom: 1px solid #e5e7eb;
@@ -329,8 +345,11 @@
                 </div>
                 
                 <div class="controls">
-                    <button class="btn btn-primary" onclick="processLog()">
-                        🚀 ログを処理
+                    <button class="btn btn-primary" onclick="processUnified()">
+                        ✨ 統一処理（推奨）
+                    </button>
+                    <button class="btn btn-secondary" onclick="processLog()">
+                        🚀 従来処理
                     </button>
                     <button class="btn btn-secondary" onclick="clearAll()">
                         🗑️ クリア
@@ -413,6 +432,45 @@
             document.getElementById(tabName + '-content').classList.add('active');
         }
 
+        async function processUnified() {
+            const rawLog = document.getElementById('rawLog').value.trim();
+            const sessionContext = document.getElementById('sessionContext').value.trim();
+            
+            if (!rawLog) {
+                showError('生ログを入力してください');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch('/api/process-unified', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        rawLog,
+                        sessionContext: sessionContext || undefined
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    currentResults = result;
+                    displayUnifiedResults(result);
+                } else {
+                    showError(result.error || '処理中にエラーが発生しました');
+                }
+            } catch (error) {
+                showError('サーバーとの通信エラー: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
         async function processLog() {
             const rawLog = document.getElementById('rawLog').value.trim();
             const sessionContext = document.getElementById('sessionContext').value.trim();
@@ -459,6 +517,82 @@
             } finally {
                 showLoading(false);
             }
+        }
+
+        function displayUnifiedResults(result) {
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value">${result.summary.originalLength.toLocaleString()}</div>
+                        <div class="summary-label">元の文字数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${result.summary.chunkCount}</div>
+                        <div class="summary-label">チャンク数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${result.summary.processingTime}ms</div>
+                        <div class="summary-label">処理時間</div>
+                    </div>
+                    <div class="summary-item unified-feature">
+                        <div class="summary-value">✨</div>
+                        <div class="summary-label">統一処理</div>
+                    </div>
+                </div>
+                
+                <div class="unified-header" style="margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                    <h3 style="color: #0c4a6e; margin-bottom: 12px;">📋 ${result.unified.header.title}</h3>
+                    <p><strong>主要概念:</strong> ${result.unified.header.mainConcepts.join(', ')}</p>
+                    <p><strong>議論範囲:</strong> ${result.unified.header.discussionScope}</p>
+                    <p><strong>対話形式:</strong> ${result.unified.header.dialogueType}</p>
+                    <p><strong>推奨ファイル名:</strong> ${result.unified.header.suggestedFilename}</p>
+                </div>
+            `;
+
+            const chunksContent = document.getElementById('chunks-content');
+            chunksContent.innerHTML = result.unified.chunks.map((chunk, index) => `
+                <div class="chunk">
+                    <div class="chunk-header">
+                        <div class="chunk-title">チャンク ${chunk.index}/${result.summary.chunkCount}</div>
+                        <div class="chunk-meta">
+                            文字範囲: ${chunk.characterRange}
+                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.continuationPrompt.replace(/`/g, '\\`')}\`)">
+                                📋 プロンプトをコピー
+                            </button>
+                        </div>
+                    </div>
+                    <div class="chunk-content">
+                        <h4>🎯 AI送信用プロンプト</h4>
+                        <pre>${escapeHtml(chunk.continuationPrompt)}</pre>
+                        <h4 style="margin-top: 16px;">📄 実際の内容（参考）</h4>
+                        <pre style="max-height: 200px; overflow-y: auto; background: #f8f9fa;">${escapeHtml(chunk.content.substring(0, 500))}${chunk.content.length > 500 ? '...' : ''}</pre>
+                    </div>
+                </div>
+            `).join('');
+
+            // プロンプトタブに統一出力を表示
+            const promptsContent = document.getElementById('prompts-content');
+            promptsContent.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 16px; background: #ecfdf5; border-radius: 8px;">
+                    <h3 style="color: #065f46;">✨ 統一ログヘッダーアプローチ</h3>
+                    <p>このログは全体として一貫したテーマで処理されます。各チャンクで上記の「プロンプトをコピー」ボタンを使用してAIに送信してください。</p>
+                </div>
+                <pre style="white-space: pre-wrap; font-size: 13px; line-height: 1.5;">${escapeHtml(result.unified.output)}</pre>
+            `;
+
+            // 書式タブ（従来と同じ形式で表示）
+            const formatsContent = document.getElementById('formats-content');
+            formatsContent.innerHTML = `
+                <div style="margin-bottom: 20px; padding: 16px; background: #fef3c7; border-radius: 8px;">
+                    <h3 style="color: #92400e;">📁 推奨ファイル名: ${result.unified.header.suggestedFilename}</h3>
+                    <p>統一処理により、一つのファイルで全体を管理できます。</p>
+                </div>
+                <pre style="white-space: pre-wrap; font-size: 13px; line-height: 1.5;">${escapeHtml(result.unified.output)}</pre>
+            `;
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
 
         function displayResults(result) {
@@ -521,6 +655,28 @@
 
         function hideError() {
             document.getElementById('error').classList.remove('show');
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                // 一時的に成功メッセージを表示
+                const originalText = event.target.textContent;
+                event.target.textContent = '✅ コピー完了';
+                event.target.style.background = '#10b981';
+                setTimeout(() => {
+                    event.target.textContent = originalText;
+                    event.target.style.background = '';
+                }, 2000);
+            }).catch(err => {
+                console.error('コピーに失敗:', err);
+                showError('クリップボードへのコピーに失敗しました');
+            });
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // 初期化

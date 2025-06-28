@@ -15,6 +15,7 @@ const __dirname = path.dirname(__filename);
 import { RawLogSplitter } from '../core/raw-log-splitter.js';
 import { NamingHelper } from '../core/naming-helper.js';
 import { LogFormatUnifier } from '../core/log-format-unifier.js';
+import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
 
 interface ProcessRequest {
   rawLog: string;
@@ -52,6 +53,7 @@ class StructuredDialogueApp {
   private splitter: RawLogSplitter;
   private namingHelper: NamingHelper;
   private formatUnifier: LogFormatUnifier;
+  private unifiedProcessor: UnifiedLogProcessor;
   private port: number;
 
   constructor(port: number = 3000) {
@@ -60,6 +62,7 @@ class StructuredDialogueApp {
     this.splitter = new RawLogSplitter();
     this.namingHelper = new NamingHelper();
     this.formatUnifier = new LogFormatUnifier();
+    this.unifiedProcessor = new UnifiedLogProcessor();
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -83,6 +86,9 @@ class StructuredDialogueApp {
   private setupRoutes(): void {
     // メイン処理エンドポイント
     this.app.post('/api/process-log', this.processLog.bind(this));
+    
+    // 統一処理エンドポイント（新機能）
+    this.app.post('/api/process-unified', this.processUnified.bind(this));
     
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
@@ -251,6 +257,65 @@ class StructuredDialogueApp {
     } catch (error) {
       console.error('❌ 処理エラー:', error);
       
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー',
+        summary: {
+          originalLength: 0,
+          chunkCount: 0,
+          avgChunkSize: 0,
+          processingTime: Date.now() - startTime
+        }
+      });
+    }
+  }
+
+  /**
+   * 統一ログ処理（新機能）
+   */
+  private async processUnified(req: express.Request, res: express.Response): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      const { rawLog, sessionContext } = req.body;
+      
+      if (!rawLog || typeof rawLog !== 'string') {
+        return res.status(400).json({
+          success: false,
+          error: '有効な生ログが必要です'
+        });
+      }
+
+      console.log(`🚀 統一処理開始: ${rawLog.length}文字`);
+      
+      // 統一処理実行
+      const unifiedStructure = await this.unifiedProcessor.processUnifiedLog(rawLog, sessionContext);
+      const unifiedOutput = this.unifiedProcessor.generateUnifiedOutput(unifiedStructure);
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ 統一処理完了: ${processingTime}ms`);
+      
+      // レスポンス
+      res.json({
+        success: true,
+        type: 'unified',
+        unified: {
+          header: unifiedStructure.header,
+          chunks: unifiedStructure.chunks,
+          metadata: unifiedStructure.metadata,
+          output: unifiedOutput
+        },
+        summary: {
+          originalLength: rawLog.length,
+          chunkCount: unifiedStructure.chunks.length,
+          avgChunkSize: Math.round(rawLog.length / unifiedStructure.chunks.length),
+          mainConcepts: unifiedStructure.header.mainConcepts,
+          processingTime
+        }
+      });
+      
+    } catch (error) {
+      console.error('統一処理エラー:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : '不明なエラー',
