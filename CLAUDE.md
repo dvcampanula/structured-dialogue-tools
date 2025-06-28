@@ -21,6 +21,16 @@ This repository structure is currently minimal. Add project-specific architectur
 - NVM (Node Version Manager) is installed and configured
 - Current Node.js version: v22.17.0
 
+## 🔄 Session Continuity
+
+**IMPORTANT**: When starting a new session, always check these files for context:
+
+1. **`docs/SESSION_HANDOVER.md`** - Critical issues and immediate action items
+2. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements  
+3. **`docs/DEVELOPMENT_LOG.md`** - Complete development history
+
+**Current Priority**: Fix individual log analysis accuracy issue (concepts from other logs contaminating individual results)
+
 ---
 
 # Claude Code 構造的対話プロンプト
