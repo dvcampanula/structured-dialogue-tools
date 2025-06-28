@@ -565,8 +565,13 @@
                     <div class="chunk-content">
                         <h4>🎯 AI送信用プロンプト</h4>
                         <pre>${escapeHtml(chunk.continuationPrompt)}</pre>
-                        <h4 style="margin-top: 16px;">📄 実際の内容（参考）</h4>
-                        <pre style="max-height: 200px; overflow-y: auto; background: #f8f9fa;">${escapeHtml(chunk.content.substring(0, 500))}${chunk.content.length > 500 ? '...' : ''}</pre>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
+                            <h4>📄 分割後の完全な原文</h4>
+                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">
+                                📄 原文をコピー
+                            </button>
+                        </div>
+                        <pre style="max-height: 400px; overflow-y: auto; background: #f8f9fa; white-space: pre-wrap;">${escapeHtml(chunk.content)}</pre>
                     </div>
                 </div>
             `).join('');
