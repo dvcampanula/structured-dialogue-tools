@@ -7,12 +7,16 @@
   "scripts": {
     "start": "tsx src/web/structured-dialogue-app.ts",
     "dev": "tsx --watch src/web/structured-dialogue-app.ts",
-    "test:split": "tsx src/core/raw-log-splitter.ts",
+    "test:split": "cd tests && tsx test-splitter.ts",
+    "test:multiple": "cd tests && tsx test-multiple-logs.ts",
     "test:naming": "tsx src/core/naming-helper.ts",
     "test:format": "tsx src/core/log-format-unifier.ts",
     "analyze:logs": "tsx src/core/log-pattern-analyzer.ts",
+    "analyze:concepts": "tsx src/tools/concept-analyzer.ts",
+    "experiment:ai": "tsx src/experiments/ai-experiment.ts",
+    "demo:comparison": "tsx src/experiments/demo-comparison.ts",
     "build": "tsc",
-    "test": "echo \"テストは未実装\" && exit 0"
+    "test": "npm run test:multiple"
   },
   "keywords": [
     "structured-dialogue",
