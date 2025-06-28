@@ -557,7 +557,7 @@
                         <div class="chunk-title">チャンク ${chunk.index}/${result.summary.chunkCount}</div>
                         <div class="chunk-meta">
                             文字範囲: ${chunk.characterRange}
-                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.continuationPrompt.replace(/`/g, '\\`')}\`)">
+                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.continuationPrompt.replace(/`/g, '\\`')}\`, this)">
                                 📋 プロンプトをコピー
                             </button>
                         </div>
@@ -567,7 +567,7 @@
                         <pre>${escapeHtml(chunk.continuationPrompt)}</pre>
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px;">
                             <h4>📄 分割後の完全な原文</h4>
-                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`)">
+                            <button class="copy-btn" onclick="copyToClipboard(\`${chunk.content.replace(/`/g, '\\`').replace(/\\/g, '\\\\')}\`, this)">
                                 📄 原文をコピー
                             </button>
                         </div>
@@ -662,20 +662,34 @@
             document.getElementById('error').classList.remove('show');
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text).then(() => {
-                // 一時的に成功メッセージを表示
-                const originalText = event.target.textContent;
-                event.target.textContent = '✅ コピー完了';
-                event.target.style.background = '#10b981';
-                setTimeout(() => {
-                    event.target.textContent = originalText;
-                    event.target.style.background = '';
-                }, 2000);
-            }).catch(err => {
-                console.error('コピーに失敗:', err);
-                showError('クリップボードへのコピーに失敗しました');
-            });
+        function copyToClipboard(text, element) {
+            try {
+                // elementが渡されない場合はevent.targetを使用（後方互換性）
+                const button = element || (typeof event !== 'undefined' ? event.target : null);
+                
+                if (!navigator.clipboard) {
+                    throw new Error('Clipboard API not supported');
+                }
+                
+                navigator.clipboard.writeText(text).then(() => {
+                    if (button) {
+                        // 一時的に成功メッセージを表示
+                        const originalText = button.textContent;
+                        button.textContent = '✅ コピー完了';
+                        button.style.background = '#10b981';
+                        setTimeout(() => {
+                            button.textContent = originalText;
+                            button.style.background = '';
+                        }, 2000);
+                    }
+                }).catch(err => {
+                    console.error('コピーに失敗:', err);
+                    showError('クリップボードへのコピーに失敗しました: ' + err.message);
+                });
+            } catch (err) {
+                console.error('コピー関数エラー:', err);
+                showError('コピー機能が利用できません: ' + err.message);
+            }
         }
 
         function escapeHtml(text) {
