@@ -317,11 +317,44 @@ class RawLogSplitter {
     let summary = '';
     
     if (userPrompts.length > 0) {
-      summary = userPrompts[0].replace(/^(User|Human|ユーザー|質問|依頼)[:：]\s*/, '').substring(0, 80);
+      summary = this.smartTruncate(userPrompts[0].replace(/^(User|Human|ユーザー|質問|依頼)[:：]\s*/, ''), 80);
     } else if (headers.length > 0) {
-      summary = headers[0].replace(/^#+\s*/, '').substring(0, 80);
+      summary = this.smartTruncate(headers[0].replace(/^#+\s*/, ''), 80);
     } else {
-      summary = lines.slice(0, 2).join(' ').substring(0, 80);
+      // 完全な文を探すため、句読点以降から開始
+      const fullText = lines.join(' ');
+      
+      // 文区切り文字を探す
+      const sentenceBreaks = [
+        fullText.indexOf('。'),
+        fullText.indexOf('！'),
+        fullText.indexOf('？'),
+        fullText.indexOf('. '),
+        fullText.indexOf('! '),
+        fullText.indexOf('? ')
+      ].filter(pos => pos !== -1);
+      
+      if (sentenceBreaks.length > 0) {
+        // 最初の文区切り以降から開始
+        const firstBreak = Math.min(...sentenceBreaks);
+        const fromComplete = fullText.substring(firstBreak + 1).trim();
+        
+        if (fromComplete.length >= 20) {
+          // 次の文の最初の80文字を使用
+          summary = this.smartTruncate(fromComplete, 80);
+        } else {
+          // fallback: 2番目の文区切りから
+          const secondBreak = sentenceBreaks.find(pos => pos > firstBreak);
+          if (secondBreak && secondBreak !== -1) {
+            const fromSecond = fullText.substring(secondBreak + 1).trim();
+            summary = this.smartTruncate(fromSecond, 80);
+          } else {
+            summary = this.smartTruncate(fullText.trim(), 80);
+          }
+        }
+      } else {
+        summary = this.smartTruncate(fullText.trim(), 80);
+      }
     }
     
     // キーワード抽出
@@ -333,52 +366,107 @@ class RawLogSplitter {
   }
 
   /**
-   * キーワード抽出
+   * キーワード抽出（学習型）
    */
   private extractKeywords(content: string): string[] {
+    // 従来のルールベース + 学習型の組み合わせ
+    const ruleBasedKeywords = this.extractRuleBasedKeywords(content);
+    const adaptiveKeywords = this.extractAdaptiveKeywords(content);
+    
+    // 重複除去して結合
+    const allKeywords = [...new Set([...adaptiveKeywords, ...ruleBasedKeywords])];
+    
+    return allKeywords.slice(0, 5); // 上位5個に制限
+  }
+  
+  /**
+   * ルールベースキーワード抽出（既存概念）
+   */
+  private extractRuleBasedKeywords(content: string): string[] {
     const keywords: string[] = [];
     
-    // 構造的対話特有のキーワードパターン
     const dialoguePatterns = [
-      // 核心概念
       /構造的対話/g,
       /メタ認知/g,
       /再帰的/g,
       /継承性/g,
       /セーブポイント/g,
-      
-      // フェーズ・カテゴリ
       /discovery|trigger|extension|propagation|finalize|transition/g,
-      /p0[0-9]|phase|フェーズ/g,
-      
-      // AI・技術用語
       /Claude|GPT|Gemini|ChatGPT/g,
-      /TypeScript|JavaScript|Node\.js|API/g,
-      /プロンプト|prompt/g,
-      /コンテキスト|context/g,
-      
-      // 分析・実装用語
-      /分析|解析|implementation|実装/g,
-      /パターン|pattern|構造|structure/g,
-      /自動化|automation|ツール|tool/g
+      /構造|structure|パターン|pattern/g
     ];
     
     dialoguePatterns.forEach(pattern => {
       const matches = content.match(pattern);
       if (matches) {
-        keywords.push(...matches.slice(0, 3));
+        keywords.push(...matches.slice(0, 2));
       }
     });
     
-    // 重複除去と優先順位付け
-    const uniqueKeywords = [...new Set(keywords)];
+    return [...new Set(keywords)];
+  }
+  
+  /**
+   * 学習型キーワード抽出（新概念対応）
+   */
+  private extractAdaptiveKeywords(content: string): string[] {
+    const keywords: string[] = [];
     
-    // 「構造的対話」を最優先
-    return uniqueKeywords.sort((a, b) => {
-      if (a.includes('構造的対話')) return -1;
-      if (b.includes('構造的対話')) return 1;
-      return 0;
+    // 高重要度パターン（学習結果から）
+    const learnedPatterns = [
+      /構造的協働思考[^。]{0,10}/g,
+      /[^。]{0,5}モード[^。]{0,5}/g,
+      /[^。]{0,5}データ[^。]{0,5}/g,
+      /セーブ[^。]{0,10}/g,
+      /「[^」]{3,15}」/g // 引用概念
+    ];
+    
+    learnedPatterns.forEach(pattern => {
+      const matches = content.match(pattern);
+      if (matches) {
+        keywords.push(...matches.slice(0, 2));
+      }
     });
+    
+    return [...new Set(keywords)]
+      .map(kw => kw.replace(/「|」/g, '')) // 引用符除去
+      .filter(kw => kw.length >= 3 && kw.length <= 20);
+  }
+
+  /**
+   * 単語境界を考慮したスマートな切り詰め
+   */
+  private smartTruncate(text: string, maxLength: number): string {
+    if (text.length <= maxLength) {
+      return text;
+    }
+    
+    // maxLength内での最後の単語境界を探す
+    const truncated = text.substring(0, maxLength);
+    
+    // 日本語の場合は句読点や助詞で区切る
+    const jpBreakPoints = ['。', '、', 'の', 'が', 'を', 'に', 'は', 'で', 'と', 'し', 'て'];
+    
+    // 英語の場合はスペースで区切る
+    const enBreakPoint = truncated.lastIndexOf(' ');
+    
+    // 日本語の句読点を探す
+    let jpBreakPoint = -1;
+    for (const point of jpBreakPoints) {
+      const pos = truncated.lastIndexOf(point);
+      if (pos > jpBreakPoint) {
+        jpBreakPoint = pos + point.length;
+      }
+    }
+    
+    // より後ろの区切り点を使用
+    const breakPoint = Math.max(jpBreakPoint, enBreakPoint);
+    
+    if (breakPoint > maxLength * 0.7) { // 70%以上なら区切り点を使用
+      return text.substring(0, breakPoint);
+    } else {
+      return text.substring(0, maxLength - 3) + '...';
+    }
   }
 
   /**
