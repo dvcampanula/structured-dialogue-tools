@@ -581,9 +581,9 @@
                 <pre style="white-space: pre-wrap; font-size: 13px; line-height: 1.5;">${escapeHtml(result.unified.output)}</pre>
             `;
 
-            // 書式タブ（従来と同じ形式で表示）
-            const formatsContent = document.getElementById('formats-content');
-            formatsContent.innerHTML = `
+            // 統一書式タブに統一出力を表示
+            const unifiedContent = document.getElementById('unified-content');
+            unifiedContent.innerHTML = `
                 <div style="margin-bottom: 20px; padding: 16px; background: #fef3c7; border-radius: 8px;">
                     <h3 style="color: #92400e;">📁 推奨ファイル名: ${result.unified.header.suggestedFilename}</h3>
                     <p>統一処理により、一つのファイルで全体を管理できます。</p>
