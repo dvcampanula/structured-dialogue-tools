@@ -25,11 +25,11 @@ This repository structure is currently minimal. Add project-specific architectur
 
 **IMPORTANT**: When starting a new session, always check these files for context:
 
-1. **`docs/SESSION_HANDOVER.md`** - Critical issues and immediate action items
-2. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements  
-3. **`docs/DEVELOPMENT_LOG.md`** - Complete development history
+1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
+2. **`docs/SESSION_HANDOVER.md`** - Critical issues and immediate action items
+3. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Priority**: Fix individual log analysis accuracy issue (concepts from other logs contaminating individual results)
+**Current Priority**: Ready for next development phase - individual log analysis issue resolved
 
 ---
 
