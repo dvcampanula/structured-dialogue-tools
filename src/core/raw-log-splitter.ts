@@ -300,14 +300,35 @@ class RawLogSplitter {
    * 文脈要約生成
    */
   private generateContextSummary(content: string): string {
-    const firstLines = content.split('\n').slice(0, 3).join(' ');
-    const summary = firstLines.substring(0, 100);
+    // 構造的対話ログの特徴的な部分を優先的に抽出
+    const lines = content.split('\n');
+    
+    // 1. 対話の開始部分を検出
+    const userPrompts = lines.filter(line => 
+      /^(User|Human|ユーザー|質問|依頼)[:：]/.test(line.trim())
+    );
+    
+    // 2. 見出しや重要な構造を検出
+    const headers = lines.filter(line => 
+      /^#{1,3}\s/.test(line.trim()) || /^(## |### )/.test(line.trim())
+    );
+    
+    // 3. 要約を構築
+    let summary = '';
+    
+    if (userPrompts.length > 0) {
+      summary = userPrompts[0].replace(/^(User|Human|ユーザー|質問|依頼)[:：]\s*/, '').substring(0, 80);
+    } else if (headers.length > 0) {
+      summary = headers[0].replace(/^#+\s*/, '').substring(0, 80);
+    } else {
+      summary = lines.slice(0, 2).join(' ').substring(0, 80);
+    }
     
     // キーワード抽出
     const keywords = this.extractKeywords(content);
     
     return keywords.length > 0 
-      ? `${summary}... [キーワード: ${keywords.slice(0, 3).join(', ')}]`
+      ? `${summary}... [${keywords.slice(0, 2).join(', ')}]`
       : `${summary}...`;
   }
 
@@ -317,21 +338,47 @@ class RawLogSplitter {
   private extractKeywords(content: string): string[] {
     const keywords: string[] = [];
     
-    // 頻出技術用語パターン
-    const techPatterns = [
+    // 構造的対話特有のキーワードパターン
+    const dialoguePatterns = [
+      // 核心概念
       /構造的対話/g,
-      /[A-Z][a-z]+[A-Z][a-z]+/g, // CamelCase
-      /[a-zA-Z]{3,}(?:\s+[a-zA-Z]{3,}){1,2}/g // 技術用語
+      /メタ認知/g,
+      /再帰的/g,
+      /継承性/g,
+      /セーブポイント/g,
+      
+      // フェーズ・カテゴリ
+      /discovery|trigger|extension|propagation|finalize|transition/g,
+      /p0[0-9]|phase|フェーズ/g,
+      
+      // AI・技術用語
+      /Claude|GPT|Gemini|ChatGPT/g,
+      /TypeScript|JavaScript|Node\.js|API/g,
+      /プロンプト|prompt/g,
+      /コンテキスト|context/g,
+      
+      // 分析・実装用語
+      /分析|解析|implementation|実装/g,
+      /パターン|pattern|構造|structure/g,
+      /自動化|automation|ツール|tool/g
     ];
     
-    techPatterns.forEach(pattern => {
+    dialoguePatterns.forEach(pattern => {
       const matches = content.match(pattern);
       if (matches) {
-        keywords.push(...matches.slice(0, 5));
+        keywords.push(...matches.slice(0, 3));
       }
     });
     
-    return [...new Set(keywords)];
+    // 重複除去と優先順位付け
+    const uniqueKeywords = [...new Set(keywords)];
+    
+    // 「構造的対話」を最優先
+    return uniqueKeywords.sort((a, b) => {
+      if (a.includes('構造的対話')) return -1;
+      if (b.includes('構造的対話')) return 1;
+      return 0;
+    });
   }
 
   /**
