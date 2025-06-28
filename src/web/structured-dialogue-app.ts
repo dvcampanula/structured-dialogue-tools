@@ -63,7 +63,9 @@ class StructuredDialogueApp {
     
     this.setupMiddleware();
     this.setupRoutes();
-    this.initializeHelpers();
+    
+    // 初期化を非同期で実行
+    setTimeout(() => this.initializeHelpers(), 0);
   }
 
   /**
@@ -414,19 +416,24 @@ class StructuredDialogueApp {
    * サーバー起動
    */
   public start(): void {
-    this.app.listen(this.port, () => {
-      console.log(`🚀 構造的対話アプリケーション起動`);
-      console.log(`📱 URL: http://localhost:${this.port}`);
-      console.log(`🔧 API: http://localhost:${this.port}/api/`);
+    console.log(`🚀 構造的対話アプリケーション起動`);
+    console.log(`📱 URL: http://localhost:${this.port}`);
+    console.log(`🔧 API: http://localhost:${this.port}/api/`);
+    
+    this.app.listen(this.port, '0.0.0.0', (err?: Error) => {
+      if (err) {
+        console.error('❌ サーバー起動エラー:', err);
+        return;
+      }
+      console.log(`✅ サーバーがポート${this.port}で正常に起動しました`);
+      console.log(`🌐 WSL外部アクセス: http://localhost:${this.port} (Windowsブラウザから)`);
     });
   }
 }
 
 // 実行
-// アプリケーション絶対実行用（直接実行時のみ）
-if (import.meta.url === `file://${process.argv[1]}`) {
-  const app = new StructuredDialogueApp(3000);
-  app.start();
-}
+// アプリケーション起動
+const app = new StructuredDialogueApp(3000);
+app.start();
 
 export { StructuredDialogueApp };
