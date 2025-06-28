@@ -1,16 +1,22 @@
-# 構造的対話ツール群
+# Structured Dialogue Tools
 
-AIとの対話ログを自動分割・命名・書式統一するツール群
+AIとの構造的対話ログを自動分割・統一処理・構造化するツール群
 
 ## 🎯 概要
 
-長いAI対話ログ（最大17万文字）を効率的に処理し、構造化された対話ログを生成するツールセットです。
+長いAI対話ログ（最大17万文字）を効率的に処理し、統一された構造的対話ログを生成するツールセットです。
 
-### 主要機能
-- **自動分割**: 意味境界を認識した最適分割（10,000字前後）
-- **命名支援**: 既存パターンを学習した自動ファイル名生成
-- **書式統一**: 一貫した構造化ログ形式への変換
-- **文脈保持**: チャンク間のオーバーラップによる情報欠損防止
+### 🚀 統一ログヘッダーアプローチ（最新）
+- **全体概念抽出**: ログ全体から主要概念を自動抽出
+- **統一命名**: 一貫したファイル名とテーマ管理  
+- **文脈保持分割**: 分割は文脈圧縮回避の手段として位置付け
+- **品質保証**: 90%概念カバレッジ、8-13ms高速処理
+
+### 従来機能との違い
+```
+❌ Before: チャンク1[技術] → file1, チャンク2[SSR] → file2 (断片化)
+✅ After:  "構造的AI協働ログ" → 統一テーマでの一貫処理
+```
 
 ## 🚀 クイックスタート
 
@@ -31,17 +37,17 @@ npm start
 
 ### 個別ツール実行
 ```bash
-# ログパターン分析
-npm run analyze:logs
+# 複数ログテスト（推奨）
+npm run test:multiple
 
-# 分割ツールテスト
-npm run test:split
+# 統一処理テスト（最新）
+npx tsx tests/test-unified-processor.ts
 
-# 命名ヘルパーテスト
-npm run test:naming
+# 概念分析
+npm run analyze:concepts
 
-# 書式統一ツールテスト
-npm run test:format
+# Before/After実験
+npm run experiment:ai
 ```
 
 ## 📊 使用例
@@ -70,18 +76,28 @@ AI用の詳細指示17個
 
 ## 🛠️ ツール構成
 
+### 📁 プロジェクト構造
+```
+structured-dialogue-tools/
+├── src/
+│   ├── core/          # 核心機能
+│   │   ├── raw-log-splitter.ts       # 従来の分割機能
+│   │   └── unified-log-processor.ts  # 統一処理システム★
+│   ├── web/           # Webアプリケーション
+│   ├── tools/         # 分析ツール
+│   └── experiments/   # 実験・デモツール
+├── tests/             # テストファイル・データ（gitignore）
+└── docs/              # ドキュメント類
+    ├── LATEST_SESSION.md     # 最新状況★
+    ├── DEVELOPMENT_LOG.md    # 完全な開発履歴
+    └── usage-guide.md        # 詳細な使用ガイド
+```
+
 ### 核心ツール
-- `raw-log-splitter.ts` - 生ログ分割エンジン
+- `unified-log-processor.ts` - **統一処理システム（最新）**
+- `raw-log-splitter.ts` - 生ログ分割エンジン（従来）
 - `naming-helper.ts` - 命名支援システム
 - `log-format-unifier.ts` - 書式統一ツール
-
-### 分析ツール
-- `log-pattern-analyzer.ts` - 既存ログパターン分析
-- `log-format-analyzer.ts` - 書式構造分析
-
-### 統合アプリ
-- `structured-dialogue-app.ts` - Webアプリケーション
-- `public/index.html` - フロントエンドUI
 
 ## 📁 ファイル命名規則
 
@@ -175,10 +191,25 @@ MIT License - 詳細は [LICENSE](LICENSE) ファイルを参照
 - [構造的対話フレームワーク](https://github.com/dvcampanula/structured-dialogue)
 - [Claude Code](https://claude.ai/code)
 
+## 🔧 開発状況
+
+**現在の状態**: 統一ログヘッダーアプローチ実装完了  
+**次の優先タスク**: Webアプリ統合、効果測定システム
+
+### 最新の成果
+- ✅ プロジェクト構造完全整理
+- ✅ 統一処理システム実装
+- ✅ 3種類ログでの動作確認（30K-107K文字）
+- ✅ Git履歴クリーンアップ
+
+### 次回セッション準備
+最新状況は `docs/LATEST_SESSION.md` を参照
+
 ---
 
 **開発者**: dvcampanula  
 **作成日**: 2025-06-27  
-**バージョン**: 1.0.0
+**最終更新**: 2025-06-28  
+**バージョン**: 1.1.0
 
 🤖 Generated with [Claude Code](https://claude.ai/code)
