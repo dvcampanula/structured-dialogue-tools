@@ -6,11 +6,13 @@
  */
 
 import { RawLogSplitter, type LogChunk } from './raw-log-splitter.js';
+import { QualityAssessment, type QualityMetrics } from './quality-metrics.js';
 
 interface UnifiedLogStructure {
   header: LogHeader;
   chunks: ProcessedChunk[];
   metadata: ProcessingMetadata;
+  qualityMetrics?: QualityMetrics;
 }
 
 interface LogHeader {
@@ -42,6 +44,7 @@ interface ProcessingMetadata {
 
 class UnifiedLogProcessor {
   private logSplitter: RawLogSplitter;
+  private qualityAssessment: QualityAssessment;
   
   constructor() {
     this.logSplitter = new RawLogSplitter({
@@ -52,18 +55,23 @@ class UnifiedLogProcessor {
       addChunkHeaders: false,  // ヘッダーは統一で管理
       overlapSize: 300
     });
+    this.qualityAssessment = new QualityAssessment();
   }
 
   /**
    * ログ全体を統一構造で処理
    */
   async processUnifiedLog(rawLog: string, sessionContext?: string): Promise<UnifiedLogStructure> {
+    // 品質測定開始
+    this.qualityAssessment.startProcessing();
     const startTime = Date.now();
     
-    // 1. 全体分析
+    // 1. 全体分析（概念抽出）
+    this.qualityAssessment.startConceptExtraction();
     const header = await this.analyzeLogHeader(rawLog, sessionContext);
     
     // 2. 文脈保持分割
+    this.qualityAssessment.startChunkProcessing();
     const rawChunks = this.logSplitter.splitRawLog(rawLog, header.title);
     
     // 3. 統一チャンク処理
@@ -75,10 +83,20 @@ class UnifiedLogProcessor {
     // 5. メタデータ生成
     const metadata = this.generateProcessingMetadata(startTime, header, processedChunks);
     
-    return {
+    // 6. 品質測定実行
+    const structure: UnifiedLogStructure = {
       header,
       chunks: processedChunks,
       metadata
+    };
+    
+    const qualityMetrics = this.qualityAssessment.assessQuality(structure, rawLog.length);
+    
+    return {
+      header,
+      chunks: processedChunks,
+      metadata,
+      qualityMetrics
     };
   }
 
@@ -300,7 +318,7 @@ ${chunk.content}
    * 統一構造の出力生成
    */
   generateUnifiedOutput(structure: UnifiedLogStructure): string {
-    const { header, chunks, metadata } = structure;
+    const { header, chunks, metadata, qualityMetrics } = structure;
     
     let output = `# ${header.title}\n\n`;
     output += `## 📊 ログ概要\n`;
@@ -311,10 +329,22 @@ ${chunk.content}
     output += `- **対話形式**: ${header.dialogueType}\n`;
     output += `- **推奨ファイル名**: ${header.suggestedFilename}\n\n`;
     
-    output += `## 🎯 品質指標\n`;
-    output += `- **概念カバレッジ**: ${metadata.qualityMetrics.conceptCoverage}%\n`;
-    output += `- **文脈保持度**: ${metadata.qualityMetrics.contextPreservation}%\n`;
-    output += `- **チャンク一貫性**: ${metadata.qualityMetrics.chunkCoherence}%\n\n`;
+    // 品質メトリクスが利用可能な場合は詳細な品質指標を表示
+    if (qualityMetrics) {
+      output += `## 🎯 詳細品質指標\n`;
+      output += `- **総合スコア**: ${qualityMetrics.overallScore.toFixed(1)}/100\n`;
+      output += `- **概念検出数**: ${qualityMetrics.conceptDetection.detectedConceptsCount}個\n`;
+      output += `- **概念カバレッジ**: ${qualityMetrics.conceptDetection.conceptCoverage.toFixed(1)}%\n`;
+      output += `- **処理時間**: ${qualityMetrics.processingPerformance.totalProcessingTime}ms\n`;
+      output += `- **文脈保持**: ${qualityMetrics.structuralQuality.contextPreservationScore.toFixed(1)}%\n`;
+      output += `- **チャンク一貫性**: ${qualityMetrics.structuralQuality.chunkCoherenceScore.toFixed(1)}%\n\n`;
+    } else {
+      // 従来の固定値品質指標（後方互換性）
+      output += `## 🎯 品質指標\n`;
+      output += `- **概念カバレッジ**: ${metadata.qualityMetrics.conceptCoverage}%\n`;
+      output += `- **文脈保持度**: ${metadata.qualityMetrics.contextPreservation}%\n`;
+      output += `- **チャンク一貫性**: ${metadata.qualityMetrics.chunkCoherence}%\n\n`;
+    }
     
     chunks.forEach((chunk, index) => {
       output += `## チャンク ${chunk.index}/${header.totalChunks}\n`;
@@ -329,6 +359,17 @@ ${chunk.content}
     });
     
     return output;
+  }
+
+  /**
+   * 品質メトリクスレポートの生成
+   */
+  generateQualityReport(structure: UnifiedLogStructure): string {
+    if (!structure.qualityMetrics) {
+      return '品質メトリクスが利用できません。';
+    }
+    
+    return this.qualityAssessment.formatMetricsReport(structure.qualityMetrics);
   }
 }
 

@@ -38,7 +38,7 @@ interface NamingSuggestion {
 
 class NamingHelper {
   private analyzer: LogPatternAnalyzer;
-  private categoryRules: Map<string, RegExp[]>;
+  private categoryRules: Map<string, RegExp[]> = new Map();
 
   constructor() {
     this.analyzer = new LogPatternAnalyzer();

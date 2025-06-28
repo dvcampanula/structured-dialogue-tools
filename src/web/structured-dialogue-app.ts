@@ -280,10 +280,11 @@ class StructuredDialogueApp {
       const { rawLog, sessionContext } = req.body;
       
       if (!rawLog || typeof rawLog !== 'string') {
-        return res.status(400).json({
+        res.status(400).json({
           success: false,
           error: '有効な生ログが必要です'
         });
+        return;
       }
 
       console.log(`🚀 統一処理開始: ${rawLog.length}文字`);
@@ -303,6 +304,7 @@ class StructuredDialogueApp {
           header: unifiedStructure.header,
           chunks: unifiedStructure.chunks,
           metadata: unifiedStructure.metadata,
+          qualityMetrics: unifiedStructure.qualityMetrics,
           output: unifiedOutput
         },
         summary: {
