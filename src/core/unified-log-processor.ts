@@ -265,6 +265,49 @@ ${chunk.content}
   }
 
   /**
+   * チャンクの位置づけを判定
+   */
+  private getChunkPositionDescription(currentIndex: number, totalChunks: number): string {
+    if (currentIndex === 1) {
+      return '導入・問題提起部分';
+    }
+    
+    if (currentIndex === totalChunks) {
+      return '結論・まとめ部分';
+    }
+    
+    // 中間チャンクの詳細な位置づけ
+    if (totalChunks === 2) {
+      return '主要議論・結論部分';
+    }
+    
+    if (totalChunks === 3) {
+      return '主要議論・発展部分';
+    }
+    
+    if (totalChunks === 4) {
+      if (currentIndex === 2) {
+        return '主要議論・概念発展部分';
+      } else {
+        return '深化・応用部分';
+      }
+    }
+    
+    if (totalChunks >= 5) {
+      const position = currentIndex / totalChunks;
+      if (position <= 0.4) {
+        return '主要議論・概念発展部分';
+      } else if (position <= 0.7) {
+        return '深化・応用部分';
+      } else {
+        return '統合・発展部分';
+      }
+    }
+    
+    return `発展部分 (${currentIndex}/${totalChunks})`;
+  }
+
+  /**
    * 継続プロンプト生成（完全版 - 指示 + 実際のログ内容）
    */
   private generateContinuationPrompt(chunk: LogChunk, header: LogHeader, currentIndex: number, totalChunks: number): string {
@@ -276,9 +319,7 @@ ${chunk.content}
 - **議論範囲**: ${header.discussionScope}
 
 ## このチャンクの位置づけ
-${currentIndex === 1 ? '導入・問題提起部分' : 
-  currentIndex === totalChunks ? '結論・まとめ部分' : 
-  `展開部分 (${currentIndex}/${totalChunks})`}
+${this.getChunkPositionDescription(currentIndex, totalChunks)}
 
 ## 構造化指示
 1. 全体テーマとの関連性を明確に
