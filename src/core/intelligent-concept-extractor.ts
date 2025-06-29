@@ -676,10 +676,15 @@ export class IntelligentConceptExtractor {
       '哲学', '本質', '真理', '核心', '要諦'
     ];
     
-    // 一般的すぎる技術用語は除外
+    // 一般的すぎる技術用語は除外（構造的対話用調整）
     const commonTechTerms = [
       'モデル', 'システム', 'メカニズム', 'プロトコル', 'フレームワーク', 'アーキテクチャ', 'スキーマ',
       'アルゴリズム', 'データ', '情報', '技術', '方法', '手法', '処理', '機能', '性能'
+    ];
+    
+    // 構造的対話での基本概念（深層扱いしない）
+    const structuralBasicTerms = [
+      '構造分析', '構造変換', '構造的理解', '構造化', '構造的思考', '構造的アプローチ'
     ];
     
     const hasRevolutionary = revolutionaryIndicators.some(indicator => 
@@ -687,8 +692,9 @@ export class IntelligentConceptExtractor {
     );
     
     const isCommonTech = commonTechTerms.some(term => concept.includes(term));
+    const isStructuralBasic = structuralBasicTerms.some(term => concept.includes(term) || term.includes(concept));
     
-    if (hasRevolutionary && !isCommonTech) {
+    if (hasRevolutionary && !isCommonTech && !isStructuralBasic) {
       score += 0.5; // 真の革新概念により高スコア
       patterns.push('revolutionary_indicator');
       reasoning += '革命的概念指標, ';
@@ -696,6 +702,27 @@ export class IntelligentConceptExtractor {
       score -= 0.2; // 一般技術用語はスコア減点
       patterns.push('common_tech_penalty');
       reasoning += '一般技術用語減点, ';
+    } else if (isStructuralBasic) {
+      score -= 0.1; // 構造的対話基本用語は軽減点
+      patterns.push('structural_basic_penalty');
+      reasoning += '構造基本用語, ';
+    }
+    
+    // 構造的対話特有の革新概念を評価
+    const structuralInnovativeTerms = [
+      '構造ハック', '構造突破', '構造革命', '構造発見', '構造創出', '構造生成',
+      'レイヤード・プロンプティング', 'セーブデータ理論', '構造的協働思考',
+      '概念共同生成', 'コンテキスト圧縮', '応答固定化'
+    ];
+    
+    const isStructuralInnovative = structuralInnovativeTerms.some(term => 
+      concept.includes(term) || term.includes(concept)
+    );
+    
+    if (isStructuralInnovative) {
+      score += 0.4; // 構造的対話の革新概念
+      patterns.push('structural_innovative');
+      reasoning += '構造対話革新概念, ';
     }
 
     // 数学・科学分野の専門用語
@@ -895,8 +922,14 @@ export class IntelligentConceptExtractor {
     const revolutionaryMarkers = timeMarkers.filter(m => m.efficiency === 'revolutionary').length;
     score += revolutionaryMarkers * 1.0;
 
-    // 真の革新キーワード（厳選）
-    const realInnovationWords = ['コラッツ予想', 'P≠NP', '30分で解決', '2-3時間で突破', 'ブレークスルー', 'パラダイムシフト'];
+    // 真の革新キーワード（構造的対話対応）
+    const realInnovationWords = [
+      // 数学・科学的革新
+      'コラッツ予想', 'P≠NP', '30分で解決', '2-3時間で突破', 'ブレークスルー', 'パラダイムシフト',
+      // 構造的対話革新
+      'レイヤード・プロンプティング', 'セーブデータ理論', '構造的協働思考', '概念共同生成',
+      'コンテキスト圧縮', '応答固定化', '構造ハック', '新概念創出'
+    ];
     const foundInnovations = realInnovationWords.filter(word => content.includes(word)).length;
     score += foundInnovations * 2; // 真の革新なら大幅加点
 
