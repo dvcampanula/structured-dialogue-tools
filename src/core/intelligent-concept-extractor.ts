@@ -373,8 +373,8 @@ export class IntelligentConceptExtractor {
     surfaceConcepts.sort((a, b) => b.confidence - a.confidence);
     
     return {
-      surfaceConcepts: surfaceConcepts.slice(0, 10),
-      deepConcepts: deepConcepts.slice(0, 10)
+      surfaceConcepts: surfaceConcepts.slice(0, 8),
+      deepConcepts: deepConcepts.slice(0, 5) // 深層概念は厳選
     };
   }
 
@@ -464,18 +464,24 @@ export class IntelligentConceptExtractor {
       reasoning += '複雑性, ';
     }
 
-    // 包括的ストップワード除外
+    // 包括的ストップワード除外（大幅拡充）
     const stopWords = [
-      // 助詞・接続詞
-      'から', 'して', 'ため', 'もの', 'こと', 'ところ', 'など', 'による', 'について', 'として', 'という', 'それは', 'これは', 'そして', 'また', 'しかし', 'なので', 'だから', 'でも', 'けれど',
-      // 一般動詞・形容詞
-      'ある', 'いる', 'する', 'なる', 'できる', 'ない', 'よい', '良い', 'きれい', '美しい', '大きい', '小さい', '新しい', '古い',
+      // 助詞・接続詞・副詞
+      'から', 'して', 'ため', 'もの', 'こと', 'ところ', 'など', 'による', 'について', 'として', 'という', 'それは', 'これは', 'そして', 'また', 'しかし', 'なので', 'だから', 'でも', 'けれど', 'つまり', 'すなわち', 'しかし', 'ただし', 'ちなみに', 'もちろん', 'たとえば', 'なお', 'さらに', 'とくに', 'いわゆる',
+      // 一般動詞・形容詞（基本語彙）
+      'ある', 'いる', 'する', 'なる', 'できる', 'ない', 'よい', '良い', 'きれい', '美しい', '大きい', '小さい', '新しい', '古い', '思う', '考える', '感じる', '見る', '聞く', '言う', '話す', '読む', '書く', '作る', '使う', '持つ', '取る', '行く', '来る', '帰る', '出る', '入る', '立つ', '座る', '歩く', '走る', '飛ぶ', '泳ぐ', '食べる', '飲む', '寝る', '起きる', '学ぶ', '教える', '働く', '遊ぶ', '買う', '売る', '貸す', '借りる', '送る', '受ける', '開く', '閉じる', '始める', '終わる', '続ける', '止める', '待つ', '急ぐ', '忘れる', '覚える', '知る', '分かる', '信じる', '疑う', '決める', '選ぶ', '変える', '直す', '壊す', '失う', '見つける', '探す', '呼ぶ', '答える', '聞く', '頼む', '手伝う', '助ける', '守る', '攻める', '勝つ', '負ける', '笑う', '泣く', '怒る', '喜ぶ', '驚く', '困る', '心配', '安心', '緊張', 'リラックス',
       // 代名詞・指示語
-      'これ', 'それ', 'あれ', 'この', 'その', 'あの', 'ここ', 'そこ', 'あそこ', '私', 'あなた', '彼', '彼女',
+      'これ', 'それ', 'あれ', 'この', 'その', 'あの', 'ここ', 'そこ', 'あそこ', '私', 'あなた', '彼', '彼女', '僕', '君', '自分', '他人', '皆', 'みんな', '誰', '何', 'どこ', 'いつ', 'なぜ', 'どう', 'どの', 'どちら', 'どれ',
       // 数量・時間（基本）
-      '一つ', '二つ', '三つ', '今日', '昨日', '明日', '午前', '午後', '夜',
-      // 形式語
-      'です', 'ます', 'だ', 'である', 'では', 'でしょう', 'かもしれません'
+      '一つ', '二つ', '三つ', '今日', '昨日', '明日', '午前', '午後', '夜', '朝', '昼', '夕方', '今', '昔', '未来', '過去', '現在', '最近', '将来', '以前', '以後', '前', '後', '先', '次', '最初', '最後', '一番', '二番', '三番', '多く', '少し', '全部', '半分', '一部', '全て', '何も', '誰も', 'いつも', 'たまに', 'よく', 'あまり', 'まったく', 'とても', 'かなり', 'すごく', 'ちょっと', 'もう', 'まだ', 'すでに', 'やっと', 'ついに', 'もちろん', 'きっと', 'たぶん', 'おそらく', 'もしかして', '絶対',
+      // 形式語・語尾
+      'です', 'ます', 'だ', 'である', 'では', 'でしょう', 'かもしれません', 'らしい', 'ようだ', 'みたい', 'そうだ', 'はず', 'べき', 'つもり', 'ところ', 'わけ', 'もの', '場合', '時', '際', '度', '回', '番', '点', '面', '方', '側', '部', '分', '段', '章', '項', '条', '号', '款', '目', '類', '種', '品', '件', '個', '本', '枚', '台', '機', '器', '具', '品', '物', '者', '人', '方', '様', '君', '氏', '先生', '社長', '部長', '課長', '主任', '係長', '店長', '院長', '校長', '会長', '委員長', '理事長', '代表', '責任者', '担当者', '関係者', '当事者', '専門家', '研究者', '学者', '教授', '博士', '修士', '学士', '学生', '生徒', '児童', '子供', '大人', '老人', '若者', '女性', '男性', '友人', '知人', '家族', '親', '子', '兄弟', '姉妹', '夫', '妻', '恋人', '彼氏', '彼女',
+      // 一般名詞（あまりに基本的）
+      '問題', '課題', '目標', '目的', '理由', '原因', '結果', '影響', '効果', '成果', '結論', '意見', '考え', '気持ち', '感情', '心', '体', '頭', '手', '足', '目', '耳', '口', '鼻', '顔', '髪', '声', '言葉', '文字', '数字', '記号', '色', '形', '大きさ', '重さ', '長さ', '幅', '高さ', '深さ', '速さ', '温度', '音', '光', '匂い', '味', '感覚', '気分', '状態', '状況', '環境', '場所', '位置', '方向', '距離', '空間', '時間', '期間', '瞬間', '瞬時', '一瞬', '瞬く間', '一気', '一度', '何度', '数回', '何回', '毎回', '今回', '次回', '前回', '初回', '最終回',
+      // AI・技術分野の基本語（深層概念ではない）
+      'AI', 'システム', 'データ', '情報', '技術', '方法', '手法', '処理', '機能', '性能', '効率', '精度', '品質', '結果', '分析', '評価', '改善', '最適化', '自動化', 'プログラム', 'アルゴリズム', 'コード', 'ファイル', 'フォルダ', 'ディレクトリ', 'パス', 'リンク', 'ボタン', 'メニュー', '画面', 'ウィンドウ', 'ページ', 'サイト', 'ブラウザ', 'アプリ', 'ソフト', 'ハード', 'ネット', 'オンライン', 'オフライン', 'ログイン', 'ログアウト', 'ユーザー', 'アカウント', 'パスワード', 'セキュリティ', 'プライバシー', '設定', '操作', '入力', '出力', '表示', '保存', '削除', '変更', '更新', '追加', '作成', '編集', '検索', '選択', 'コピー', '貼り付け', '切り取り', '移動', '実行', '停止', '開始', '終了', '再生', '一時停止', '早送り', '巻き戻し', '音量', '画質', '解像度', 'サイズ', '容量', '速度', 'バージョン', '更新',
+      // 対話・コミュニケーション基本語
+      '対話', '会話', 'チャット', 'メッセージ', '返事', '回答', '質問', '相談', '議論', '討論', '発表', '報告', '説明', '紹介', '案内', 'お知らせ', '通知', '連絡', '伝達', '共有', '公開', '発信', '受信', '送信', '転送', '返信', '確認', '承認', '拒否', '承諾', '同意', '反対', '賛成', '支持', '応援', '協力', '協働', '連携', '提携', '契約', '約束', '予定', '計画', '準備', '手続き', '手順', '流れ', 'ステップ', '段階', 'フェーズ', 'プロセス', '過程', '工程', '作業', 'タスク', '仕事', '業務', '職務', '役割', '責任', '義務', '権利', '権限', '許可', '禁止', '制限', '規則', 'ルール', '法律', '条件', '要求', '要望', '希望', '期待', '予想', '予測', '見通し', '見込み', '可能性', '確率', 'チャンス', '機会', '時期', 'タイミング'
     ];
     
     if (stopWords.includes(concept) || concept.length <= 2) {
@@ -484,16 +490,41 @@ export class IntelligentConceptExtractor {
       reasoning += 'ストップワード強制除外, ';
     }
     
-    // 既知深層概念の大幅優遇
-    const knownPattern = this.conceptPatterns.get(concept);
-    if (knownPattern && knownPattern.type === 'deep') {
-      score += 0.4; // 既知深層概念の優遇強化
-      patterns.push('known_deep_concept');
-      reasoning += '既知深層概念優遇, ';
+    // 深層概念の厳格基準追加（専門概念のみ）
+    const deepConceptIndicators = [
+      '理論', '法則', '原理', '定理', '公式', '方程式', '仮説', '学説', 'モデル', 'フレームワーク', 'パラダイム', 'アーキテクチャ', 'メカニズム', 'プロトコル', 'スキーマ',
+      'ブレークスルー', 'イノベーション', 'パラダイムシフト',
+      '哲学', '本質', '真理', '核心', '要諦'
+    ];
+    
+    const hasDeepIndicator = deepConceptIndicators.some(indicator => 
+      concept.includes(indicator) || content.includes(concept + indicator) || content.includes(indicator + concept)
+    );
+    
+    if (hasDeepIndicator) {
+      score += 0.4; // スコアを上げて深層概念にしやすく
+      patterns.push('deep_concept_indicator');
+      reasoning += '深層概念指標, ';
     }
 
-    const classification = score > 0.6 ? 'deep' : 'surface';
-    const confidence = Math.min(0.8, Math.max(0.3, score));
+    // 数学・科学分野の専門用語
+    const mathScienceTerms = ['予想', '定理', '証明', '解', '関数', '軌道', '収束', '発散', '吸収', '減衰', '統一', '変換', '写像', '群', '環', '体', '空間', '次元', '位相', '測度'];
+    if (mathScienceTerms.some(term => concept.includes(term) || term.includes(concept))) {
+      score += 0.3;
+      patterns.push('math_science_term');
+      reasoning += '数学・科学専門用語, ';
+    }
+
+    // 複合語（理論、システム、手法）は深層概念候補
+    if (concept.includes('理論') || concept.includes('システム') || concept.includes('手法') || concept.includes('アプローチ') || concept.includes('構造')) {
+      score += 0.35;
+      patterns.push('compound_deep_concept');
+      reasoning += '複合深層概念, ';
+    }
+
+    // 深層概念の厳格な閾値：非常に高スコアのみ
+    const classification = score > 0.75 ? 'deep' : 'surface';
+    const confidence = Math.min(0.9, Math.max(0.2, score));
 
     return {
       classification,
@@ -537,46 +568,84 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 時間革命マーカーの検出
+   * 時間革命マーカーの検出（重複除去・品質向上）
    */
   private detectTimeRevolutionMarkers(content: string): TimeRevolutionMarker[] {
     const markers: TimeRevolutionMarker[] = [];
+    const uniqueMarkers = new Set<string>();
 
     this.timePatterns.forEach((pattern, index) => {
       let match;
+      pattern.lastIndex = 0; // 正規表現の状態リセット
       while ((match = pattern.exec(content)) !== null) {
         const timeExpression = match[1];
         const context = match[0];
         const efficiency = this.evaluateTimeEfficiency(timeExpression, context);
-
-        markers.push({
-          marker: match[0],
-          timeExpression,
-          efficiency,
-          context: context.substring(0, 100),
-          position: match.index || 0
-        });
+        const position = match.index || 0;
+        
+        // 重複チェック（位置ベース）
+        const uniqueKey = `${timeExpression}_${Math.floor(position / 50)}`; // 50文字範囲で同一視
+        if (!uniqueMarkers.has(uniqueKey)) {
+          uniqueMarkers.add(uniqueKey);
+          
+          markers.push({
+            marker: match[0],
+            timeExpression,
+            efficiency,
+            context: this.extractTimeContext(content, position, 80),
+            position
+          });
+        }
       }
     });
 
-    // 学習データからの時間革命パターン
+    // 学習データからの革命的時間パターン（厳選）
     if (this.learningData) {
-      Object.values(this.learningData.analysisHistory).forEach(log => {
-        log.timeRevolutionMarkers.forEach(marker => {
-          if (content.includes(marker)) {
+      const revolutionaryTimePatterns = [
+        '30分で解決', '2-3時間で突破', '短時間で革新', '瞬時に発見', '一気に解決',
+        '従来の数十倍の効率', '劇的な時間短縮', '効率革命', '時間革命'
+      ];
+      
+      revolutionaryTimePatterns.forEach(pattern => {
+        const position = content.indexOf(pattern);
+        if (position !== -1) {
+          const uniqueKey = `revolutionary_${pattern}`;
+          if (!uniqueMarkers.has(uniqueKey)) {
+            uniqueMarkers.add(uniqueKey);
+            
             markers.push({
-              marker,
-              timeExpression: marker,
+              marker: pattern,
+              timeExpression: pattern,
               efficiency: 'revolutionary',
-              context: marker,
-              position: content.indexOf(marker)
+              context: this.extractTimeContext(content, position, 80),
+              position
             });
           }
-        });
+        }
       });
     }
 
-    return markers.sort((a, b) => a.position - b.position);
+    // 品質フィルタリング：意味のある時間革命マーカーのみ
+    return markers
+      .filter(marker => {
+        // 単純な数字のみは除外
+        if (/^[\d分時間秒]+$/.test(marker.timeExpression)) return false;
+        // 文脈が革新的でないものは除外
+        const context = marker.context.toLowerCase();
+        const innovativeKeywords = ['革新', '革命', '突破', '発見', '解決', '効率', '高速', '劇的', '画期的'];
+        return innovativeKeywords.some(keyword => context.includes(keyword));
+      })
+      .sort((a, b) => a.position - b.position)
+      .slice(0, 5); // 最大5個まで
+  }
+
+  /**
+   * 時間マーカー周辺の文脈を抽出
+   */
+  private extractTimeContext(content: string, position: number, length: number): string {
+    const start = Math.max(0, position - length / 2);
+    const end = Math.min(content.length, position + length / 2);
+    return content.substring(start, end);
   }
 
   /**
