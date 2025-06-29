@@ -7,6 +7,7 @@
 
 import { RawLogSplitter, type LogChunk } from './raw-log-splitter.js';
 import { QualityAssessment, type QualityMetrics } from './quality-metrics.js';
+import { IntelligentConceptExtractor, type IntelligentExtractionResult } from './intelligent-concept-extractor.js';
 
 interface UnifiedLogStructure {
   header: LogHeader;
@@ -45,6 +46,7 @@ interface ProcessingMetadata {
 class UnifiedLogProcessor {
   private logSplitter: RawLogSplitter;
   private qualityAssessment: QualityAssessment;
+  private intelligentExtractor: IntelligentConceptExtractor;
   
   constructor() {
     this.logSplitter = new RawLogSplitter({
@@ -56,6 +58,14 @@ class UnifiedLogProcessor {
       overlapSize: 300
     });
     this.qualityAssessment = new QualityAssessment();
+    this.intelligentExtractor = new IntelligentConceptExtractor();
+  }
+
+  /**
+   * 初期化（学習データ読み込み）
+   */
+  async initialize(): Promise<void> {
+    await this.intelligentExtractor.initialize();
   }
 
   /**
@@ -101,20 +111,23 @@ class UnifiedLogProcessor {
   }
 
   /**
-   * ログ全体のヘッダー分析
+   * ログ全体のヘッダー分析（IntelligentConceptExtractor統合版）
    */
   private async analyzeLogHeader(rawLog: string, sessionContext?: string): Promise<LogHeader> {
-    // 主要概念の抽出（全体から）
-    const mainConcepts = this.extractMainConcepts(rawLog);
+    // IntelligentConceptExtractorで高精度分析
+    const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog);
     
-    // 議論範囲の特定
-    const discussionScope = this.analyzeDiscussionScope(rawLog, mainConcepts);
+    // 深層概念を主要概念として採用
+    const mainConcepts = intelligentResult.deepConcepts.slice(0, 5).map(c => c.term);
     
-    // 対話形式の判定
-    const dialogueType = this.detectDialogueType(rawLog);
+    // 議論範囲の特定（予測結果活用）
+    const discussionScope = this.analyzeDiscussionScope(rawLog, mainConcepts, intelligentResult);
     
-    // タイトル生成
-    const title = this.generateLogTitle(mainConcepts, discussionScope);
+    // 対話形式の判定（自動検出結果活用）
+    const dialogueType = this.mapDialogueType(intelligentResult.dialogueTypeDetection);
+    
+    // タイトル生成（革新度考慮）
+    const title = this.generateLogTitle(mainConcepts, discussionScope, intelligentResult.predictedInnovationLevel);
     
     // ファイル名提案
     const suggestedFilename = this.generateFilename(title, mainConcepts);
@@ -131,7 +144,54 @@ class UnifiedLogProcessor {
   }
 
   /**
-   * 全体から主要概念を抽出（改善版フィルタリング）
+   * 対話タイプのマッピング（IntelligentExtractor → UnifiedProcessor）
+   */
+  private mapDialogueType(detectedType: string): 'human_led' | 'ai_led' | 'collaborative' | 'ai_collaborative' | 'free_form' {
+    const mapping: Record<string, 'human_led' | 'ai_led' | 'collaborative' | 'ai_collaborative' | 'free_form'> = {
+      'human_led': 'human_led',
+      'ai_led': 'ai_led', 
+      'collaborative': 'collaborative',
+      'ai_collaboration': 'ai_collaborative',
+      'mathematical': 'collaborative',
+      'free_form': 'free_form'
+    };
+    return mapping[detectedType] || 'free_form';
+  }
+
+  /**
+   * 議論範囲分析（IntelligentExtractor結果活用版）
+   */
+  private analyzeDiscussionScope(rawLog: string, mainConcepts: string[], intelligentResult?: any): string {
+    if (intelligentResult) {
+      // 革新度とコンセプトに基づく判定
+      if (intelligentResult.predictedInnovationLevel >= 8) {
+        return `${mainConcepts.slice(0, 2).join('・')}による革新的アプローチ`;
+      } else if (intelligentResult.timeRevolutionMarkers.length > 0) {
+        return `${mainConcepts.slice(0, 2).join('・')}の効率化手法`;
+      }
+    }
+    
+    // フォールバック: 従来の分析
+    return `${mainConcepts.slice(0, 3).join('・')}の探究`;
+  }
+
+  /**
+   * タイトル生成（革新度考慮版）
+   */
+  private generateLogTitle(mainConcepts: string[], discussionScope: string, innovationLevel?: number): string {
+    const baseTitle = mainConcepts.slice(0, 2).join('×');
+    
+    if (innovationLevel && innovationLevel >= 9) {
+      return `🚀 ${baseTitle}による革新的突破`;
+    } else if (innovationLevel && innovationLevel >= 7) {
+      return `🔬 ${baseTitle}の高度探究`;
+    } else {
+      return `📋 ${baseTitle}対話記録`;
+    }
+  }
+
+  /**
+   * 全体から主要概念を抽出（レガシー版・フォールバック用）
    */
   private extractMainConcepts(rawLog: string): string[] {
     const conceptScores: Record<string, number> = {};

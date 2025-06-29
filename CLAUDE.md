@@ -14,7 +14,13 @@ This appears to be a development environment with Node.js (v22.17.0) available v
 
 ## Architecture
 
-This repository structure is currently minimal. Add project-specific architecture details here as the codebase develops.
+**Core System**: IntelligentConceptExtractor + 75概念学習データベース
+
+### 主要コンポーネント
+- `src/core/intelligent-concept-extractor.ts` - 学習データ活用型概念抽出システム
+- `docs/ANALYSIS_RESULTS_DB.json` - 9ログ・75概念の学習データベース
+- `src/core/unified-log-processor.ts` - 統一ログ処理（IntelligentExtractor統合済み）
+- `docs/CONCEPT_ANALYSIS_PROTOCOL.md` - プロトコル v1.0仕様
 
 ## Notes
 
@@ -26,13 +32,13 @@ This repository structure is currently minimal. Add project-specific architectur
 **IMPORTANT**: When starting a new session, always check these files for context:
 
 1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
-2. **`docs/SESSION_HANDOVER.md`** - Critical issues and immediate action items
-3. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
-4. **`docs/CONCEPT_ANALYSIS_PROTOCOL.md`** - Concept extraction methodology (v1.0)
-5. **`docs/ANALYSIS_RESULTS_DB.json`** - Cumulative analysis results database
+2. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
+3. **`docs/SESSION_COMPLETION_SUMMARY.md`** - Previous session comprehensive summary
+4. **`docs/INTELLIGENT_EXTRACTOR_ROADMAP.md`** - Technical development roadmap (Phase 1-8)
+5. **`docs/ANALYSIS_RESULTS_DB.json`** - 75-concept learning database
 6. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Priority**: 概念抽出精度改善プロジェクト進行中 - 手法プロトコル策定完了、生ログ5解析準備完了
+**Current Status**: IntelligentConceptExtractor v2.0.0実装完了 - 75概念学習データベース構築、次回はTypeScript統合修正と形態素解析導入
 
 ---
 
