@@ -48,7 +48,7 @@ class UnifiedLogProcessor {
   private qualityAssessment: QualityAssessment;
   private intelligentExtractor: IntelligentConceptExtractor;
   
-  constructor() {
+  constructor(sharedIntelligentExtractor?: IntelligentConceptExtractor) {
     this.logSplitter = new RawLogSplitter({
       targetChunkSize: 8000,
       maxChunkSize: 10000,
@@ -58,14 +58,16 @@ class UnifiedLogProcessor {
       overlapSize: 300
     });
     this.qualityAssessment = new QualityAssessment();
-    this.intelligentExtractor = new IntelligentConceptExtractor();
+    this.intelligentExtractor = sharedIntelligentExtractor || new IntelligentConceptExtractor();
   }
 
   /**
    * 初期化（学習データ読み込み）
    */
   async initialize(): Promise<void> {
-    await this.intelligentExtractor.initialize();
+    if (!this.intelligentExtractor.isInitialized) {
+      await this.intelligentExtractor.initialize();
+    }
   }
 
   /**

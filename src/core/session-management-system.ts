@@ -8,6 +8,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { IntegratedLogManagement, type IntegratedLogAnalysis } from './integrated-log-management.js';
+import { IntelligentConceptExtractor } from './intelligent-concept-extractor.js';
 
 export interface SessionRecord {
   id: string;
@@ -57,9 +58,11 @@ export class SessionManagementSystem {
   private sessionsDir: string;
   private databaseFile: string;
   private database: SessionDatabase;
+  private conceptExtractor: IntelligentConceptExtractor;
 
-  constructor(sessionsDir = './sessions', databaseFile = './session_database.json') {
-    this.logManager = new IntegratedLogManagement();
+  constructor(sessionsDir = './sessions', databaseFile = './session_database.json', sharedConceptExtractor?: IntelligentConceptExtractor) {
+    this.conceptExtractor = sharedConceptExtractor || new IntelligentConceptExtractor();
+    this.logManager = new IntegratedLogManagement(this.conceptExtractor);
     this.sessionsDir = path.resolve(sessionsDir);
     this.databaseFile = path.resolve(databaseFile);
     this.database = {
@@ -83,7 +86,12 @@ export class SessionManagementSystem {
     // データベース読み込み
     await this.loadDatabase();
     
-    // ログ管理システム初期化
+    // 共有ConceptExtractorが未初期化の場合のみ初期化
+    if (!this.conceptExtractor.isInitialized) {
+      await this.conceptExtractor.initialize();
+    }
+    
+    // ログ管理システム初期化（共有インスタンス使用）
     await this.logManager.initialize();
     
     console.log('✅ セッション管理システム初期化完了');

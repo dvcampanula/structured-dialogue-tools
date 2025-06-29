@@ -66,9 +66,9 @@ class StructuredDialogueApp {
     this.splitter = new RawLogSplitter();
     this.namingHelper = new NamingHelper();
     this.formatUnifier = new LogFormatUnifier();
-    this.unifiedProcessor = new UnifiedLogProcessor();
     this.intelligentExtractor = new IntelligentConceptExtractor();
-    this.sessionManager = new SessionManagementSystem('./web_sessions', './web_session_database.json');
+    this.unifiedProcessor = new UnifiedLogProcessor(this.intelligentExtractor);
+    this.sessionManager = new SessionManagementSystem('./web_sessions', './web_session_database.json', this.intelligentExtractor);
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -132,7 +132,7 @@ class StructuredDialogueApp {
    * ヘルパー初期化
    */
   private async initializeHelpers(): Promise<void> {
-    // IntelligentConceptExtractor の初期化
+    // 共有IntelligentConceptExtractor の初期化（最優先）
     try {
       await this.intelligentExtractor.initialize();
       console.log('✅ IntelligentConceptExtractor 初期化完了');
@@ -140,7 +140,7 @@ class StructuredDialogueApp {
       console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
     }
     
-    // SessionManagementSystem の初期化
+    // SessionManagementSystem の初期化（共有インスタンス使用）
     try {
       await this.sessionManager.initialize();
       console.log('✅ SessionManagementSystem 初期化完了');

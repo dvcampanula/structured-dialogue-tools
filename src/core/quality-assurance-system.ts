@@ -28,12 +28,14 @@ export interface QualityIssue {
 export class QualityAssuranceSystem {
   private extractor: IntelligentConceptExtractor;
   
-  constructor() {
-    this.extractor = new IntelligentConceptExtractor();
+  constructor(sharedExtractor?: IntelligentConceptExtractor) {
+    this.extractor = sharedExtractor || new IntelligentConceptExtractor();
   }
 
   async initialize(): Promise<void> {
-    await this.extractor.initialize();
+    if (!this.extractor.isInitialized) {
+      await this.extractor.initialize();
+    }
   }
 
   /**

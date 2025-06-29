@@ -111,6 +111,7 @@ export class IntelligentConceptExtractor {
   private timePatterns: RegExp[] = [];
   private innovationIndicators: string[] = [];
   private tokenizer: any = null;
+  private _isInitialized: boolean = false;
 
   constructor(private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json') {
     this.initializeTimePatterns();
@@ -139,10 +140,19 @@ export class IntelligentConceptExtractor {
       
       console.log(`🧠 パターン学習完了: ${this.conceptPatterns.size}概念パターン`);
       
+      this._isInitialized = true;
+      
     } catch (error) {
       console.error('❌ 初期化エラー:', error);
       throw error;
     }
+  }
+
+  /**
+   * 初期化状態の確認
+   */
+  get isInitialized(): boolean {
+    return this._isInitialized;
   }
 
   /**

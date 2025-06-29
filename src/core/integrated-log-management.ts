@@ -67,18 +67,25 @@ export class IntegratedLogManagement {
   private qualityAssurance: QualityAssuranceSystem;
   private conceptExtractor: IntelligentConceptExtractor;
 
-  constructor() {
+  constructor(sharedConceptExtractor?: IntelligentConceptExtractor) {
     this.splitter = new RawLogSplitter();
     this.qualityAssessment = new QualityAssessment();
-    this.unifiedProcessor = new UnifiedLogProcessor();
+    this.conceptExtractor = sharedConceptExtractor || new IntelligentConceptExtractor();
+    this.unifiedProcessor = new UnifiedLogProcessor(this.conceptExtractor);
     this.namingHelper = new NamingHelper();
-    this.qualityAssurance = new QualityAssuranceSystem();
-    this.conceptExtractor = new IntelligentConceptExtractor();
+    this.qualityAssurance = new QualityAssuranceSystem(this.conceptExtractor);
   }
 
   async initialize(): Promise<void> {
+    // 共有ConceptExtractorの初期化確認
+    if (!this.conceptExtractor.isInitialized) {
+      await this.conceptExtractor.initialize();
+    }
+    
+    // QualityAssuranceSystemの初期化（共有インスタンス使用）
     await this.qualityAssurance.initialize();
-    await this.conceptExtractor.initialize();
+    
+    // UnifiedLogProcessorの初期化
     await this.unifiedProcessor.initialize();
   }
 

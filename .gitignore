@@ -53,6 +53,12 @@ temp-log-*.txt
 experiment-prompts.json
 concept-analysis-results.json
 
+# Test files and directories
+test-*.ts
+test_*
+web_sessions/
+web_session_database.json
+
 # Analysis results and temporary outputs
 *-result.md
 *-analysis-result.json
