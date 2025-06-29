@@ -713,6 +713,11 @@
                 `;
             }
 
+            // 概念抽出結果を表示
+            if (result.extraction) {
+                displayConceptResults(result);
+            }
+
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }

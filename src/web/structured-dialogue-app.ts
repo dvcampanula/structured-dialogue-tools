@@ -326,6 +326,9 @@ class StructuredDialogueApp {
       const unifiedStructure = await this.unifiedProcessor.processUnifiedLog(rawLog, sessionContext);
       const unifiedOutput = this.unifiedProcessor.generateUnifiedOutput(unifiedStructure);
       
+      // 概念抽出も同時実行
+      const conceptExtraction = await this.intelligentExtractor.extractConcepts(rawLog);
+      
       const processingTime = Date.now() - startTime;
       console.log(`✅ 統一処理完了: ${processingTime}ms`);
       
@@ -340,12 +343,16 @@ class StructuredDialogueApp {
           qualityMetrics: unifiedStructure.qualityMetrics,
           output: unifiedOutput
         },
+        extraction: conceptExtraction,
         summary: {
           originalLength: rawLog.length,
           chunkCount: unifiedStructure.chunks.length,
           avgChunkSize: Math.round(rawLog.length / unifiedStructure.chunks.length),
           mainConcepts: unifiedStructure.header.mainConcepts,
-          processingTime
+          processingTime,
+          surfaceConceptsCount: conceptExtraction.surfaceConcepts.length,
+          deepConceptsCount: conceptExtraction.deepConcepts.length,
+          timeMarkersCount: conceptExtraction.timeRevolutionMarkers.length
         }
       });
       

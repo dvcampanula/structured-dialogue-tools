@@ -111,14 +111,7 @@ export class IntegratedLogManagement {
     let chunks: LogChunk[] = [];
     if (options.enableSplitting && splitRecommendation.shouldSplit) {
       console.log('✂️  ログ分割実行...');
-      chunks = await this.splitter.splitLog(content, {
-        targetChunkSize: options.targetChunkSize,
-        maxChunkSize: options.targetChunkSize * 1.5,
-        minChunkSize: options.targetChunkSize * 0.5,
-        preserveContext: true,
-        addChunkHeaders: true,
-        overlapSize: 200
-      });
+      chunks = this.splitter.splitRawLog(content);
     }
 
     // Step 4: 統一ログ処理
