@@ -315,12 +315,13 @@ export class IntelligentConceptExtractor {
             }
           }
           
-          // 複合概念の検出（連続する名詞）
-          if (token.pos === '名詞' && index < tokens.length - 1) {
+          // 複合概念の検出（連続する名詞・より厳密）
+          if (token.pos === '名詞' && token.pos_detail_1 !== '代名詞' && index < tokens.length - 1) {
             const nextToken = tokens[index + 1];
-            if (nextToken.pos === '名詞') {
+            if (nextToken.pos === '名詞' && nextToken.pos_detail_1 !== '代名詞') {
               const compound = token.surface_form + nextToken.surface_form;
-              if (compound.length >= 3 && compound.length <= 15) {
+              if (compound.length >= 4 && compound.length <= 15 && // 最小長を4に
+                  !this.isPartialConcept(token.surface_form, nextToken.surface_form)) {
                 compoundConcepts.push(compound);
               }
             }
@@ -384,6 +385,25 @@ export class IntelligentConceptExtractor {
   }
 
   /**
+   * 部分概念の判定（複合語形成時）
+   */
+  private isPartialConcept(first: string, second: string): boolean {
+    // 不適切な組み合わせパターン
+    const badCombinations = [
+      ['構造', '的'],   // 構造的 → 不完全
+      ['的', '対話'],   // 的対話 → 不完全  
+      ['対', '話'],     // 対話の分割
+      ['構', '造'],     // 構造の分割
+      ['シス', 'テム'], // システムの分割
+      ['アプ', 'ローチ'], // アプローチの分割
+    ];
+    
+    return badCombinations.some(([f, s]) => 
+      (first === f && second === s) || (first.includes(f) && second.includes(s))
+    );
+  }
+
+  /**
    * 概念のクリーニング
    */
   private cleanConcept(concept: string): string {
@@ -426,7 +446,7 @@ export class IntelligentConceptExtractor {
       /た$/, // 過去（短い）
       /て$/, // 接続（短い）
       
-      // 部分的・不完全概念
+      // 部分的・不完全概念（大幅拡充）
       /^[ぁ-ん]{1,2}$/, // ひらがなのみ短文字
       /^[ァ-ヶー]{1,2}$/, // カタカナのみ短文字
       /働思考/, // 「協働思考」の部分
@@ -439,6 +459,23 @@ export class IntelligentConceptExtractor {
       /では$/, // 「では」で終わる
       /から$/, // 「から」で終わる
       /まで$/, // 「まで」で終わる
+      
+      // 部分的概念（特に助詞・語尾が分離）
+      /^的$/, // 「的」のみ
+      /^化$/, // 「化」のみ
+      /^性$/, // 「性」のみ
+      /^的[一-龯]/, // 「的」で始まる（「的対話」等）
+      /[一-龯]的$/, // 「的」で終わる（本来複合語の一部）
+      /^構造的$/, // 「構造的」単体は不完全（「構造的対話」の一部）
+      /^対話$/, // 「対話」単体は基本すぎ
+      /構造化$/, // 「構造化」は動詞形
+      /^化[一-龯]/, // 「化」で始まる動詞活用
+      
+      // より厳密な部分概念除去
+      /^[一-龯]{1,2}的$/, // 短い形容動詞語幹＋的
+      /^的[一-龯]{1,3}$/, // 「的」＋短い名詞
+      /^[一-龯]{1}化$/, // 1文字＋化
+      /^化[一-龯]{1,2}$/, // 化＋短い概念
       
       // 記号残り
       /[*\[\]()（）「」『』""''【】〈〉《》:：;；]/, // 記号が残っている
@@ -672,7 +709,7 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 概念の文脈分析
+   * 概念の文脈分析（重複除去強化）
    */
   private analyzeConceptContext(concept: string, content: string): {
     score: number;
@@ -681,7 +718,7 @@ export class IntelligentConceptExtractor {
   } {
     let score = 0;
     const patterns: string[] = [];
-    let reasoning = '';
+    const reasoningSet = new Set<string>(); // 重複除去用
 
     // 重要文脈キーワードとの共起
     const importantContexts = ['発見', '革新', '突破', '理論', '新しい', '画期的', '革命的'];
@@ -691,15 +728,22 @@ export class IntelligentConceptExtractor {
     const conceptRegex = new RegExp(`(.{0,20})${escapedConcept}(.{0,20})`, 'g');
     const contexts = content.match(conceptRegex) || [];
 
+    // 重複チェック用のSet
+    const detectedKeywords = new Set<string>();
+
     contexts.forEach(context => {
       importantContexts.forEach(keyword => {
-        if (context.includes(keyword)) {
+        if (context.includes(keyword) && !detectedKeywords.has(keyword)) {
+          detectedKeywords.add(keyword);
           score += 0.1;
           patterns.push(`context_${keyword}`);
-          reasoning += `${keyword}との共起, `;
+          reasoningSet.add(`${keyword}との共起`);
         }
       });
     });
+
+    // 重複除去された理由文字列を作成
+    const reasoning = Array.from(reasoningSet).join(', ') + (reasoningSet.size > 0 ? ', ' : '');
 
     return { score, patterns, reasoning };
   }
