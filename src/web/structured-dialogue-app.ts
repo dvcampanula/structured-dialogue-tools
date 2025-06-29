@@ -597,7 +597,8 @@ class StructuredDialogueApp {
         generateHandover: options.generateHandover !== false,
         archiveOldSessions: options.archiveOldSessions || false,
         backupEnabled: options.backupEnabled !== false,
-        customTags: options.customTags || []
+        customTags: options.customTags || [],
+        forceHandover: options.forceHandover || false
       };
       
       const sessionRecord = await this.sessionManager.saveSession(content, saveOptions);

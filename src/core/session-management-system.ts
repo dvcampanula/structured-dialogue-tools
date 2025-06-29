@@ -48,6 +48,7 @@ export interface SaveOptions {
   archiveOldSessions: boolean;
   backupEnabled: boolean;
   customTags?: string[];
+  forceHandover?: boolean;
 }
 
 /**
@@ -143,8 +144,8 @@ export class SessionManagementSystem {
     this.database.metadata.updatedAt = new Date().toISOString();
 
     // Step 7: 引き継ぎ生成
-    if (options.generateHandover && analysis?.qualityAssurance.isReliable) {
-      await this.generateHandover(sessionRecord);
+    if (options.generateHandover && (analysis?.qualityAssurance.isReliable || options.forceHandover)) {
+      await this.generateHandover(sessionRecord, options.forceHandover);
     }
 
     // Step 8: データベース保存
@@ -162,10 +163,10 @@ export class SessionManagementSystem {
   /**
    * 引き継ぎ生成
    */
-  async generateHandover(fromSession: SessionRecord): Promise<SessionHandover | null> {
+  async generateHandover(fromSession: SessionRecord, forceGenerate = false): Promise<SessionHandover | null> {
     console.log('🔗 引き継ぎデータ生成...');
 
-    if (!fromSession.analysis?.qualityAssurance.isReliable) {
+    if (!forceGenerate && !fromSession.analysis?.qualityAssurance.isReliable) {
       console.log('⚠️  品質が低いため引き継ぎスキップ');
       return null;
     }
@@ -173,10 +174,10 @@ export class SessionManagementSystem {
     const handover: SessionHandover = {
       fromSessionId: fromSession.id,
       toSessionId: '', // 次回セッション時に設定
-      keywords: fromSession.analysis.continuityKeywords,
-      guidance: fromSession.analysis.sessionGuidance,
+      keywords: fromSession.analysis?.continuityKeywords || [],
+      guidance: fromSession.analysis?.sessionGuidance || '前回セッションからの継続です。',
       contextSummary: this.generateContextSummary(fromSession),
-      qualityScore: fromSession.analysis.qualityAssurance.reliabilityScore,
+      qualityScore: fromSession.analysis?.qualityAssurance?.reliabilityScore || 0,
       handoverDate: new Date().toISOString()
     };
 
@@ -439,9 +440,13 @@ export class SessionManagementSystem {
       if (analysis.qualityAssurance.isReliable) tags.push('reliable');
       else tags.push('needs_improvement');
       
-      // 深層概念ベースのタグ
+      // 深層概念ベースのタグ（有意味な概念のみ）
       analysis.conceptExtraction.deepConcepts.slice(0, 3).forEach(concept => {
-        tags.push(`concept_${concept.term.replace(/[^a-zA-Z0-9]/g, '_')}`);
+        const sanitizedTerm = concept.term.replace(/[^a-zA-Z0-9]/g, '_');
+        // アンダースコアのみまたは空文字の場合はスキップ
+        if (sanitizedTerm && sanitizedTerm !== '_' && !/^_+$/.test(sanitizedTerm)) {
+          tags.push(`concept_${sanitizedTerm}`);
+        }
       });
     }
     
