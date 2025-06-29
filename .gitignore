@@ -52,3 +52,11 @@ test-raw-log*.txt
 temp-log-*.txt
 experiment-prompts.json
 concept-analysis-results.json
+
+# Analysis results and temporary outputs
+*-result.md
+*-analysis-result.json
+knowledge-extraction-results.json
+
+# Archive directory (keep structure but ignore contents)
+tests/archive/

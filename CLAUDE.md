@@ -27,9 +27,12 @@ This repository structure is currently minimal. Add project-specific architectur
 
 1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
 2. **`docs/SESSION_HANDOVER.md`** - Critical issues and immediate action items
-3. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
+3. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
+4. **`docs/CONCEPT_ANALYSIS_PROTOCOL.md`** - Concept extraction methodology (v1.0)
+5. **`docs/ANALYSIS_RESULTS_DB.json`** - Cumulative analysis results database
+6. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Priority**: Ready for next development phase - individual log analysis issue resolved
+**Current Priority**: 概念抽出精度改善プロジェクト進行中 - 手法プロトコル策定完了、生ログ5解析準備完了
 
 ---
 

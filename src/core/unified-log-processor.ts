@@ -131,7 +131,7 @@ class UnifiedLogProcessor {
   }
 
   /**
-   * 全体から主要概念を抽出
+   * 全体から主要概念を抽出（改善版フィルタリング）
    */
   private extractMainConcepts(rawLog: string): string[] {
     const conceptScores: Record<string, number> = {};
@@ -139,62 +139,114 @@ class UnifiedLogProcessor {
     // 1. コア概念（高重み）
     const coreConcepts = [
       '構造的対話', '構造的協働思考', 'メタ認知', 'AI能力',
-      '文脈保持', '概念創発', '思考パートナー', 'セーブポイント'
+      '文脈保持', '概念創発', '思考パートナー', 'セーブポイント',
+      'レイヤード・プロンプティング', 'コンテキスト圧縮'
     ];
     
     coreConcepts.forEach(concept => {
       const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
       if (occurrences > 0) {
-        conceptScores[concept] = occurrences * 3; // 高重み
+        conceptScores[concept] = occurrences * 5; // 重み強化
       }
     });
     
     // 2. 関連概念（中重み）
     const relatedConcepts = [
       '意識', '認知', '感情理解', 'パーソナル', '寄り添い',
-      '継続学習', '品質向上', 'AIとの協働', '思考の仲間'
+      '継続学習', '品質向上', 'AIとの協働', '思考の仲間',
+      '産業横断', '金銀財宝', 'ブレークスルー', '内部状態'
     ];
     
     relatedConcepts.forEach(concept => {
       const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
       if (occurrences > 0) {
-        conceptScores[concept] = occurrences * 2; // 中重み
+        conceptScores[concept] = occurrences * 3; // 重み強化
       }
     });
     
-    // 3. 引用された概念（標準重み、ただし適切な長さのもの）
+    // 3. 引用された概念（厳格なフィルタリング）
     const quotedConcepts = [...rawLog.matchAll(/「([^」]+)」/g)]
       .map(match => match[1])
-      .filter(concept => concept.length > 2 && concept.length < 20)
-      .filter(concept => !coreConcepts.includes(concept)); // コア概念と重複排除
+      .filter(concept => this.isValidConcept(concept))
+      .filter(concept => !coreConcepts.includes(concept)); // 重複排除
     
     quotedConcepts.forEach(concept => {
-      conceptScores[concept] = (conceptScores[concept] || 0) + 1; // 標準重み
+      conceptScores[concept] = (conceptScores[concept] || 0) + 2; // 重み調整
     });
     
-    // 4. 文書中頻出語（低重み、最小3回出現）
-    const wordMatches = rawLog.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]{3,}/g) || [];
-    const wordFreq: Record<string, number> = {};
-    
-    wordMatches.forEach(word => {
-      if (word.length >= 3 && word.length <= 10) {
-        wordFreq[word] = (wordFreq[word] || 0) + 1;
+    // 4. 技術用語・専門概念の特別抽出
+    const technicalTerms = this.extractTechnicalTerms(rawLog);
+    technicalTerms.forEach(term => {
+      if (!conceptScores[term]) {
+        conceptScores[term] = 3; // 技術概念として重視
       }
     });
     
-    Object.entries(wordFreq)
-      .filter(([word, freq]) => freq >= 3)
-      .forEach(([word, freq]) => {
-        if (!conceptScores[word] && !coreConcepts.some(core => word.includes(core))) {
-          conceptScores[word] = freq * 0.5; // 低重み
-        }
-      });
-    
-    // 5. スコア順でソート、上位6概念を選択
-    return Object.entries(conceptScores)
+    // 5. 一般語の大幅除外（頻出語による汚染防止）
+    const validConcepts = Object.entries(conceptScores)
+      .filter(([concept, score]) => this.isQualityConcept(concept, score))
       .sort(([,a], [,b]) => b - a)
-      .slice(0, 6)
-      .map(([concept]) => concept);
+      .slice(0, 4); // 概念数を制限
+    
+    return validConcepts.map(([concept]) => concept);
+  }
+
+  /**
+   * 概念の有効性を判定
+   */
+  private isValidConcept(concept: string): boolean {
+    // 長さ制限
+    if (concept.length < 2 || concept.length > 20) return false;
+    
+    // 厳格な除外リスト
+    const strictExclusions = [
+      'これは', 'それは', 'あなた', 'です', 'ます', 'という', 'ですが',
+      'だから', 'つまり', 'しかし', 'ところで', 'ちなみに', 'そして',
+      'ありがとう', 'ございます', 'いただき', 'できます', 'ました', 'でしょう',
+      'します', 'いたします', 'ものです', 'ですね', 'かもしれ', 'について',
+      'における', 'としては', 'による', 'すべて', 'ひとつ', 'ふたつ',
+      'みっつ', 'よっつ', '今回', '今度', '前回', '次回', '最初', '最後',
+      '一般的', '具体的', '抽象的', '基本的', '重要な', '必要な', '可能な',
+      'さまざま', 'いろいろ', 'たくさん', 'とても', 'すごく', 'かなり'
+    ];
+    
+    if (strictExclusions.includes(concept)) return false;
+    
+    // 数字のみ、ひらがなのみの除外
+    if (/^[\d]+$/.test(concept)) return false;
+    if (/^[\u3040-\u309F]+$/.test(concept) && concept.length < 4) return false;
+    
+    return true;
+  }
+
+  /**
+   * 技術用語・専門概念の抽出
+   */
+  private extractTechnicalTerms(rawLog: string): string[] {
+    const technicalPatterns = [
+      /([A-Z][a-z]+(?:-[A-Z][a-z]+)+)/g, // ハイフン区切りの技術用語
+      /(API|AI|ML|NLP|LLM|GPT|BERT)/g,    // 略語
+      /([a-z]+ing|[a-z]+tion|[a-z]+ness)/g, // 英語的語尾
+    ];
+    
+    const terms: string[] = [];
+    technicalPatterns.forEach(pattern => {
+      const matches = rawLog.match(pattern) || [];
+      terms.push(...matches);
+    });
+    
+    return [...new Set(terms)].filter(term => term.length >= 3);
+  }
+
+  /**
+   * 高品質概念の判定
+   */
+  private isQualityConcept(concept: string, score: number): boolean {
+    // スコアが低すぎる場合は除外
+    if (score < 2) return false;
+    
+    // 品質チェック
+    return this.isValidConcept(concept);
   }
 
   /**
