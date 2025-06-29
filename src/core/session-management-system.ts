@@ -312,6 +312,17 @@ export class SessionManagementSystem {
   } {
     const sessions = this.database.sessions;
     
+    // セッションが存在しない場合のデフォルト値
+    if (sessions.length === 0) {
+      return {
+        totalSessions: 0,
+        averageQuality: 0,
+        phaseDistribution: {},
+        tagDistribution: {},
+        qualityTrend: []
+      };
+    }
+    
     const averageQuality = sessions.reduce((sum, s) => 
       sum + (s.analysis?.qualityAssurance.reliabilityScore || 0), 0) / sessions.length;
     
@@ -341,7 +352,7 @@ export class SessionManagementSystem {
 
     return {
       totalSessions: sessions.length,
-      averageQuality: Math.round(averageQuality),
+      averageQuality: Math.round(averageQuality || 0),
       phaseDistribution,
       tagDistribution,
       qualityTrend

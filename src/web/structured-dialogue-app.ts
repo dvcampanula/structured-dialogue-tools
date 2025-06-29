@@ -103,10 +103,10 @@ class StructuredDialogueApp {
     this.app.post('/api/sessions/save', this.saveSession.bind(this));
     this.app.post('/api/sessions/start-new', this.startNewSession.bind(this));
     this.app.get('/api/sessions/list', this.listSessions.bind(this));
-    this.app.get('/api/sessions/:id', this.getSession.bind(this));
-    this.app.post('/api/sessions/search', this.searchSessions.bind(this));
     this.app.get('/api/sessions/stats', this.getSessionStats.bind(this));
     this.app.get('/api/sessions/handover/latest', this.getLatestHandover.bind(this));
+    this.app.get('/api/sessions/:id', this.getSession.bind(this));
+    this.app.post('/api/sessions/search', this.searchSessions.bind(this));
     
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
