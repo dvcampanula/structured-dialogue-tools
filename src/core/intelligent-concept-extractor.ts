@@ -361,32 +361,100 @@ export class IntelligentConceptExtractor {
       }
     });
     
-    return Array.from(concepts).filter(concept => 
-      concept.length >= 2 && concept.length <= 15 && !this.isLowQualityConcept(concept)
-    );
+    // 概念の前処理とフィルタリング
+    const processedConcepts = Array.from(concepts)
+      .map(concept => this.cleanConcept(concept))
+      .filter(concept => 
+        concept && 
+        concept.length >= 2 && 
+        concept.length <= 15 && 
+        !this.isLowQualityConcept(concept)
+      );
+    
+    // 重複除去（大文字小文字、記号除去後）
+    const uniqueConcepts = new Set<string>();
+    return processedConcepts.filter(concept => {
+      const normalized = concept.toLowerCase().replace(/[^\w\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/g, '');
+      if (!uniqueConcepts.has(normalized)) {
+        uniqueConcepts.add(normalized);
+        return true;
+      }
+      return false;
+    });
   }
 
   /**
-   * 低品質概念の判定
+   * 概念のクリーニング
+   */
+  private cleanConcept(concept: string): string {
+    return concept
+      // 前後の記号・空白を除去
+      .replace(/^[「」『』""''【】〈〉《》（）()\[\]{}、。，．:：;；!！?？\-\s*]+/, '')
+      .replace(/[「」『』""''【】〈〉《》（）()\[\]{}、。，．:：;；!！?？\-\s*]+$/, '')
+      // 中間の不要記号除去
+      .replace(/[*]+/g, '')
+      .trim();
+  }
+
+  /**
+   * 低品質概念の判定（大幅強化）
    */
   private isLowQualityConcept(concept: string): boolean {
-    // 不自然な日本語パターン
+    // 記号・句読点の除去
+    const cleaned = concept.replace(/[「」『』""''【】〈〉《》（）()[\]{}、。，．:：;；!！?？\-\s*]+/g, '').trim();
+    
+    // 空文字または短すぎる
+    if (!cleaned || cleaned.length < 2) return true;
+    
+    // 不自然な日本語パターン（大幅拡充）
     const badPatterns = [
-      /^[のがをにはでと]/, // 助詞で始まる
-      /[のがをにはでと]$/, // 助詞で終わる
-      /^(この|その|あの|どの)/, // 連体詞
-      /^(ここ|そこ|あそこ|どこ)/, // 場所代名詞
-      /^[\d\-\s]+$/, // 数字のみ
-      /^[a-zA-Z]+$/, // 英字のみ（短いもの）
-      /した$/, // 動詞の過去形
-      /して/, // 動詞の連用形
-      /である$/, // 断定の助動詞
+      // 助詞関連
+      /^[のがをにはでとへからまで]/, // 助詞で始まる
+      /[のがをにはでとへからまで]$/, // 助詞で終わる
+      /^(この|その|あの|どの|ある|いる|する|なる)/, // 連体詞・基本動詞
+      /^(ここ|そこ|あそこ|どこ|いつ|どう|なぜ)/, // 代名詞・疑問詞
+      
+      // 動詞活用・語尾
+      /した$/, // 過去形
+      /して$/, // 連用形
+      /する$/, // 基本形（短い場合）
+      /である$/, // 断定
       /です$/, // 丁寧語
       /ます$/, // 丁寧語
       /ない$/, // 否定
-      /[ぁぃぅぇぉっゃゅょゎ]/, // 小文字ひらがな（助詞の一部）
+      /だ$/, // 断定（短い）
+      /た$/, // 過去（短い）
+      /て$/, // 接続（短い）
+      
+      // 部分的・不完全概念
+      /^[ぁ-ん]{1,2}$/, // ひらがなのみ短文字
+      /^[ァ-ヶー]{1,2}$/, // カタカナのみ短文字
+      /働思考/, // 「協働思考」の部分
+      /^思考$/, // 「思考」のみは基本すぎ
+      /^考え/, // 「考え」で始まる基本語
+      /自体$/, // 「自体」で終わる
+      /について/, // 「について」を含む
+      /として/, // 「として」を含む
+      /による/, // 「による」を含む
+      /では$/, // 「では」で終わる
+      /から$/, // 「から」で終わる
+      /まで$/, // 「まで」で終わる
+      
+      // 記号残り
+      /[*\[\]()（）「」『』""''【】〈〉《》:：;；]/, // 記号が残っている
+      /^[\d\-\s*]+$/, // 数字・記号のみ
+      /^[a-zA-Z]{1,3}$/, // 短い英語のみ
+      
+      // 基本すぎる概念
+      /^(人|物|事|時|場所|方法|理由|結果|問題|課題|目標|方向|状況|状態|環境|条件|要素|要因|部分|全体|一部|最初|最後|今回|前回|次回)$/,
+      /^(情報|データ|内容|文書|資料|記録|履歴|過程|手順|段階|流れ|変化|発展|成長|向上|改善|効果|影響|価値|意味|重要|必要|可能|不可能)$/,
+      /^(基本|基礎|応用|実践|理論|実際|具体|抽象|一般|特別|普通|通常|特殊|個別|共通|全般|詳細|簡単|複雑|新しい|古い|良い|悪い)$/
     ];
     
+    // クリーニング後の概念で再チェック
+    if (badPatterns.some(pattern => pattern.test(cleaned))) return true;
+    
+    // 元の概念でもチェック
     return badPatterns.some(pattern => pattern.test(concept));
   }
 
