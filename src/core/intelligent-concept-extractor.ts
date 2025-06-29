@@ -652,8 +652,10 @@ export class IntelligentConceptExtractor {
       'です', 'ます', 'だ', 'である', 'では', 'でしょう', 'かもしれません', 'らしい', 'ようだ', 'みたい', 'そうだ', 'はず', 'べき', 'つもり', 'ところ', 'わけ', 'もの', '場合', '時', '際', '度', '回', '番', '点', '面', '方', '側', '部', '分', '段', '章', '項', '条', '号', '款', '目', '類', '種', '品', '件', '個', '本', '枚', '台', '機', '器', '具', '品', '物', '者', '人', '方', '様', '君', '氏', '先生', '社長', '部長', '課長', '主任', '係長', '店長', '院長', '校長', '会長', '委員長', '理事長', '代表', '責任者', '担当者', '関係者', '当事者', '専門家', '研究者', '学者', '教授', '博士', '修士', '学士', '学生', '生徒', '児童', '子供', '大人', '老人', '若者', '女性', '男性', '友人', '知人', '家族', '親', '子', '兄弟', '姉妹', '夫', '妻', '恋人', '彼氏', '彼女',
       // 一般名詞（あまりに基本的）
       '問題', '課題', '目標', '目的', '理由', '原因', '結果', '影響', '効果', '成果', '結論', '意見', '考え', '気持ち', '感情', '心', '体', '頭', '手', '足', '目', '耳', '口', '鼻', '顔', '髪', '声', '言葉', '文字', '数字', '記号', '色', '形', '大きさ', '重さ', '長さ', '幅', '高さ', '深さ', '速さ', '温度', '音', '光', '匂い', '味', '感覚', '気分', '状態', '状況', '環境', '場所', '位置', '方向', '距離', '空間', '時間', '期間', '瞬間', '瞬時', '一瞬', '瞬く間', '一気', '一度', '何度', '数回', '何回', '毎回', '今回', '次回', '前回', '初回', '最終回',
-      // AI・技術分野の基本語（深層概念ではない）
+      // AI・技術分野の基本語（深層概念ではない・大幅拡充）
       'AI', 'システム', 'データ', '情報', '技術', '方法', '手法', '処理', '機能', '性能', '効率', '精度', '品質', '結果', '分析', '評価', '改善', '最適化', '自動化', 'プログラム', 'アルゴリズム', 'コード', 'ファイル', 'フォルダ', 'ディレクトリ', 'パス', 'リンク', 'ボタン', 'メニュー', '画面', 'ウィンドウ', 'ページ', 'サイト', 'ブラウザ', 'アプリ', 'ソフト', 'ハード', 'ネット', 'オンライン', 'オフライン', 'ログイン', 'ログアウト', 'ユーザー', 'アカウント', 'パスワード', 'セキュリティ', 'プライバシー', '設定', '操作', '入力', '出力', '表示', '保存', '削除', '変更', '更新', '追加', '作成', '編集', '検索', '選択', 'コピー', '貼り付け', '切り取り', '移動', '実行', '停止', '開始', '終了', '再生', '一時停止', '早送り', '巻き戻し', '音量', '画質', '解像度', 'サイズ', '容量', '速度', 'バージョン', '更新',
+      // 一般的技術用語（深層概念から除外）
+      'モデル', 'メカニズム', 'フレームワーク', 'アーキテクチャ', 'プロトコル', 'スキーマ', 'インターフェース', 'プラットフォーム', 'エンジン', 'ツール', 'ライブラリ', 'モジュール', 'コンポーネント', 'パッケージ', 'フォーマット', 'テンプレート', 'パターン', 'ルール', 'ポリシー', 'ガイドライン', '仕様', '標準', '規格', '形式', '構成', '設計', '実装', '開発', '運用', '管理', '監視', '制御', '調整',
       // 対話・コミュニケーション基本語
       '対話', '会話', 'チャット', 'メッセージ', '返事', '回答', '質問', '相談', '議論', '討論', '発表', '報告', '説明', '紹介', '案内', 'お知らせ', '通知', '連絡', '伝達', '共有', '公開', '発信', '受信', '送信', '転送', '返信', '確認', '承認', '拒否', '承諾', '同意', '反対', '賛成', '支持', '応援', '協力', '協働', '連携', '提携', '契約', '約束', '予定', '計画', '準備', '手続き', '手順', '流れ', 'ステップ', '段階', 'フェーズ', 'プロセス', '過程', '工程', '作業', 'タスク', '仕事', '業務', '職務', '役割', '責任', '義務', '権利', '権限', '許可', '禁止', '制限', '規則', 'ルール', '法律', '条件', '要求', '要望', '希望', '期待', '予想', '予測', '見通し', '見込み', '可能性', '確率', 'チャンス', '機会', '時期', 'タイミング'
     ];
@@ -664,21 +666,36 @@ export class IntelligentConceptExtractor {
       reasoning += 'ストップワード強制除外, ';
     }
     
-    // 深層概念の厳格基準追加（専門概念のみ）
-    const deepConceptIndicators = [
-      '理論', '法則', '原理', '定理', '公式', '方程式', '仮説', '学説', 'モデル', 'フレームワーク', 'パラダイム', 'アーキテクチャ', 'メカニズム', 'プロトコル', 'スキーマ',
-      'ブレークスルー', 'イノベーション', 'パラダイムシフト',
+    // 真の深層概念指標（一般的技術用語は除外）
+    const revolutionaryIndicators = [
+      // 真の革新概念のみ
+      'ブレークスルー', 'イノベーション', 'パラダイムシフト', '革命', '突破', '発見', '発明',
+      // 数学・科学の専門概念
+      '定理', '予想', '証明', '仮説', '法則', '原理',
+      // 哲学・本質的概念
       '哲学', '本質', '真理', '核心', '要諦'
     ];
     
-    const hasDeepIndicator = deepConceptIndicators.some(indicator => 
+    // 一般的すぎる技術用語は除外
+    const commonTechTerms = [
+      'モデル', 'システム', 'メカニズム', 'プロトコル', 'フレームワーク', 'アーキテクチャ', 'スキーマ',
+      'アルゴリズム', 'データ', '情報', '技術', '方法', '手法', '処理', '機能', '性能'
+    ];
+    
+    const hasRevolutionary = revolutionaryIndicators.some(indicator => 
       concept.includes(indicator) || content.includes(concept + indicator) || content.includes(indicator + concept)
     );
     
-    if (hasDeepIndicator) {
-      score += 0.4; // スコアを上げて深層概念にしやすく
-      patterns.push('deep_concept_indicator');
-      reasoning += '深層概念指標, ';
+    const isCommonTech = commonTechTerms.some(term => concept.includes(term));
+    
+    if (hasRevolutionary && !isCommonTech) {
+      score += 0.5; // 真の革新概念により高スコア
+      patterns.push('revolutionary_indicator');
+      reasoning += '革命的概念指標, ';
+    } else if (isCommonTech) {
+      score -= 0.2; // 一般技術用語はスコア減点
+      patterns.push('common_tech_penalty');
+      reasoning += '一般技術用語減点, ';
     }
 
     // 数学・科学分野の専門用語
@@ -848,31 +865,47 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 革新度の予測
+   * 革新度の予測（現実的基準）
    */
   private predictInnovationLevel(
     deepConcepts: ClassifiedConcept[], 
     timeMarkers: TimeRevolutionMarker[], 
     content: string
   ): number {
-    let score = 5; // ベーススコア
+    let score = 3; // より現実的なベーススコア
 
-    // 深層概念の品質と数
-    const avgDeepConfidence = deepConcepts.reduce((sum, c) => sum + c.confidence, 0) / deepConcepts.length || 0;
-    score += deepConcepts.length * 0.3 + avgDeepConfidence * 2;
+    // 真の革新概念のみカウント
+    const revolutionaryConcepts = deepConcepts.filter(c => 
+      c.reasoning.includes('革命的概念指標') || 
+      c.reasoning.includes('数学・科学専門用語') ||
+      c.term.includes('理論') || c.term.includes('予想') || c.term.includes('定理')
+    );
+    
+    // 革新概念があれば大幅加点、なければ控えめ
+    if (revolutionaryConcepts.length > 0) {
+      score += revolutionaryConcepts.length * 1.5;
+      const avgConfidence = revolutionaryConcepts.reduce((sum, c) => sum + c.confidence, 0) / revolutionaryConcepts.length;
+      score += avgConfidence * 2;
+    } else {
+      // 革新概念がない場合は大幅減点
+      score -= 1;
+    }
 
-    // 時間革命マーカー
+    // 時間革命マーカー（より厳格）
     const revolutionaryMarkers = timeMarkers.filter(m => m.efficiency === 'revolutionary').length;
-    score += revolutionaryMarkers * 1.5;
+    score += revolutionaryMarkers * 1.0;
 
-    // 革新語の存在
-    const innovationWords = ['革命', '突破', '革新', '画期的', '発見', '理論'];
-    innovationWords.forEach(word => {
-      if (content.includes(word)) {
-        score += 0.5;
-      }
-    });
+    // 真の革新キーワード（厳選）
+    const realInnovationWords = ['コラッツ予想', 'P≠NP', '30分で解決', '2-3時間で突破', 'ブレークスルー', 'パラダイムシフト'];
+    const foundInnovations = realInnovationWords.filter(word => content.includes(word)).length;
+    score += foundInnovations * 2; // 真の革新なら大幅加点
 
+    // 一般的な技術用語が多い場合は減点
+    const commonWords = ['システム', 'モデル', 'データ', '情報', '処理', '機能'];
+    const commonCount = commonWords.filter(word => content.includes(word)).length;
+    score -= commonCount * 0.2;
+
+    // 最終調整：より保守的に
     return Math.min(10, Math.max(1, Math.round(score)));
   }
 
