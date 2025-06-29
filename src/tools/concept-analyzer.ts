@@ -2,6 +2,7 @@
 
 import fs from 'fs';
 import path from 'path';
+import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
 
 interface ConceptCandidate {
   term: string;

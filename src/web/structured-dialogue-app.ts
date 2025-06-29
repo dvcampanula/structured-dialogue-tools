@@ -16,6 +16,7 @@ import { RawLogSplitter } from '../core/raw-log-splitter.js';
 import { NamingHelper } from '../core/naming-helper.js';
 import { LogFormatUnifier } from '../core/log-format-unifier.js';
 import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
+import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
 
 interface ProcessRequest {
   rawLog: string;
@@ -54,6 +55,7 @@ class StructuredDialogueApp {
   private namingHelper: NamingHelper;
   private formatUnifier: LogFormatUnifier;
   private unifiedProcessor: UnifiedLogProcessor;
+  private intelligentExtractor: IntelligentConceptExtractor;
   private port: number;
 
   constructor(port: number = 3000) {
@@ -63,6 +65,7 @@ class StructuredDialogueApp {
     this.namingHelper = new NamingHelper();
     this.formatUnifier = new LogFormatUnifier();
     this.unifiedProcessor = new UnifiedLogProcessor();
+    this.intelligentExtractor = new IntelligentConceptExtractor();
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -90,6 +93,9 @@ class StructuredDialogueApp {
     // 統一処理エンドポイント（新機能）
     this.app.post('/api/process-unified', this.processUnified.bind(this));
     
+    // IntelligentConceptExtractor エンドポイント（NEW）
+    this.app.post('/api/extract-concepts', this.extractConcepts.bind(this));
+    
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
     this.app.post('/api/settings', this.updateSettings.bind(this));
@@ -113,7 +119,14 @@ class StructuredDialogueApp {
   /**
    * ヘルパー初期化
    */
-  private initializeHelpers(): void {
+  private async initializeHelpers(): Promise<void> {
+    // IntelligentConceptExtractor の初期化
+    try {
+      await this.intelligentExtractor.initialize();
+      console.log('✅ IntelligentConceptExtractor 初期化完了');
+    } catch (error) {
+      console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
+    }
     // 既存ログファイルリストで命名ヘルパーを初期化
     const existingLogs = [
       'log_p00_discovery_01.md',
@@ -325,6 +338,60 @@ class StructuredDialogueApp {
           originalLength: 0,
           chunkCount: 0,
           avgChunkSize: 0,
+          processingTime: Date.now() - startTime
+        }
+      });
+    }
+  }
+
+  /**
+   * IntelligentConceptExtractor API エンドポイント
+   */
+  private async extractConcepts(req: express.Request, res: express.Response): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      const { logContent } = req.body;
+      
+      if (!logContent || typeof logContent !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'logContent (string) が必要です'
+        });
+        return;
+      }
+
+      console.log(`🔬 概念抽出開始: ${logContent.length}文字`);
+      
+      // IntelligentConceptExtractor による概念抽出
+      const extractionResult = await this.intelligentExtractor.extractConcepts(logContent);
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ 概念抽出完了: ${processingTime}ms, 革新度${extractionResult.predictedInnovationLevel}/10`);
+      
+      // レスポンス
+      res.json({
+        success: true,
+        extraction: extractionResult,
+        summary: {
+          originalLength: logContent.length,
+          surfaceConceptsCount: extractionResult.surfaceConcepts.length,
+          deepConceptsCount: extractionResult.deepConcepts.length,
+          timeMarkersCount: extractionResult.timeRevolutionMarkers.length,
+          processingTime
+        }
+      });
+      
+    } catch (error) {
+      console.error('概念抽出エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー',
+        summary: {
+          originalLength: 0,
+          surfaceConceptsCount: 0,
+          deepConceptsCount: 0,
+          timeMarkersCount: 0,
           processingTime: Date.now() - startTime
         }
       });

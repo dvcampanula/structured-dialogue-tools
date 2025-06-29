@@ -9,6 +9,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
+import kuromoji from 'kuromoji';
 
 // 学習データベースの型定義
 interface AnalysisResultsDB {
@@ -95,6 +96,7 @@ export class IntelligentConceptExtractor {
   private conceptPatterns: Map<string, ConceptPattern> = new Map();
   private timePatterns: RegExp[] = [];
   private innovationIndicators: string[] = [];
+  private tokenizer: any = null;
 
   constructor(private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json') {
     this.initializeTimePatterns();
@@ -114,6 +116,9 @@ export class IntelligentConceptExtractor {
 
       console.log(`📚 学習データ読み込み完了: ${this.learningData.totalLogsAnalyzed}ログ`);
       
+      // 形態素解析器の初期化
+      await this.initializeTokenizer();
+      
       // パターン学習の実行
       await this.learnConceptPatterns();
       await this.learnInnovationIndicators();
@@ -124,6 +129,26 @@ export class IntelligentConceptExtractor {
       console.error('❌ 初期化エラー:', error);
       throw error;
     }
+  }
+
+  /**
+   * kuromoji形態素解析器の初期化
+   */
+  private async initializeTokenizer(): Promise<void> {
+    return new Promise((resolve, reject) => {
+      kuromoji.builder({
+        dicPath: 'node_modules/kuromoji/dict'
+      }).build((err: any, tokenizer: any) => {
+        if (err) {
+          console.warn('⚠️ 形態素解析器の初期化に失敗。基本処理で継続:', err.message);
+          resolve();
+        } else {
+          this.tokenizer = tokenizer;
+          console.log('🔗 kuromoji形態素解析器初期化完了');
+          resolve();
+        }
+      });
+    });
   }
 
   /**
@@ -262,12 +287,40 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 生の概念抽出
+   * 生の概念抽出（形態素解析統合）
    */
   private extractRawConcepts(content: string): string[] {
     const concepts: Set<string> = new Set();
     
-    // 単語抽出（カタカナ、漢字、ひらがなの組み合わせ）
+    // kuromoji形態素解析（利用可能な場合）
+    if (this.tokenizer) {
+      try {
+        const tokens = this.tokenizer.tokenize(content);
+        tokens.forEach((token: any) => {
+          // 名詞、動詞、形容詞、カタカナを抽出
+          if (
+            token.pos === '名詞' || 
+            token.pos === '動詞' || 
+            token.pos === '形容詞' ||
+            token.reading
+          ) {
+            const surface = token.surface_form;
+            if (surface.length >= 2 && surface.length <= 20) {
+              concepts.add(surface);
+            }
+            
+            // 基本形も抽出
+            if (token.basic_form && token.basic_form !== surface) {
+              concepts.add(token.basic_form);
+            }
+          }
+        });
+      } catch (error) {
+        console.warn('形態素解析でエラー。基本処理で継続:', error);
+      }
+    }
+    
+    // 基本的な正規表現パターン（フォールバック・補完）
     const wordPattern = /[ァ-ヶー]+[A-Za-z]*|[一-龯]+[ァ-ヶー]*|[ぁ-ん]+[一-龯]*/g;
     const words = content.match(wordPattern) || [];
     
@@ -281,7 +334,8 @@ export class IntelligentConceptExtractor {
     const compositePatterns = [
       /「([^」]+)」/g,
       /『([^』]+)』/g,
-      /([一-龯]+理論|[一-龯]+手法|[一-龯]+システム)/g
+      /([一-龯]+理論|[一-龯]+手法|[一-龯]+システム)/g,
+      /([ァ-ヶー]+理論|[ァ-ヶー]+システム|[ァ-ヶー]+手法)/g
     ];
     
     compositePatterns.forEach(pattern => {
