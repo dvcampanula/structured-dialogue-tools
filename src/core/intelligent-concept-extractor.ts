@@ -287,65 +287,134 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 生の概念抽出（形態素解析統合）
+   * 生の概念抽出（形態素解析中心・品質重視）
    */
   private extractRawConcepts(content: string): string[] {
     const concepts: Set<string> = new Set();
     
-    // kuromoji形態素解析（利用可能な場合）
+    // kuromoji形態素解析（メイン手法）
     if (this.tokenizer) {
       try {
         const tokens = this.tokenizer.tokenize(content);
-        tokens.forEach((token: any) => {
-          // 名詞、動詞、形容詞、カタカナを抽出
-          if (
-            token.pos === '名詞' || 
-            token.pos === '動詞' || 
-            token.pos === '形容詞' ||
-            token.reading
-          ) {
+        const compoundConcepts: string[] = [];
+        
+        tokens.forEach((token: any, index: number) => {
+          // 名詞のみ抽出（動詞・形容詞は除外して品質向上）
+          if (token.pos === '名詞' && token.pos_detail_1 !== '代名詞' && token.pos_detail_1 !== '数') {
             const surface = token.surface_form;
-            if (surface.length >= 2 && surface.length <= 20) {
-              concepts.add(surface);
-            }
             
-            // 基本形も抽出
-            if (token.basic_form && token.basic_form !== surface) {
-              concepts.add(token.basic_form);
+            // 基本的な品質フィルタ
+            if (surface.length >= 2 && surface.length <= 15 && 
+                !this.isLowQualityConcept(surface)) {
+              concepts.add(surface);
+              
+              // 基本形も追加（異なる場合のみ）
+              if (token.basic_form && token.basic_form !== surface && token.basic_form.length >= 2) {
+                concepts.add(token.basic_form);
+              }
+            }
+          }
+          
+          // 複合概念の検出（連続する名詞）
+          if (token.pos === '名詞' && index < tokens.length - 1) {
+            const nextToken = tokens[index + 1];
+            if (nextToken.pos === '名詞') {
+              const compound = token.surface_form + nextToken.surface_form;
+              if (compound.length >= 3 && compound.length <= 15) {
+                compoundConcepts.push(compound);
+              }
             }
           }
         });
+        
+        // 複合概念を追加（重複除去済み）
+        compoundConcepts.forEach(compound => {
+          if (!this.isLowQualityConcept(compound)) {
+            concepts.add(compound);
+          }
+        });
+        
       } catch (error) {
-        console.warn('形態素解析でエラー。基本処理で継続:', error);
+        console.warn('形態素解析でエラー。フォールバック処理:', error);
+        // フォールバックとして基本パターンマッチング
+        this.fallbackConceptExtraction(content, concepts);
       }
+    } else {
+      // kuromoji未利用時のフォールバック
+      this.fallbackConceptExtraction(content, concepts);
     }
     
-    // 基本的な正規表現パターン（フォールバック・補完）
-    const wordPattern = /[ァ-ヶー]+[A-Za-z]*|[一-龯]+[ァ-ヶー]*|[ぁ-ん]+[一-龯]*/g;
-    const words = content.match(wordPattern) || [];
-    
-    words.forEach(word => {
-      if (word.length >= 2 && word.length <= 20) {
-        concepts.add(word);
-      }
-    });
-    
-    // 複合概念の抽出
-    const compositePatterns = [
-      /「([^」]+)」/g,
-      /『([^』]+)』/g,
-      /([一-龯]+理論|[一-龯]+手法|[一-龯]+システム)/g,
-      /([ァ-ヶー]+理論|[ァ-ヶー]+システム|[ァ-ヶー]+手法)/g
+    // 引用符内の概念（高品質）
+    const quotedPatterns = [
+      /「([^」]{2,15})」/g,
+      /『([^』]{2,15})』/g,
+      /"([^"]{2,15})"/g
     ];
     
-    compositePatterns.forEach(pattern => {
-      const matches = content.match(pattern);
-      if (matches) {
-        matches.forEach(match => concepts.add(match.replace(/[「」『』]/g, '')));
+    quotedPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const concept = match[1];
+        if (!this.isLowQualityConcept(concept)) {
+          concepts.add(concept);
+        }
       }
     });
     
-    return Array.from(concepts);
+    return Array.from(concepts).filter(concept => 
+      concept.length >= 2 && concept.length <= 15 && !this.isLowQualityConcept(concept)
+    );
+  }
+
+  /**
+   * 低品質概念の判定
+   */
+  private isLowQualityConcept(concept: string): boolean {
+    // 不自然な日本語パターン
+    const badPatterns = [
+      /^[のがをにはでと]/, // 助詞で始まる
+      /[のがをにはでと]$/, // 助詞で終わる
+      /^(この|その|あの|どの)/, // 連体詞
+      /^(ここ|そこ|あそこ|どこ)/, // 場所代名詞
+      /^[\d\-\s]+$/, // 数字のみ
+      /^[a-zA-Z]+$/, // 英字のみ（短いもの）
+      /した$/, // 動詞の過去形
+      /して/, // 動詞の連用形
+      /である$/, // 断定の助動詞
+      /です$/, // 丁寧語
+      /ます$/, // 丁寧語
+      /ない$/, // 否定
+      /[ぁぃぅぇぉっゃゅょゎ]/, // 小文字ひらがな（助詞の一部）
+    ];
+    
+    return badPatterns.some(pattern => pattern.test(concept));
+  }
+
+  /**
+   * フォールバック概念抽出
+   */
+  private fallbackConceptExtraction(content: string, concepts: Set<string>): void {
+    // 専門用語パターン（高品質）
+    const specialPatterns = [
+      /([一-龯]{2,8}理論)/g,
+      /([一-龯]{2,8}手法)/g,
+      /([一-龯]{2,8}システム)/g,
+      /([一-龯]{2,8}アプローチ)/g,
+      /([一-龯]{2,8}構造)/g,
+      /([ァ-ヶー]{2,8}理論)/g,
+      /([ァ-ヶー]{2,8}システム)/g,
+      /([ァ-ヶー]{2,8}アプローチ)/g
+    ];
+    
+    specialPatterns.forEach(pattern => {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        const concept = match[1];
+        if (!this.isLowQualityConcept(concept)) {
+          concepts.add(concept);
+        }
+      }
+    });
   }
 
   /**
