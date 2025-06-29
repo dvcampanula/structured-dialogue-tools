@@ -351,6 +351,9 @@
                     <button class="btn btn-secondary" onclick="processLog()">
                         🚀 従来処理
                     </button>
+                    <button class="btn btn-secondary" onclick="extractConcepts()">
+                        🧠 概念抽出
+                    </button>
                     <button class="btn btn-secondary" onclick="clearAll()">
                         🗑️ クリア
                     </button>
@@ -400,12 +403,14 @@
                     <div class="tab active" onclick="switchTab('chunks')">📦 分割結果</div>
                     <div class="tab" onclick="switchTab('prompts')">💬 構造化プロンプト</div>
                     <div class="tab" onclick="switchTab('unified')">✨ 統一書式</div>
+                    <div class="tab" onclick="switchTab('concepts')">🧠 概念抽出</div>
                     <div class="tab" onclick="switchTab('metrics')">📊 品質分析</div>
                 </div>
                 
                 <div class="tab-content active" id="chunks-content"></div>
                 <div class="tab-content" id="prompts-content"></div>
                 <div class="tab-content" id="unified-content"></div>
+                <div class="tab-content" id="concepts-content"></div>
                 <div class="tab-content" id="metrics-content"></div>
             </div>
         </div>
@@ -793,6 +798,181 @@
             if (score >= 70) return '#d97706'; // オレンジ（良好）
             if (score >= 50) return '#dc2626'; // 赤（改善要）
             return '#6b7280'; // グレー（要見直し）
+        }
+
+        // IntelligentConceptExtractor 概念抽出機能
+        async function extractConcepts() {
+            const rawLog = document.getElementById('rawLog').value.trim();
+            
+            if (!rawLog) {
+                showError('生ログを入力してください');
+                return;
+            }
+
+            showLoading(true);
+            hideError();
+
+            try {
+                const response = await fetch('/api/extract-concepts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        logContent: rawLog
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    displayConceptResults(result);
+                } else {
+                    showError(result.error || '概念抽出中にエラーが発生しました');
+                }
+            } catch (error) {
+                showError('サーバーとの通信エラー: ' + error.message);
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function displayConceptResults(result) {
+            const extraction = result.extraction;
+            
+            // サマリー更新
+            const summary = document.getElementById('summary');
+            summary.innerHTML = `
+                <div class="summary-grid">
+                    <div class="summary-item">
+                        <div class="summary-value">${result.summary.originalLength.toLocaleString()}</div>
+                        <div class="summary-label">元の文字数</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value" style="color: ${getInnovationColor(extraction.predictedInnovationLevel)};">
+                            ${extraction.predictedInnovationLevel}/10
+                        </div>
+                        <div class="summary-label">革新度予測</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${extraction.predictedSocialImpact.toUpperCase()}</div>
+                        <div class="summary-label">社会的インパクト</div>
+                    </div>
+                    <div class="summary-item">
+                        <div class="summary-value">${result.summary.processingTime}ms</div>
+                        <div class="summary-label">処理時間</div>
+                    </div>
+                </div>
+            `;
+
+            // 概念抽出結果タブに詳細を表示
+            const conceptsContent = document.getElementById('concepts-content');
+            conceptsContent.innerHTML = `
+                <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 12px;">
+                    <h2 style="color: #0c4a6e; margin-bottom: 16px; display: flex; align-items: center;">
+                        🧠 IntelligentConceptExtractor v2.0 結果
+                        <span style="margin-left: auto; font-size: 1.8rem; font-weight: bold; color: ${getInnovationColor(extraction.predictedInnovationLevel)};">
+                            革新度 ${extraction.predictedInnovationLevel}/10
+                        </span>
+                    </h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div><strong>対話タイプ:</strong> ${extraction.dialogueTypeDetection}</div>
+                        <div><strong>社会的インパクト:</strong> ${extraction.predictedSocialImpact}</div>
+                        <div><strong>突破確率:</strong> ${extraction.breakthroughProbability}%</div>
+                        <div><strong>信頼度:</strong> ${extraction.confidence}%</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                    <!-- 深層概念 -->
+                    <div style="background: #fdf2f8; border: 1px solid #ec4899; border-radius: 8px; padding: 16px;">
+                        <h3 style="color: #831843; margin-bottom: 12px;">🌊 深層概念 (${extraction.deepConcepts.length}個)</h3>
+                        ${extraction.deepConcepts.map(concept => `
+                            <div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid #ec4899;">
+                                <strong>${concept.term}</strong>
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                    信頼度: ${Math.round(concept.confidence * 100)}% | ${concept.reasoning}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <!-- 表面概念 -->
+                    <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+                        <h3 style="color: #065f46; margin-bottom: 12px;">🌸 表面概念 (${extraction.surfaceConcepts.length}個)</h3>
+                        ${extraction.surfaceConcepts.map(concept => `
+                            <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px; border-left: 3px solid #10b981;">
+                                <strong>${concept.term}</strong>
+                                <span style="font-size: 12px; color: #6b7280; margin-left: 8px;">
+                                    (${Math.round(concept.confidence * 100)}%)
+                                </span>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                ${extraction.timeRevolutionMarkers.length > 0 ? `
+                    <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="color: #92400e; margin-bottom: 12px;">⚡ 時間革命マーカー (${extraction.timeRevolutionMarkers.length}個)</h3>
+                        ${extraction.timeRevolutionMarkers.map(marker => `
+                            <div style="margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                <strong>"${marker.timeExpression}"</strong> - ${marker.efficiency}
+                                <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                    ${marker.context.substring(0, 100)}...
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
+                    <h3 style="color: #334155; margin-bottom: 12px;">📊 品質予測</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #059669;">${extraction.qualityPrediction.conceptDensity}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">概念密度</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #d97706;">${extraction.qualityPrediction.innovationPotential}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">革新ポテンシャル</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${extraction.qualityPrediction.structuralDialogueScore}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">構造的対話スコア</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.2rem; font-weight: bold; color: #dc2626;">${extraction.qualityPrediction.overallQuality}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">総合品質</div>
+                        </div>
+                    </div>
+                </div>
+
+                ${extraction.similarPatterns.length > 0 ? `
+                    <div style="background: #f1f5f9; border: 1px solid #94a3b8; border-radius: 8px; padding: 16px; margin-top: 16px;">
+                        <h3 style="color: #475569; margin-bottom: 12px;">🔗 類似パターン</h3>
+                        ${extraction.similarPatterns.map(pattern => `
+                            <div style="font-size: 14px; color: #64748b; margin-bottom: 4px;">• ${pattern}</div>
+                        `).join('')}
+                    </div>
+                ` : ''}
+            `;
+
+            // 概念抽出タブをアクティブにして結果を表示
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            document.querySelector('[onclick="switchTab(\'concepts\')"]').classList.add('active');
+            document.getElementById('concepts-content').classList.add('active');
+
+            document.getElementById('results').style.display = 'block';
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function getInnovationColor(level) {
+            if (level >= 9) return '#dc2626'; // 赤（革命的）
+            if (level >= 7) return '#d97706'; // オレンジ（高革新）
+            if (level >= 5) return '#059669'; // 緑（中革新）
+            return '#6b7280'; // グレー（基本）
         }
 
         // 初期化
