@@ -86,6 +86,20 @@ export interface QualityPrediction {
   innovationPotential: number;
   structuralDialogueScore: number;
   overallQuality: number;
+  // リアルタイム品質評価拡張
+  realTimeMetrics: RealTimeQualityMetrics;
+  qualityGrade: 'A' | 'B' | 'C' | 'D' | 'F';
+  improvementSuggestions: string[];
+  domainSpecificScore: number;
+}
+
+export interface RealTimeQualityMetrics {
+  conceptCoherence: number;        // 概念の一貫性
+  dialogueRelevance: number;       // 対話との関連性
+  terminologyAccuracy: number;     // 専門用語精度
+  extractionReliability: number;   // 抽出信頼性
+  semanticDepth: number;          // 意味的深度
+  contextualFitness: number;      // 文脈適合性
 }
 
 /**
@@ -725,6 +739,64 @@ export class IntelligentConceptExtractor {
       reasoning += '構造対話革新概念, ';
     }
 
+    // 教育・学習支援分野の革新概念
+    const educationalInnovativeTerms = [
+      '構造的抽出', '論理構造', '関係性抽出', '階層構造', '多角的分析',
+      '内省促進', '思考深化', 'メタ認知', '認知構造', '学習促進',
+      '知識構造化', '概念体系', '思考フレームワーク', '認知プロセス'
+    ];
+    
+    const isEducationalInnovative = educationalInnovativeTerms.some(term => 
+      concept.includes(term) || term.includes(concept)
+    );
+    
+    if (isEducationalInnovative) {
+      score += 0.3; // 教育革新概念
+      patterns.push('educational_innovative');
+      reasoning += '教育革新概念, ';
+    }
+
+    // 技術・開発分野の革新概念
+    const technicalInnovativeTerms = [
+      '再帰的対話', '文脈保持', '相互作用手法', '思考のパートナー', '文脈追跡',
+      '再現可能な知識創造', '対話履歴活用', '進化する目標', '知識創造',
+      'AI-人間協働', '共同アイデア発展', '対話型開発', 'コラボラティブ思考',
+      '文脈継承', '対話設計', 'インタラクティブシステム', '協働プラットフォーム',
+      // 生体エネルギー・ナノ技術革新概念（ログ8対応）
+      'バイオエナジーハーベスティング', '逆電気透析', 'RED', 'ナノ流体', 'E-Fluid',
+      '酵素バイオ燃料セル', 'EFC', '熱電発電', 'ピエゾ電圧素子', '人工血液',
+      'HBOC', 'エネルギー循環', '生体適合性', 'ナノボット液', 'Thirium', 
+      'ブルーブラッド', 'バイオコンポーネント', '合成臓器', 'サイバーライフ'
+    ];
+    
+    const isTechnicalInnovative = technicalInnovativeTerms.some(term => 
+      concept.includes(term) || term.includes(concept)
+    );
+    
+    if (isTechnicalInnovative) {
+      score += 0.35; // 技術革新概念
+      patterns.push('technical_innovative');
+      reasoning += '技術革新概念, ';
+    }
+
+    // フィクション・ゲーム関連の革新概念
+    const fictionInnovativeTerms = [
+      'Detroit', 'Become Human', 'アンドロイド', 'CyberLife', '2038年',
+      'Thirium', 'ブルーブラッド', 'バイオコンポーネント', '合成臓器',
+      'ポンプ', 'シャットダウン', 'マーカー', '識別', '摂取',
+      '紗季', 'クウコ', 'ユウト', 'Grok Vision'
+    ];
+    
+    const isFictionInnovative = fictionInnovativeTerms.some(term => 
+      concept.includes(term) || term.includes(concept)
+    );
+    
+    if (isFictionInnovative) {
+      score += 0.3; // フィクション革新概念
+      patterns.push('fiction_innovative');
+      reasoning += 'フィクション革新概念, ';
+    }
+
     // 数学・科学分野の専門用語
     const mathScienceTerms = ['予想', '定理', '証明', '解', '関数', '軌道', '収束', '発散', '吸収', '減衰', '統一', '変換', '写像', '群', '環', '体', '空間', '次元', '位相', '測度'];
     if (mathScienceTerms.some(term => concept.includes(term) || term.includes(concept))) {
@@ -740,8 +812,18 @@ export class IntelligentConceptExtractor {
       reasoning += '複合深層概念, ';
     }
 
-    // 深層概念の厳格な閾値：非常に高スコアのみ
-    const classification = score > 0.75 ? 'deep' : 'surface';
+    // 深層概念の調整された閾値：ドメイン別適応
+    let deepThreshold = 0.75; // デフォルト（厳格）
+    
+    // ドメイン別閾値調整
+    if (patterns.includes('compound_deep_concept') || patterns.includes('math_science_term')) {
+      deepThreshold = 0.65; // 学術・技術系は少し緩和
+    }
+    if (patterns.includes('innovation_similarity')) {
+      deepThreshold = 0.6; // 教育・思考支援系も緩和
+    }
+    
+    const classification = score > deepThreshold ? 'deep' : 'surface';
     const confidence = Math.min(0.9, Math.max(0.2, score));
 
     return {
@@ -892,54 +974,141 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * 革新度の予測（現実的基準）
+   * 革新度の予測（ドメイン別現実的基準）
    */
   private predictInnovationLevel(
     deepConcepts: ClassifiedConcept[], 
     timeMarkers: TimeRevolutionMarker[], 
     content: string
   ): number {
-    let score = 3; // より現実的なベーススコア
+    // Step 1: 対話タイプ別ベーススコア
+    const dialogueType = this.detectDialogueType(content);
+    let baseScore = this.getBaseInnovationScore(dialogueType);
 
-    // 真の革新概念のみカウント
-    const revolutionaryConcepts = deepConcepts.filter(c => 
-      c.reasoning.includes('革命的概念指標') || 
-      c.reasoning.includes('数学・科学専門用語') ||
-      c.term.includes('理論') || c.term.includes('予想') || c.term.includes('定理')
-    );
+    // Step 2: 概念品質分析
+    const conceptScore = this.analyzeConceptInnovation(deepConcepts, dialogueType);
     
-    // 革新概念があれば大幅加点、なければ控えめ
-    if (revolutionaryConcepts.length > 0) {
-      score += revolutionaryConcepts.length * 1.5;
-      const avgConfidence = revolutionaryConcepts.reduce((sum, c) => sum + c.confidence, 0) / revolutionaryConcepts.length;
-      score += avgConfidence * 2;
-    } else {
-      // 革新概念がない場合は大幅減点
-      score -= 1;
+    // Step 3: 内容分析
+    const contentScore = this.analyzeContentInnovation(content, dialogueType);
+    
+    // Step 4: 時間効率性
+    const timeScore = this.analyzeTimeInnovation(timeMarkers);
+    
+    // Step 5: ドメイン別統合スコア
+    let finalScore = baseScore + conceptScore + contentScore + timeScore;
+    
+    // Step 6: ドメイン別調整
+    finalScore = this.adjustByDomain(finalScore, dialogueType, content);
+
+    // 最終範囲調整
+    return Math.min(10, Math.max(1, Math.round(finalScore)));
+  }
+
+  /**
+   * 対話タイプ別ベーススコア
+   */
+  private getBaseInnovationScore(dialogueType: string): number {
+    const baseScores = {
+      'mathematical_research': 6,     // 数学研究：高ベース
+      'structural_dialogue': 5,       // 構造的対話：中高ベース
+      'ai_development': 4,            // AI開発：中ベース
+      'educational_innovation': 3,    // 教育革新：中ベース
+      'technical_collaboration': 3,   // 技術協働：中ベース
+      'academic_discussion': 3,       // 学術討論：中ベース
+      'problem_solving': 2,           // 問題解決：低中ベース
+      'creative_ideation': 2,         // 創造発想：低中ベース
+      'technical_support': 1,         // 技術サポート：低ベース
+      'information_request': 1,       // 情報要求：低ベース
+      'free_form': 2                  // 自由形式：低中ベース
+    };
+    return baseScores[dialogueType] || 2;
+  }
+
+  /**
+   * 概念革新性分析
+   */
+  private analyzeConceptInnovation(deepConcepts: ClassifiedConcept[], dialogueType: string): number {
+    let score = 0;
+    
+    // 深層概念の革新性
+    for (const concept of deepConcepts) {
+      if (concept.reasoning.includes('革命的概念指標')) score += 2;
+      else if (concept.reasoning.includes('数学・科学専門用語')) score += 1.5;
+      else if (concept.reasoning.includes('構造対話革新概念')) score += 1.2;
+      else if (concept.reasoning.includes('教育革新概念')) score += 1;
+      else if (concept.reasoning.includes('技術革新概念')) score += 1;
+      else score += 0.5; // 一般深層概念
     }
+    
+    // 概念数による調整
+    if (deepConcepts.length === 0) score -= 1;
+    else if (deepConcepts.length >= 4) score += 0.5;
+    
+    return score;
+  }
 
-    // 時間革命マーカー（より厳格）
-    const revolutionaryMarkers = timeMarkers.filter(m => m.efficiency === 'revolutionary').length;
-    score += revolutionaryMarkers * 1.0;
-
-    // 真の革新キーワード（構造的対話対応）
-    const realInnovationWords = [
-      // 数学・科学的革新
-      'コラッツ予想', 'P≠NP', '30分で解決', '2-3時間で突破', 'ブレークスルー', 'パラダイムシフト',
-      // 構造的対話革新
-      'レイヤード・プロンプティング', 'セーブデータ理論', '構造的協働思考', '概念共同生成',
-      'コンテキスト圧縮', '応答固定化', '構造ハック', '新概念創出'
+  /**
+   * 内容革新性分析
+   */
+  private analyzeContentInnovation(content: string, dialogueType: string): number {
+    let score = 0;
+    
+    // 真の革新キーワード（段階別）
+    const revolutionaryKeywords = [
+      'コラッツ予想', 'P≠NP', 'ブレークスルー', 'パラダイムシフト', '30分で解決'
     ];
-    const foundInnovations = realInnovationWords.filter(word => content.includes(word)).length;
-    score += foundInnovations * 2; // 真の革新なら大幅加点
+    const innovativeKeywords = [
+      'レイヤード・プロンプティング', 'セーブデータ理論', '構造ハック', '概念共同生成'
+    ];
+    const progressiveKeywords = [
+      '新しい手法', '革新的アプローチ', '画期的発見', 'メタ認知', '知識創造'
+    ];
+    
+    // 段階別カウント
+    score += revolutionaryKeywords.filter(word => content.includes(word)).length * 3;
+    score += innovativeKeywords.filter(word => content.includes(word)).length * 2;
+    score += progressiveKeywords.filter(word => content.includes(word)).length * 1;
+    
+    // 一般技術用語による減点（控えめ）
+    const commonTechTerms = ['システム', 'データ', '情報', '処理'];
+    const commonCount = commonTechTerms.filter(word => content.includes(word)).length;
+    score -= commonCount * 0.1; // 減点を少なく調整
+    
+    return score;
+  }
 
-    // 一般的な技術用語が多い場合は減点
-    const commonWords = ['システム', 'モデル', 'データ', '情報', '処理', '機能'];
-    const commonCount = commonWords.filter(word => content.includes(word)).length;
-    score -= commonCount * 0.2;
+  /**
+   * 時間効率革新性分析
+   */
+  private analyzeTimeInnovation(timeMarkers: TimeRevolutionMarker[]): number {
+    return timeMarkers.filter(m => m.efficiency === 'revolutionary').length * 1.5 +
+           timeMarkers.filter(m => m.efficiency === 'high').length * 0.5;
+  }
 
-    // 最終調整：より保守的に
-    return Math.min(10, Math.max(1, Math.round(score)));
+  /**
+   * ドメイン別最終調整
+   */
+  private adjustByDomain(score: number, dialogueType: string, content: string): number {
+    // 数学・科学分野：高い基準だが段階評価
+    if (dialogueType === 'mathematical_research') {
+      if (content.includes('コラッツ') && content.includes('NP')) return Math.min(score, 10);
+      else if (content.includes('定理') || content.includes('証明')) return Math.min(score, 8);
+      else return Math.min(score, 6);
+    }
+    
+    // 構造的対話：革新概念の有無で調整
+    if (dialogueType === 'structural_dialogue') {
+      if (content.includes('レイヤード') || content.includes('構造ハック')) return Math.min(score, 8);
+      else return Math.min(score, 5);
+    }
+    
+    // 技術・教育分野：実用性重視
+    if (['ai_development', 'educational_innovation', 'technical_collaboration'].includes(dialogueType)) {
+      return Math.min(score, 6); // 最大6点で実用的
+    }
+    
+    // その他：保守的評価
+    return Math.min(score, 4);
   }
 
   /**
@@ -956,21 +1125,92 @@ export class IntelligentConceptExtractor {
    * 対話タイプの検出
    */
   private detectDialogueType(content: string): string {
-    const patterns = {
-      'human_led': /^(あなた|ユーザー|質問|教えて)/m,
-      'ai_led': /^(私は|AI として|こんにちは)/m,
-      'collaborative': /(一緒に|協力|共同)/,
-      'mathematical': /(数学|証明|定理|予想)/,
-      'ai_collaboration': /(AI同士|文通|Gemini|ChatGPT)/
+    // 高優先度パターン（専門的・特殊）
+    const highPriorityPatterns = {
+      'mathematical_research': /(コラッツ予想|NP予想|リーマン予想|証明.*定理|数学的.*証明|計算複雑性.*解析)/,
+      'structural_dialogue': /(構造的対話|構造ハック|レイヤード|セーブデータ理論|構造突破)/,
+      'ai_development': /(プロンプト工学|AI開発|モデル学習|GPT|Claude|LLM)/,
+      'educational_innovation': /(学習支援|教育革新|認知構造|メタ認知|内省促進)/,
+      'technical_collaboration': /(GitHub|プロジェクト|コード|実装|技術仕様|API)/,
+      // 学術的議論・論文執筆関連
+      'academic_research': /(論文|学会|研究者|学術|投稿|査読|発表|学際的)/,
+      'knowledge_management': /(知識工学|ナレッジマネジメント|知識継承|知識構造化)/
     };
 
-    for (const [type, pattern] of Object.entries(patterns)) {
+    // 中優先度パターン（一般的分野）
+    const mediumPriorityPatterns = {
+      'academic_discussion': /(研究|分析|考察|検討|理論|仮説|論文|学術)/,
+      'problem_solving': /(問題解決|課題|改善|最適化|解決策|対策)/,
+      'creative_ideation': /(アイデア|発想|創造|ブレインストーミング|企画)/,
+      'collaborative_work': /(協力|協働|共同|チーム|連携|パートナー)/,
+      'technical_support': /(サポート|支援|ヘルプ|トラブル|エラー|修正)/
+    };
+
+    // 低優先度パターン（基本的対話）
+    const lowPriorityPatterns = {
+      'human_led_inquiry': /^(あなた|教えて|質問|どう思う|説明して)/m,
+      'ai_led_response': /^(私は|AIとして|こんにちは|申し上げます)/m,
+      'casual_conversation': /(雑談|世間話|興味深い|面白い|なるほど)/,
+      'information_request': /(情報|データ|事実|詳細|具体的)/
+    };
+
+    // 高優先度から順次チェック
+    for (const [type, pattern] of Object.entries(highPriorityPatterns)) {
       if (pattern.test(content)) {
         return type;
       }
     }
 
+    for (const [type, pattern] of Object.entries(mediumPriorityPatterns)) {
+      if (pattern.test(content)) {
+        return type;
+      }
+    }
+
+    for (const [type, pattern] of Object.entries(lowPriorityPatterns)) {
+      if (pattern.test(content)) {
+        return type;
+      }
+    }
+
+    // 複合パターン検出
+    const compoundPatterns = this.detectCompoundDialoguePatterns(content);
+    if (compoundPatterns) {
+      return compoundPatterns;
+    }
+
     return 'free_form';
+  }
+
+  /**
+   * 複合対話パターンの検出
+   */
+  private detectCompoundDialoguePatterns(content: string): string | null {
+    // AI間対話の検出
+    if (/(Gemini|ChatGPT|Claude|GPT-4|AI同士|文通)/.test(content) && 
+        /(対話|会話|議論|交流)/.test(content)) {
+      return 'ai_to_ai_dialogue';
+    }
+
+    // 技術的創造対話の検出
+    if (/(技術|開発|実装)/.test(content) && 
+        /(創造|革新|発見|アイデア)/.test(content)) {
+      return 'technical_creative_dialogue';
+    }
+
+    // 学術的協働の検出
+    if (/(研究|学術|論文)/.test(content) && 
+        /(協働|共同|連携)/.test(content)) {
+      return 'academic_collaborative';
+    }
+
+    // 構造化思考支援の検出
+    if (/(構造|体系|組織)/.test(content) && 
+        /(思考|理解|分析)/.test(content)) {
+      return 'structured_thinking_support';
+    }
+
+    return null;
   }
 
   /**
@@ -981,18 +1221,285 @@ export class IntelligentConceptExtractor {
     deepConcepts: ClassifiedConcept[], 
     timeMarkers: TimeRevolutionMarker[]
   ): QualityPrediction {
+    // 従来の基本指標
     const conceptDensity = (deepConcepts.length + surfaceConcepts.length) / 100;
     const innovationPotential = deepConcepts.reduce((sum, c) => sum + c.confidence, 0) / deepConcepts.length || 0;
     const structuralDialogueScore = timeMarkers.length * 0.2 + deepConcepts.length * 0.1;
     
-    const overallQuality = (conceptDensity + innovationPotential + structuralDialogueScore) / 3;
+    // リアルタイム品質メトリクス
+    const realTimeMetrics = this.calculateRealTimeMetrics(surfaceConcepts, deepConcepts, timeMarkers);
+    
+    // ドメイン特化スコア
+    const domainSpecificScore = this.calculateDomainSpecificScore(surfaceConcepts, deepConcepts);
+    
+    // 総合品質スコア（より複合的）
+    const overallQuality = this.calculateOverallQualityScore(
+      conceptDensity, innovationPotential, structuralDialogueScore, realTimeMetrics, domainSpecificScore
+    );
+    
+    // 品質グレード
+    const qualityGrade = this.determineQualityGrade(overallQuality);
+    
+    // 改善提案
+    const improvementSuggestions = this.generateImprovementSuggestions(
+      realTimeMetrics, surfaceConcepts, deepConcepts
+    );
 
     return {
       conceptDensity: Math.round(conceptDensity * 100),
       innovationPotential: Math.round(innovationPotential * 100),
       structuralDialogueScore: Math.round(structuralDialogueScore * 100),
-      overallQuality: Math.round(overallQuality * 100)
+      overallQuality: Math.round(overallQuality * 100),
+      realTimeMetrics,
+      qualityGrade,
+      improvementSuggestions,
+      domainSpecificScore: Math.round(domainSpecificScore * 100)
     };
+  }
+
+  /**
+   * リアルタイム品質メトリクス計算
+   */
+  private calculateRealTimeMetrics(
+    surfaceConcepts: ClassifiedConcept[], 
+    deepConcepts: ClassifiedConcept[], 
+    timeMarkers: TimeRevolutionMarker[]
+  ): RealTimeQualityMetrics {
+    const allConcepts = [...surfaceConcepts, ...deepConcepts];
+    
+    // 概念の一貫性：類似概念パターンの整合性
+    const conceptCoherence = this.assessConceptCoherence(allConcepts);
+    
+    // 対話との関連性：抽出概念が対話内容と合致するか
+    const dialogueRelevance = this.assessDialogueRelevance(allConcepts);
+    
+    // 専門用語精度：ドメイン適切な専門概念の割合
+    const terminologyAccuracy = this.assessTerminologyAccuracy(allConcepts);
+    
+    // 抽出信頼性：概念の信頼度分布の安定性
+    const extractionReliability = this.assessExtractionReliability(allConcepts);
+    
+    // 意味的深度：表面vs深層概念のバランス
+    const semanticDepth = this.assessSemanticDepth(surfaceConcepts, deepConcepts);
+    
+    // 文脈適合性：時間マーカーとの整合性
+    const contextualFitness = this.assessContextualFitness(timeMarkers, allConcepts);
+
+    return {
+      conceptCoherence: Math.round(conceptCoherence * 100),
+      dialogueRelevance: Math.round(dialogueRelevance * 100),
+      terminologyAccuracy: Math.round(terminologyAccuracy * 100),
+      extractionReliability: Math.round(extractionReliability * 100),
+      semanticDepth: Math.round(semanticDepth * 100),
+      contextualFitness: Math.round(contextualFitness * 100)
+    };
+  }
+
+  /**
+   * 概念の一貫性評価
+   */
+  private assessConceptCoherence(concepts: ClassifiedConcept[]): number {
+    if (concepts.length < 2) return 0.5;
+    
+    // 同一パターンを持つ概念の割合
+    const patternGroups = new Map<string, number>();
+    concepts.forEach(c => {
+      c.matchedPatterns.forEach(pattern => {
+        patternGroups.set(pattern, (patternGroups.get(pattern) || 0) + 1);
+      });
+    });
+    
+    const maxGroup = Math.max(...patternGroups.values());
+    return Math.min(1.0, maxGroup / concepts.length);
+  }
+
+  /**
+   * 対話関連性評価
+   */
+  private assessDialogueRelevance(concepts: ClassifiedConcept[]): number {
+    // 学習データとのマッチ率
+    const knownConcepts = concepts.filter(c => c.reasoning.includes('学習データ')).length;
+    const totalConcepts = concepts.length;
+    
+    if (totalConcepts === 0) return 0;
+    
+    const knownRatio = knownConcepts / totalConcepts;
+    const newConceptRatio = 1 - knownRatio;
+    
+    // 既知概念70%、新概念30%が理想的バランス
+    const idealBalance = 1 - Math.abs(0.7 - knownRatio) - Math.abs(0.3 - newConceptRatio);
+    return Math.max(0, idealBalance);
+  }
+
+  /**
+   * 専門用語精度評価
+   */
+  private assessTerminologyAccuracy(concepts: ClassifiedConcept[]): number {
+    if (concepts.length === 0) return 0;
+    
+    const specializedTerms = concepts.filter(c => 
+      c.reasoning.includes('数学・科学専門用語') ||
+      c.reasoning.includes('教育革新概念') ||
+      c.reasoning.includes('技術革新概念') ||
+      c.reasoning.includes('構造対話革新概念')
+    ).length;
+    
+    return Math.min(1.0, specializedTerms / Math.max(1, concepts.length * 0.4));
+  }
+
+  /**
+   * 抽出信頼性評価
+   */
+  private assessExtractionReliability(concepts: ClassifiedConcept[]): number {
+    if (concepts.length === 0) return 0;
+    
+    const confidences = concepts.map(c => c.confidence);
+    const avgConfidence = confidences.reduce((a, b) => a + b, 0) / confidences.length;
+    
+    // 信頼度の分散を計算（低分散＝高信頼性）
+    const variance = confidences.reduce((sum, conf) => sum + Math.pow(conf - avgConfidence, 2), 0) / confidences.length;
+    const stability = 1 - Math.min(1, variance * 2); // 分散を0-1に正規化
+    
+    return (avgConfidence + stability) / 2;
+  }
+
+  /**
+   * 意味的深度評価
+   */
+  private assessSemanticDepth(surfaceConcepts: ClassifiedConcept[], deepConcepts: ClassifiedConcept[]): number {
+    const totalConcepts = surfaceConcepts.length + deepConcepts.length;
+    if (totalConcepts === 0) return 0;
+    
+    const deepRatio = deepConcepts.length / totalConcepts;
+    
+    // 理想的な深層概念比率：20-40%
+    if (deepRatio >= 0.2 && deepRatio <= 0.4) return 1.0;
+    else if (deepRatio < 0.2) return deepRatio / 0.2;
+    else return Math.max(0, 1 - (deepRatio - 0.4) / 0.6);
+  }
+
+  /**
+   * 文脈適合性評価
+   */
+  private assessContextualFitness(timeMarkers: TimeRevolutionMarker[], concepts: ClassifiedConcept[]): number {
+    // 時間マーカーと概念の革新性の整合性
+    if (timeMarkers.length === 0) return 0.7; // 中性的評価
+    
+    const revolutionaryMarkers = timeMarkers.filter(m => m.efficiency === 'revolutionary').length;
+    const highInnovationConcepts = concepts.filter(c => c.confidence > 0.8).length;
+    
+    // 革新的時間マーカーと高信頼度概念の相関
+    const correlation = revolutionaryMarkers > 0 && highInnovationConcepts > 0 ? 1.0 : 0.5;
+    return correlation;
+  }
+
+  /**
+   * ドメイン特化スコア計算
+   */
+  private calculateDomainSpecificScore(surfaceConcepts: ClassifiedConcept[], deepConcepts: ClassifiedConcept[]): number {
+    const allConcepts = [...surfaceConcepts, ...deepConcepts];
+    
+    const domainSpecificCount = allConcepts.filter(c =>
+      c.reasoning.includes('数学・科学専門用語') ||
+      c.reasoning.includes('教育革新概念') ||
+      c.reasoning.includes('技術革新概念') ||
+      c.reasoning.includes('構造対話革新概念')
+    ).length;
+    
+    return allConcepts.length > 0 ? domainSpecificCount / allConcepts.length : 0;
+  }
+
+  /**
+   * 総合品質スコア計算
+   */
+  private calculateOverallQualityScore(
+    conceptDensity: number,
+    innovationPotential: number,
+    structuralDialogueScore: number,
+    realTimeMetrics: RealTimeQualityMetrics,
+    domainSpecificScore: number
+  ): number {
+    // 重み付き平均
+    const weights = {
+      conceptDensity: 0.1,
+      innovationPotential: 0.2,
+      structuralDialogueScore: 0.1,
+      realTimeMetrics: 0.5,
+      domainSpecificScore: 0.1
+    };
+    
+    const realTimeAverage = (
+      realTimeMetrics.conceptCoherence +
+      realTimeMetrics.dialogueRelevance +
+      realTimeMetrics.terminologyAccuracy +
+      realTimeMetrics.extractionReliability +
+      realTimeMetrics.semanticDepth +
+      realTimeMetrics.contextualFitness
+    ) / 6 / 100; // 0-1スケールに正規化
+    
+    return (
+      conceptDensity * weights.conceptDensity +
+      innovationPotential * weights.innovationPotential +
+      structuralDialogueScore * weights.structuralDialogueScore +
+      realTimeAverage * weights.realTimeMetrics +
+      domainSpecificScore * weights.domainSpecificScore
+    );
+  }
+
+  /**
+   * 品質グレード判定
+   */
+  private determineQualityGrade(overallQuality: number): 'A' | 'B' | 'C' | 'D' | 'F' {
+    if (overallQuality >= 0.9) return 'A';
+    else if (overallQuality >= 0.8) return 'B';
+    else if (overallQuality >= 0.7) return 'C';
+    else if (overallQuality >= 0.6) return 'D';
+    else return 'F';
+  }
+
+  /**
+   * 改善提案生成
+   */
+  private generateImprovementSuggestions(
+    metrics: RealTimeQualityMetrics,
+    surfaceConcepts: ClassifiedConcept[],
+    deepConcepts: ClassifiedConcept[]
+  ): string[] {
+    const suggestions: string[] = [];
+    
+    if (metrics.conceptCoherence < 70) {
+      suggestions.push('概念の一貫性向上：関連概念のグループ化を確認してください');
+    }
+    
+    if (metrics.dialogueRelevance < 60) {
+      suggestions.push('対話関連性向上：抽出概念と対話内容の整合性を確認してください');
+    }
+    
+    if (metrics.terminologyAccuracy < 50) {
+      suggestions.push('専門用語精度向上：ドメイン特化の概念抽出を強化してください');
+    }
+    
+    if (metrics.extractionReliability < 60) {
+      suggestions.push('抽出信頼性向上：概念の信頼度分布を安定化してください');
+    }
+    
+    if (metrics.semanticDepth < 50) {
+      if (deepConcepts.length === 0) {
+        suggestions.push('意味的深度向上：深層概念の抽出を強化してください');
+      } else if (deepConcepts.length > surfaceConcepts.length * 0.6) {
+        suggestions.push('意味的深度調整：表面概念と深層概念のバランスを改善してください');
+      }
+    }
+    
+    if (metrics.contextualFitness < 70) {
+      suggestions.push('文脈適合性向上：時間マーカーと概念の革新性の整合性を確認してください');
+    }
+    
+    if (suggestions.length === 0) {
+      suggestions.push('品質良好：現在の抽出精度を維持してください');
+    }
+    
+    return suggestions;
   }
 
   /**

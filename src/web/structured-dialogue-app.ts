@@ -17,6 +17,7 @@ import { NamingHelper } from '../core/naming-helper.js';
 import { LogFormatUnifier } from '../core/log-format-unifier.js';
 import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
 import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
+import { SessionManagementSystem } from '../core/session-management-system.js';
 
 interface ProcessRequest {
   rawLog: string;
@@ -56,6 +57,7 @@ class StructuredDialogueApp {
   private formatUnifier: LogFormatUnifier;
   private unifiedProcessor: UnifiedLogProcessor;
   private intelligentExtractor: IntelligentConceptExtractor;
+  private sessionManager: SessionManagementSystem;
   private port: number;
 
   constructor(port: number = 3000) {
@@ -66,6 +68,7 @@ class StructuredDialogueApp {
     this.formatUnifier = new LogFormatUnifier();
     this.unifiedProcessor = new UnifiedLogProcessor();
     this.intelligentExtractor = new IntelligentConceptExtractor();
+    this.sessionManager = new SessionManagementSystem('./web_sessions', './web_session_database.json');
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -95,6 +98,15 @@ class StructuredDialogueApp {
     
     // IntelligentConceptExtractor エンドポイント（NEW）
     this.app.post('/api/extract-concepts', this.extractConcepts.bind(this));
+    
+    // SessionManagement エンドポイント（NEW）
+    this.app.post('/api/sessions/save', this.saveSession.bind(this));
+    this.app.post('/api/sessions/start-new', this.startNewSession.bind(this));
+    this.app.get('/api/sessions/list', this.listSessions.bind(this));
+    this.app.get('/api/sessions/:id', this.getSession.bind(this));
+    this.app.post('/api/sessions/search', this.searchSessions.bind(this));
+    this.app.get('/api/sessions/stats', this.getSessionStats.bind(this));
+    this.app.get('/api/sessions/handover/latest', this.getLatestHandover.bind(this));
     
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
@@ -126,6 +138,14 @@ class StructuredDialogueApp {
       console.log('✅ IntelligentConceptExtractor 初期化完了');
     } catch (error) {
       console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
+    }
+    
+    // SessionManagementSystem の初期化
+    try {
+      await this.sessionManager.initialize();
+      console.log('✅ SessionManagementSystem 初期化完了');
+    } catch (error) {
+      console.warn('⚠️ SessionManagementSystem 初期化失敗:', error);
     }
     // 既存ログファイルリストで命名ヘルパーを初期化
     const existingLogs = [
@@ -544,6 +564,251 @@ class StructuredDialogueApp {
       const matches = content.match(pattern);
       return count + (matches ? matches.length : 0);
     }, 0);
+  }
+
+  /**
+   * セッション保存API
+   */
+  private async saveSession(req: express.Request, res: express.Response): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      const { content, options = {} } = req.body;
+      
+      if (!content || typeof content !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'セッションコンテンツが必要です'
+        });
+        return;
+      }
+
+      console.log(`💾 セッション保存開始: ${content.length}文字`);
+      
+      const saveOptions = {
+        autoAnalysis: options.autoAnalysis !== false,
+        generateHandover: options.generateHandover !== false,
+        archiveOldSessions: options.archiveOldSessions || false,
+        backupEnabled: options.backupEnabled !== false,
+        customTags: options.customTags || []
+      };
+      
+      const sessionRecord = await this.sessionManager.saveSession(content, saveOptions);
+      
+      const processingTime = Date.now() - startTime;
+      console.log(`✅ セッション保存完了: ${processingTime}ms`);
+      
+      res.json({
+        success: true,
+        session: {
+          id: sessionRecord.id,
+          filename: sessionRecord.filename,
+          tags: sessionRecord.tags,
+          phase: sessionRecord.phase,
+          timestamp: sessionRecord.timestamp,
+          qualityScore: sessionRecord.analysis?.qualityAssurance.reliabilityScore || 0,
+          isReliable: sessionRecord.analysis?.qualityAssurance.isReliable || false,
+          innovationLevel: sessionRecord.analysis?.conceptExtraction.predictedInnovationLevel || 0
+        },
+        processingTime
+      });
+      
+    } catch (error) {
+      console.error('セッション保存エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー',
+        processingTime: Date.now() - startTime
+      });
+    }
+  }
+
+  /**
+   * 新セッション開始API
+   */
+  private async startNewSession(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { useHandover = true } = req.body;
+      
+      console.log('🆕 新セッション開始...');
+      
+      const result = await this.sessionManager.startNewSession(useHandover);
+      
+      res.json({
+        success: true,
+        sessionId: result.sessionId,
+        hasHandover: !!result.handover,
+        handover: result.handover ? {
+          fromSessionId: result.handover.fromSessionId,
+          keywords: result.handover.keywords,
+          guidance: result.handover.guidance,
+          contextSummary: result.handover.contextSummary,
+          qualityScore: result.handover.qualityScore
+        } : null,
+        startPrompt: result.startPrompt
+      });
+      
+    } catch (error) {
+      console.error('新セッション開始エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * セッション一覧取得API
+   */
+  private listSessions(req: express.Request, res: express.Response): void {
+    try {
+      const stats = this.sessionManager.getSessionStatistics();
+      
+      res.json({
+        success: true,
+        totalSessions: stats.totalSessions,
+        averageQuality: stats.averageQuality,
+        phaseDistribution: stats.phaseDistribution,
+        tagDistribution: stats.tagDistribution
+      });
+      
+    } catch (error) {
+      console.error('セッション一覧取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * セッション取得API
+   */
+  private async getSession(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      
+      const session = await this.sessionManager.loadSession(id);
+      
+      if (!session) {
+        res.status(404).json({
+          success: false,
+          error: 'セッションが見つかりません'
+        });
+        return;
+      }
+      
+      res.json({
+        success: true,
+        session: {
+          id: session.id,
+          filename: session.filename,
+          content: session.content,
+          tags: session.tags,
+          phase: session.phase,
+          timestamp: session.timestamp,
+          status: session.status,
+          analysis: session.analysis ? {
+            qualityScore: session.analysis.qualityAssurance.reliabilityScore,
+            isReliable: session.analysis.qualityAssurance.isReliable,
+            innovationLevel: session.analysis.conceptExtraction.predictedInnovationLevel,
+            dialogueType: session.analysis.conceptExtraction.dialogueTypeDetection,
+            deepConcepts: session.analysis.conceptExtraction.deepConcepts.slice(0, 5),
+            continuityKeywords: session.analysis.continuityKeywords
+          } : null
+        }
+      });
+      
+    } catch (error) {
+      console.error('セッション取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * セッション検索API
+   */
+  private searchSessions(req: express.Request, res: express.Response): void {
+    try {
+      const query = req.body;
+      
+      const sessions = this.sessionManager.searchSessions(query);
+      
+      res.json({
+        success: true,
+        sessions: sessions.map(session => ({
+          id: session.id,
+          filename: session.filename,
+          tags: session.tags,
+          phase: session.phase,
+          timestamp: session.timestamp,
+          qualityScore: session.analysis?.qualityAssurance.reliabilityScore || 0,
+          isReliable: session.analysis?.qualityAssurance.isReliable || false,
+          innovationLevel: session.analysis?.conceptExtraction.predictedInnovationLevel || 0
+        })),
+        count: sessions.length
+      });
+      
+    } catch (error) {
+      console.error('セッション検索エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * セッション統計API
+   */
+  private getSessionStats(req: express.Request, res: express.Response): void {
+    try {
+      const stats = this.sessionManager.getSessionStatistics();
+      
+      res.json({
+        success: true,
+        stats
+      });
+      
+    } catch (error) {
+      console.error('セッション統計エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * 最新引き継ぎデータ取得API
+   */
+  private getLatestHandover(req: express.Request, res: express.Response): void {
+    try {
+      const handover = this.sessionManager.getLatestHandover();
+      
+      res.json({
+        success: true,
+        hasHandover: !!handover,
+        handover: handover ? {
+          fromSessionId: handover.fromSessionId,
+          keywords: handover.keywords,
+          guidance: handover.guidance,
+          contextSummary: handover.contextSummary,
+          qualityScore: handover.qualityScore,
+          handoverDate: handover.handoverDate
+        } : null
+      });
+      
+    } catch (error) {
+      console.error('引き継ぎデータ取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
   }
 
   /**

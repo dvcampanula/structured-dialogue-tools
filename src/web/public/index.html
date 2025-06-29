@@ -362,6 +362,26 @@
                     </button>
                 </div>
                 
+                <!-- NEW: セッション管理コントロール -->
+                <div class="session-controls" style="margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
+                    <h3 style="color: #0c4a6e; margin-bottom: 12px;">💾 セッション管理</h3>
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <button class="btn btn-primary" onclick="saveCurrentSession()" id="saveSessionBtn">
+                            💾 このセッションを保存
+                        </button>
+                        <button class="btn btn-secondary" onclick="startNewSession()" id="startNewBtn">
+                            🔗 前回から継続開始
+                        </button>
+                        <button class="btn btn-secondary" onclick="showSessionDashboard()" id="dashboardBtn">
+                            📊 セッション管理
+                        </button>
+                        <button class="btn btn-secondary" onclick="getLatestHandover()" id="handoverBtn">
+                            🔄 引き継ぎ確認
+                        </button>
+                    </div>
+                    <div id="sessionStatus" style="margin-top: 12px; font-size: 14px; color: #6b7280;"></div>
+                </div>
+                
                 <div class="settings" id="settings">
                     <h3>⚙️ 処理設定</h3>
                     <div class="settings-grid">
@@ -405,6 +425,7 @@
                     <div class="tab" onclick="switchTab('unified')">✨ 統一書式</div>
                     <div class="tab" onclick="switchTab('concepts')">🧠 概念抽出</div>
                     <div class="tab" onclick="switchTab('metrics')">📊 品質分析</div>
+                    <div class="tab" onclick="switchTab('sessions')">💾 セッション管理</div>
                 </div>
                 
                 <div class="tab-content active" id="chunks-content"></div>
@@ -412,6 +433,7 @@
                 <div class="tab-content" id="unified-content"></div>
                 <div class="tab-content" id="concepts-content"></div>
                 <div class="tab-content" id="metrics-content"></div>
+                <div class="tab-content" id="sessions-content"></div>
             </div>
         </div>
     </div>
@@ -975,9 +997,329 @@
             return '#6b7280'; // グレー（基本）
         }
 
+        // セッション管理機能
+        let currentSessionData = null;
+
+        /**
+         * セッション保存
+         */
+        async function saveCurrentSession() {
+            const rawLog = document.getElementById('rawLog').value.trim();
+            const sessionContext = document.getElementById('sessionContext').value.trim();
+            
+            if (!rawLog) {
+                showError('保存する対話ログを入力してください');
+                return;
+            }
+
+            const statusEl = document.getElementById('sessionStatus');
+            statusEl.textContent = '💾 セッション保存中...';
+            statusEl.style.color = '#0ea5e9';
+
+            try {
+                const response = await fetch('/api/sessions/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: rawLog + (sessionContext ? '\n\n## セッション文脈\n' + sessionContext : ''),
+                        options: {
+                            customTags: ['web-session'],
+                            autoAnalysis: true,
+                            generateHandover: true
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const session = result.session;
+                    statusEl.innerHTML = `
+                        ✅ セッション保存完了！<br>
+                        📁 ファイル: <strong>${session.filename}</strong><br>
+                        📊 品質: <strong>${session.qualityScore}%</strong> 
+                        (革新度: ${session.innovationLevel}/10)
+                    `;
+                    statusEl.style.color = '#059669';
+                    
+                    // セッションデータを保持
+                    currentSessionData = session;
+                    
+                    // 自動的にセッション管理タブを表示
+                    updateSessionManagementTab();
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                statusEl.textContent = `❌ 保存失敗: ${error.message}`;
+                statusEl.style.color = '#dc2626';
+                console.error('セッション保存エラー:', error);
+            }
+        }
+
+        /**
+         * 新セッション開始（引き継ぎ付き）
+         */
+        async function startNewSession() {
+            const statusEl = document.getElementById('sessionStatus');
+            statusEl.textContent = '🔗 新セッション準備中...';
+            statusEl.style.color = '#0ea5e9';
+
+            try {
+                const response = await fetch('/api/sessions/start-new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        useHandover: true
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.hasHandover && result.startPrompt) {
+                        // 引き継ぎプロンプトを生ログエリアに設定
+                        document.getElementById('rawLog').value = result.startPrompt;
+                        
+                        // セッション文脈エリアに引き継ぎ情報を設定
+                        const handover = result.handover;
+                        document.getElementById('sessionContext').value = 
+                            `前回セッション引き継ぎ (${handover.fromSessionId})\n` +
+                            `キーワード: ${handover.keywords.join(', ')}\n` +
+                            `概要: ${handover.contextSummary}`;
+                        
+                        statusEl.innerHTML = `
+                            ✅ 引き継ぎセッション準備完了！<br>
+                            🔑 キーワード: <strong>${handover.keywords.join(', ')}</strong><br>
+                            📝 Claude/ChatGPTに上記プロンプトを貼り付けて対話を開始してください
+                        `;
+                        statusEl.style.color = '#059669';
+                        
+                        // 生ログエリアにスクロール
+                        document.getElementById('rawLog').scrollIntoView({ behavior: 'smooth' });
+                        
+                    } else {
+                        // 引き継ぎデータなし
+                        document.getElementById('rawLog').value = '';
+                        document.getElementById('sessionContext').value = `新規セッション (${result.sessionId})`;
+                        
+                        statusEl.innerHTML = `
+                            ✅ 新規セッション準備完了！<br>
+                            🆔 セッションID: <strong>${result.sessionId}</strong><br>
+                            💬 新しい対話を開始してください
+                        `;
+                        statusEl.style.color = '#059669';
+                    }
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                statusEl.textContent = `❌ セッション開始失敗: ${error.message}`;
+                statusEl.style.color = '#dc2626';
+                console.error('新セッション開始エラー:', error);
+            }
+        }
+
+        /**
+         * 最新引き継ぎデータ確認
+         */
+        async function getLatestHandover() {
+            const statusEl = document.getElementById('sessionStatus');
+            statusEl.textContent = '🔄 引き継ぎデータ確認中...';
+            statusEl.style.color = '#0ea5e9';
+
+            try {
+                const response = await fetch('/api/sessions/handover/latest');
+                const result = await response.json();
+
+                if (result.success) {
+                    if (result.hasHandover) {
+                        const handover = result.handover;
+                        statusEl.innerHTML = `
+                            ✅ 引き継ぎデータあり！<br>
+                            🔑 キーワード: <strong>${handover.keywords.join(', ')}</strong><br>
+                            📊 品質: <strong>${handover.qualityScore}%</strong><br>
+                            📝 ガイダンス: ${handover.guidance.substring(0, 50)}...
+                        `;
+                        statusEl.style.color = '#059669';
+                    } else {
+                        statusEl.textContent = '📭 引き継ぎ可能なセッションはありません';
+                        statusEl.style.color = '#6b7280';
+                    }
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                statusEl.textContent = `❌ 引き継ぎ確認失敗: ${error.message}`;
+                statusEl.style.color = '#dc2626';
+                console.error('引き継ぎ確認エラー:', error);
+            }
+        }
+
+        /**
+         * セッション管理ダッシュボード表示
+         */
+        async function showSessionDashboard() {
+            try {
+                // セッション統計を取得
+                const statsResponse = await fetch('/api/sessions/stats');
+                const statsResult = await statsResponse.json();
+
+                if (statsResult.success) {
+                    await updateSessionManagementTab(statsResult.stats);
+                    
+                    // セッション管理タブをアクティブにする
+                    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    document.querySelector('[onclick="switchTab(\'sessions\')"]').classList.add('active');
+                    document.getElementById('sessions-content').classList.add('active');
+                    
+                    // 結果エリアを表示
+                    document.getElementById('results').style.display = 'block';
+                    document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+                }
+            } catch (error) {
+                showError('セッション管理ダッシュボードの表示に失敗しました: ' + error.message);
+            }
+        }
+
+        /**
+         * セッション管理タブの内容を更新
+         */
+        async function updateSessionManagementTab(stats = null) {
+            const sessionsContent = document.getElementById('sessions-content');
+            
+            // 統計情報を取得（未取得の場合）
+            if (!stats) {
+                try {
+                    const response = await fetch('/api/sessions/stats');
+                    const result = await response.json();
+                    if (result.success) {
+                        stats = result.stats;
+                    }
+                } catch (error) {
+                    console.error('セッション統計取得エラー:', error);
+                }
+            }
+
+            if (stats) {
+                sessionsContent.innerHTML = `
+                    <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 12px;">
+                        <h2 style="color: #0c4a6e; margin-bottom: 16px;">💾 セッション管理ダッシュボード</h2>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px;">
+                            <div style="text-align: center; padding: 12px; background: white; border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #0ea5e9;">${stats.totalSessions}</div>
+                                <div style="font-size: 12px; color: #6b7280;">総セッション数</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: white; border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #059669;">${stats.averageQuality}%</div>
+                                <div style="font-size: 12px; color: #6b7280;">平均品質</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: white; border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #d97706;">${Object.keys(stats.phaseDistribution).length}</div>
+                                <div style="font-size: 12px; color: #6b7280;">フェーズ数</div>
+                            </div>
+                            <div style="text-align: center; padding: 12px; background: white; border-radius: 8px;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: #7c3aed;">${Object.keys(stats.tagDistribution).length}</div>
+                                <div style="font-size: 12px; color: #6b7280;">タグ数</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
+                        <!-- フェーズ分布 -->
+                        <div style="background: #ecfdf5; border: 1px solid #10b981; border-radius: 8px; padding: 16px;">
+                            <h3 style="color: #065f46; margin-bottom: 12px;">📊 フェーズ分布</h3>
+                            ${Object.entries(stats.phaseDistribution).map(([phase, count]) => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px; padding: 8px; background: white; border-radius: 4px;">
+                                    <span><strong>${phase}</strong></span>
+                                    <span style="color: #059669; font-weight: bold;">${count}個</span>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- タグ分布 -->
+                        <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px;">
+                            <h3 style="color: #92400e; margin-bottom: 12px;">🏷️ タグ分布</h3>
+                            ${Object.entries(stats.tagDistribution).slice(0, 10).map(([tag, count]) => `
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; padding: 6px; background: white; border-radius: 4px; font-size: 14px;">
+                                    <span>${tag}</span>
+                                    <span style="color: #d97706; font-weight: bold;">${count}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
+                        <h3 style="color: #334155; margin-bottom: 12px;">🚀 クイックアクション</h3>
+                        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                            <button class="btn btn-primary" onclick="startNewSession()">
+                                🔗 新セッション開始
+                            </button>
+                            <button class="btn btn-secondary" onclick="getLatestHandover()">
+                                🔄 引き継ぎ確認
+                            </button>
+                            <button class="btn btn-secondary" onclick="searchSessions()">
+                                🔍 セッション検索
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                sessionsContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #6b7280;">
+                        <h3>📭 セッションデータなし</h3>
+                        <p>まだセッションが保存されていません。<br>対話ログを保存してセッション管理を開始しましょう。</p>
+                        <button class="btn btn-primary" onclick="saveCurrentSession()" style="margin-top: 16px;">
+                            💾 最初のセッションを保存
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        /**
+         * セッション検索（簡易版）
+         */
+        async function searchSessions() {
+            const keyword = prompt('検索キーワードを入力してください:');
+            if (!keyword) return;
+
+            try {
+                const response = await fetch('/api/sessions/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        keywords: [keyword]
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert(`検索結果: ${result.count}件のセッションが見つかりました`);
+                    console.log('検索結果:', result.sessions);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                showError('セッション検索に失敗しました: ' + error.message);
+            }
+        }
+
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
             console.log('構造的対話ツール初期化完了');
+            
+            // セッション管理の初期状態確認
+            getLatestHandover();
         });
     </script>
 </body>
