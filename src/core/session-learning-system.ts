@@ -76,6 +76,12 @@ export class SessionLearningSystem {
   private sessionDbPath: string;
   private learningData: SessionLearningData | null = null;
   private analysisCache: Map<string, any> = new Map();
+  
+  // 🚀 Phase 4キャッシュシステム: 学習データキャッシュ
+  private learningDataCache: Map<string, SessionLearningData> = new Map();
+  private conceptPredictionCache: Map<string, any[]> = new Map();
+  private lastCacheUpdate: number = 0;
+  private readonly CACHE_TTL = 5 * 60 * 1000; // 5分間有効
 
   constructor(sessionDbPath: string = './web_session_database.json') {
     this.sessionDbPath = sessionDbPath;
@@ -85,6 +91,17 @@ export class SessionLearningSystem {
    * セッションデータベースから学習データを構築
    */
   async buildLearningData(): Promise<SessionLearningData> {
+    // 🚀 Phase 4キャッシュ最適化: キャッシュチェック
+    const cacheKey = `learning-data-${this.sessionDbPath}`;
+    const now = Date.now();
+    
+    if (this.learningDataCache.has(cacheKey) && (now - this.lastCacheUpdate) < this.CACHE_TTL) {
+      console.log('⚡ キャッシュから学習データを取得');
+      const cachedData = this.learningDataCache.get(cacheKey)!;
+      this.learningData = cachedData;
+      return cachedData;
+    }
+    
     console.log('📊 セッション学習データ構築開始...');
     
     try {
@@ -110,6 +127,10 @@ export class SessionLearningSystem {
       this.analyzeInnovationDistribution(sessionData.sessions, learningData);
       
       this.learningData = learningData;
+      
+      // 🚀 Phase 4キャッシュ最適化: 構築済みデータをキャッシュに保存
+      this.learningDataCache.set(cacheKey, learningData);
+      this.lastCacheUpdate = now;
       
       console.log(`✅ 学習データ構築完了: ${learningData.totalSessions}セッション, ${learningData.conceptFrequency.size}概念`);
       
@@ -289,6 +310,14 @@ export class SessionLearningSystem {
     reasoning: string;
     source: 'session_learning';
   }>> {
+    // 🚀 Phase 4キャッシュ最適化: 予測結果キャッシュチェック
+    const cacheKey = `prediction-${context.slice(0, 50)}-${currentConcepts.join(',')}`;
+    
+    if (this.conceptPredictionCache.has(cacheKey)) {
+      console.log('⚡ キャッシュから予測結果を取得');
+      return this.conceptPredictionCache.get(cacheKey)!;
+    }
+    
     if (!this.learningData) {
       await this.buildLearningData();
     }
@@ -326,7 +355,12 @@ export class SessionLearningSystem {
       }
     }
     
-    return predictions.sort((a, b) => b.probability - a.probability).slice(0, 5);
+    const sortedPredictions = predictions.sort((a, b) => b.probability - a.probability).slice(0, 5);
+    
+    // 🚀 Phase 4キャッシュ最適化: 予測結果をキャッシュに保存
+    this.conceptPredictionCache.set(cacheKey, sortedPredictions);
+    
+    return sortedPredictions;
   }
 
   /**

@@ -183,6 +183,11 @@ export class IntelligentConceptExtractor {
   private metaConceptConfig: any = null;
   private configManager: ConceptExtractionConfigManager;
   private sessionLearningSystem: SessionLearningSystem;
+  
+  // 🚀 Phase 4キャッシュシステム: 概念抽出結果キャッシュ
+  private extractionCache: Map<string, IntelligentExtractionResult> = new Map();
+  private readonly MAX_CACHE_SIZE = 100; // LRU制限
+  private cacheAccessOrder: string[] = []; // LRU管理用
 
   constructor(
     private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json',
@@ -260,11 +265,20 @@ export class IntelligentConceptExtractor {
   }
 
   /**
-   * メイン抽出関数 - プロトコル v1.0完全自動適用 + Phase 2動的学習 + Phase 3性能最適化
+   * メイン抽出関数 - プロトコル v1.0完全自動適用 + Phase 2動的学習 + Phase 3性能最適化 + Phase 4キャッシュ
    */
   async extractConcepts(logContent: string, manualAnalysis?: ManualAnalysisInput, options?: ProcessingOptions): Promise<IntelligentExtractionResult> {
     if (!this.learningData) {
       throw new Error('学習データが初期化されていません。initialize()を呼び出してください。');
+    }
+
+    // 🚀 Phase 4キャッシュ最適化: キャッシュキー生成とチェック
+    const cacheKey = this.generateCacheKey(logContent, manualAnalysis, options);
+    
+    if (this.extractionCache.has(cacheKey)) {
+      console.log('⚡ キャッシュから概念抽出結果を取得');
+      this.updateCacheAccess(cacheKey);
+      return this.extractionCache.get(cacheKey)!;
     }
 
     const startTime = Date.now();
@@ -350,6 +364,9 @@ export class IntelligentConceptExtractor {
         console.log(`   警告: ${result.analysisGapAlert.qualityWarnings[0]}`);
       }
     }
+    
+    // 🚀 Phase 4キャッシュ最適化: 結果をキャッシュに保存
+    this.addToCache(cacheKey, result);
     
     return result;
   }
@@ -2808,6 +2825,61 @@ export class IntelligentConceptExtractor {
     return Math.max(0, idealBalance);
   }
 
+  // 🚀 Phase 4キャッシュ管理メソッド群
+  
+  /**
+   * キャッシュキー生成
+   */
+  private generateCacheKey(logContent: string, manualAnalysis?: ManualAnalysisInput, options?: ProcessingOptions): string {
+    const contentHash = this.hashString(logContent.slice(0, 1000)); // 最初の1000文字でハッシュ
+    const manualHash = manualAnalysis ? this.hashString(JSON.stringify(manualAnalysis)) : 'none';
+    const optionsHash = options ? this.hashString(JSON.stringify(options)) : 'default';
+    
+    return `${contentHash}-${manualHash}-${optionsHash}`;
+  }
+  
+  /**
+   * 簡単なハッシュ関数
+   */
+  private hashString(str: string): string {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32bit整数に変換
+    }
+    return Math.abs(hash).toString(36);
+  }
+  
+  /**
+   * キャッシュアクセス更新（LRU管理）
+   */
+  private updateCacheAccess(key: string): void {
+    const index = this.cacheAccessOrder.indexOf(key);
+    if (index > -1) {
+      this.cacheAccessOrder.splice(index, 1);
+    }
+    this.cacheAccessOrder.unshift(key);
+  }
+  
+  /**
+   * キャッシュに追加（LRU制限付き）
+   */
+  private addToCache(key: string, result: IntelligentExtractionResult): void {
+    // LRU制限チェック
+    if (this.extractionCache.size >= this.MAX_CACHE_SIZE) {
+      const oldestKey = this.cacheAccessOrder.pop();
+      if (oldestKey) {
+        this.extractionCache.delete(oldestKey);
+      }
+    }
+    
+    this.extractionCache.set(key, result);
+    this.updateCacheAccess(key);
+    
+    console.log(`💾 概念抽出結果をキャッシュに保存 (${this.extractionCache.size}/${this.MAX_CACHE_SIZE})`);
+  }
+  
   /**
    * 専門用語精度評価
    */

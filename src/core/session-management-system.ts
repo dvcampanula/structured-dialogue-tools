@@ -119,13 +119,10 @@ export class SessionManagementSystem {
     
     // Step 3: ファイル名決定
     const filename = analysis?.namingSuggestion.filename || `session_${sessionId}.md`;
-    
-    // Step 4: ファイル保存
     const filepath = path.join(this.sessionsDir, filename);
     const saveContent = this.formatSessionContent(content, analysis, sessionId);
-    await fs.writeFile(filepath, saveContent, 'utf-8');
     
-    // Step 5: セッションレコード作成
+    // Step 4: セッションレコード作成
     const sessionRecord: SessionRecord = {
       id: sessionId,
       timestamp: new Date().toISOString(),
@@ -137,24 +134,45 @@ export class SessionManagementSystem {
       status: 'active'
     };
 
-    // Step 6: データベース更新
+    // Step 5: データベース更新（同期処理）
     this.database.sessions.push(sessionRecord);
     this.database.metadata.totalSessions++;
     this.database.metadata.lastSessionId = sessionId;
     this.database.metadata.updatedAt = new Date().toISOString();
 
-    // Step 7: 引き継ぎ生成
-    if (options.generateHandover && (analysis?.qualityAssurance.isReliable || options.forceHandover)) {
-      await this.generateHandover(sessionRecord, options.forceHandover);
-    }
+    // 🚀 Phase 4最適化: ファイルI/O並列化実装
+    console.log('⚡ 並列処理でファイルI/O最適化実行中...');
+    
+    const parallelTasks: Promise<any>[] = [];
 
-    // Step 8: データベース保存
-    await this.saveDatabase();
+    // 必須処理: ファイル保存とデータベース保存を並列実行
+    parallelTasks.push(
+      fs.writeFile(filepath, saveContent, 'utf-8')
+        .then(() => console.log(`💾 セッションファイル保存完了: ${filename}`))
+    );
+    parallelTasks.push(
+      this.saveDatabase()
+        .then(() => console.log('📊 データベース保存完了'))
+    );
 
-    // Step 9: バックアップ
+    // 条件付き処理: バックアップを並列実行
     if (options.backupEnabled) {
-      await this.createBackup(sessionRecord);
+      parallelTasks.push(
+        this.createBackup(sessionRecord)
+          .then(() => console.log('💿 バックアップ作成完了'))
+      );
     }
+
+    // 条件付き処理: 引き継ぎ生成を並列実行
+    if (options.generateHandover && (analysis?.qualityAssurance.isReliable || options.forceHandover)) {
+      parallelTasks.push(
+        this.generateHandover(sessionRecord, options.forceHandover)
+          .then(() => console.log('🔄 引き継ぎデータ生成完了'))
+      );
+    }
+
+    // 🚀 並列実行: 全てのファイルI/O操作を同時実行
+    await Promise.all(parallelTasks);
 
     console.log(`✅ セッション保存完了: ${filename}`);
     return sessionRecord;

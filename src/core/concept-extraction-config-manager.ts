@@ -59,6 +59,10 @@ export class ConceptExtractionConfigManager {
   private config: ConceptExtractionConfig | null = null;
   private configPath: string;
   private flatStopWords: string[] | null = null;
+  
+  // 🚀 Phase 4キャッシュシステム: 設定データキャッシュ
+  private configCache: { data: ConceptExtractionConfig; lastModified: number } | null = null;
+  private readonly CACHE_TTL = 10 * 60 * 1000; // 10分間有効
 
   constructor(configPath?: string) {
     this.configPath = configPath || path.join(process.cwd(), 'src/config/concept-extraction-config.json');
@@ -69,12 +73,32 @@ export class ConceptExtractionConfigManager {
    */
   async loadConfig(): Promise<ConceptExtractionConfig> {
     try {
+      // 🚀 Phase 4キャッシュ最適化: ファイル更新時刻チェック
+      const stats = await fs.stat(this.configPath);
+      const fileModified = stats.mtime.getTime();
+      const now = Date.now();
+      
+      if (this.configCache && 
+          this.configCache.lastModified === fileModified && 
+          (now - fileModified) < this.CACHE_TTL) {
+        console.log('⚡ キャッシュから設定データを取得');
+        this.config = this.configCache.data;
+        return this.config;
+      }
+      
       const configData = await fs.readFile(this.configPath, 'utf-8');
-      this.config = JSON.parse(configData);
+      const config: ConceptExtractionConfig = JSON.parse(configData);
+      this.config = config;
       this.flatStopWords = null; // キャッシュクリア
       
-      console.log(`✅ 概念抽出設定読み込み完了: v${this.config.version} (${this.getTotalStopWordsCount()}個のストップワード)`);
-      return this.config;
+      // キャッシュに保存
+      this.configCache = {
+        data: config,
+        lastModified: fileModified
+      };
+      
+      console.log(`✅ 概念抽出設定読み込み完了: v${config.version} (${this.getTotalStopWordsCount()}個のストップワード)`);
+      return config;
     } catch (error) {
       console.warn(`⚠️ 設定ファイル読み込み失敗 (${this.configPath}):`, error);
       throw new Error(`設定ファイルが見つかりません: ${this.configPath}`);
@@ -239,8 +263,11 @@ export class ConceptExtractionConfigManager {
     config.stopWords[category].push(...words);
     config.lastUpdated = new Date().toISOString().split('T')[0];
     
-    await this.saveConfig();
-    this.flatStopWords = null; // キャッシュクリア
+    // 🚀 Phase 4軽微最適化: ファイル保存とキャッシュクリアの並列処理
+    await Promise.all([
+      this.saveConfig(),
+      Promise.resolve(this.flatStopWords = null) // キャッシュクリア（同期処理をPromiseでラップ）
+    ]);
     
     console.log(`✅ カスタムストップワード追加: ${category} (+${words.length}個)`);
   }

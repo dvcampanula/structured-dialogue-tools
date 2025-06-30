@@ -311,30 +311,6 @@ class UnifiedLogProcessor {
     return this.isValidConcept(concept);
   }
 
-  /**
-   * 議論範囲の分析
-   */
-  private analyzeDiscussionScope(rawLog: string, mainConcepts: string[]): string {
-    const text = rawLog.toLowerCase();
-    
-    // 技術的議論の検出
-    if (text.includes('プログラム') || text.includes('api') || text.includes('実装')) {
-      return `${mainConcepts[0] || '技術的概念'}の実装・応用から実践的活用まで`;
-    }
-    
-    // 哲学的議論の検出
-    if (text.includes('意識') || text.includes('存在') || text.includes('本質')) {
-      return `${mainConcepts[0] || '哲学的概念'}の本質的理解から応用的展開まで`;
-    }
-    
-    // 感情・心理的議論の検出
-    if (text.includes('感情') || text.includes('心') || text.includes('寄り添')) {
-      return `${mainConcepts[0] || '心理的概念'}の理解から実践的応用まで`;
-    }
-    
-    // デフォルト
-    return `${mainConcepts[0] || '中心概念'}の探求から実用的展開まで`;
-  }
 
   /**
    * 対話形式の判定
@@ -355,13 +331,6 @@ class UnifiedLogProcessor {
     return 'free_form';
   }
 
-  /**
-   * ログタイトル生成
-   */
-  private generateLogTitle(mainConcepts: string[], discussionScope: string): string {
-    const primaryConcept = mainConcepts[0] || '対話';
-    return `${primaryConcept}に関する構造的探求ログ`;
-  }
 
   /**
    * ファイル名生成
