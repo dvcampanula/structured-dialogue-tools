@@ -59,6 +59,14 @@ test_*
 web_sessions/
 web_session_database.json
 
+# Raw log directories (local only, not committed)
+test-logs/
+raw-logs/
+sample-logs/
+benchmark-logs/
+*.raw.txt
+*.dialogue.txt
+
 # Analysis results and temporary outputs
 *-result.md
 *-analysis-result.json

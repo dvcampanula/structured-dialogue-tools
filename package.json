@@ -16,7 +16,14 @@
     "experiment:ai": "tsx src/experiments/ai-experiment.ts",
     "demo:comparison": "tsx src/experiments/demo-comparison.ts",
     "build": "tsc",
-    "test": "npm run test:multiple"
+    "test": "npm run test:multiple",
+    "organize-logs": "bash scripts/organize-logs.sh",
+    "organize-logs-dry": "node --import tsx/esm scripts/organize-test-logs.ts",
+    "patterns:show": "node --import tsx/esm scripts/update-meta-patterns.ts show",
+    "patterns:add-pattern": "node --import tsx/esm scripts/update-meta-patterns.ts add-pattern",
+    "patterns:add-keyword": "node --import tsx/esm scripts/update-meta-patterns.ts add-keyword",
+    "patterns:backup": "node --import tsx/esm scripts/update-meta-patterns.ts backup",
+    "patterns:validate": "node --import tsx/esm scripts/update-meta-patterns.ts validate"
   },
   "keywords": [
     "structured-dialogue",
