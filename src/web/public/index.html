@@ -459,11 +459,31 @@
         }
 
         function switchTab(tabName) {
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tabName + '-content').classList.add('active');
+            try {
+                console.log('Switching to tab:', tabName);
+                
+                document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                event.target.classList.add('active');
+                const targetContent = document.getElementById(tabName + '-content');
+                if (targetContent) {
+                    targetContent.classList.add('active');
+                } else {
+                    console.error('Tab content not found:', tabName + '-content');
+                }
+                
+                // タブ固有の初期化処理
+                if (tabName === 'learning') {
+                    displayLearningStats();
+                } else if (tabName === 'ai-analysis') {
+                    initializeAIAnalysisTab();
+                }
+                
+                console.log('Tab switch completed:', tabName);
+            } catch (error) {
+                console.error('Error switching tab:', error);
+            }
         }
 
         async function processUnified() {
@@ -1314,15 +1334,6 @@
             }
         }
 
-        // 学習統計タブがクリックされた時に自動読み込み
-        const originalSwitchTab = switchTab;
-        function switchTab(tabName) {
-            originalSwitchTab.call(this, tabName);
-            
-            if (tabName === 'learning') {
-                displayLearningStats();
-            }
-        }
 
         function getInnovationColor(level) {
             if (level >= 9) return '#dc2626'; // 赤（革命的）
@@ -2174,15 +2185,6 @@
             loadAIProviders();
         }
 
-        // 既存のswitchTab関数を拡張してAI分析タブ対応
-        const originalSwitchTab = switchTab;
-        switchTab = function(tabName) {
-            originalSwitchTab.call(this, tabName);
-            
-            if (tabName === 'ai-analysis') {
-                initializeAIAnalysisTab();
-            }
-        };
 
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
