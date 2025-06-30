@@ -366,9 +366,6 @@
                 <div class="session-controls" style="margin-top: 20px; padding: 16px; background: #f0f9ff; border-radius: 8px; border-left: 4px solid #0ea5e9;">
                     <h3 style="color: #0c4a6e; margin-bottom: 12px;">💾 セッション管理</h3>
                     <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
-                        <button class="btn btn-primary" onclick="saveCurrentSession()" id="saveSessionBtn">
-                            💾 このセッションを保存
-                        </button>
                         <button class="btn btn-secondary" onclick="startNewSession()" id="startNewBtn">
                             🔗 前回から継続開始
                         </button>
@@ -379,7 +376,9 @@
                             🔄 引き継ぎ確認
                         </button>
                     </div>
-                    <div id="sessionStatus" style="margin-top: 12px; font-size: 14px; color: #6b7280;"></div>
+                    <div id="sessionStatus" style="margin-top: 12px; font-size: 14px; color: #6b7280;">
+                        💡 ヒント: 統一処理実行後に自動的にセッション保存オプションが表示されます
+                    </div>
                 </div>
                 
                 <div class="settings" id="settings">
@@ -718,6 +717,12 @@
                 displayConceptResults(result);
             }
 
+            // 処理結果を保存
+            lastProcessedResults = result;
+            
+            // セッション保存オプションを動的に追加
+            showSessionSaveOption(result);
+
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
         }
@@ -1004,66 +1009,9 @@
 
         // セッション管理機能
         let currentSessionData = null;
+        let lastProcessedResults = null;
 
-        /**
-         * セッション保存
-         */
-        async function saveCurrentSession() {
-            const rawLog = document.getElementById('rawLog').value.trim();
-            const sessionContext = document.getElementById('sessionContext').value.trim();
-            
-            if (!rawLog) {
-                showError('保存する対話ログを入力してください');
-                return;
-            }
-
-            const statusEl = document.getElementById('sessionStatus');
-            statusEl.textContent = '💾 セッション保存中...';
-            statusEl.style.color = '#0ea5e9';
-
-            try {
-                const response = await fetch('/api/sessions/save', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        content: rawLog + (sessionContext ? '\n\n## セッション文脈\n' + sessionContext : ''),
-                        options: {
-                            customTags: ['web-session'],
-                            autoAnalysis: true,
-                            generateHandover: true
-                        }
-                    })
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    const session = result.session;
-                    statusEl.innerHTML = `
-                        ✅ セッション保存完了！<br>
-                        📁 ファイル: <strong>${session.filename}</strong><br>
-                        📊 品質: <strong>${session.qualityScore}%</strong> 
-                        (革新度: ${session.innovationLevel}/10)
-                    `;
-                    statusEl.style.color = '#059669';
-                    
-                    // セッションデータを保持
-                    currentSessionData = session;
-                    
-                    // 自動的にセッション管理タブを表示
-                    updateSessionManagementTab();
-                    
-                } else {
-                    throw new Error(result.error);
-                }
-            } catch (error) {
-                statusEl.textContent = `❌ 保存失敗: ${error.message}`;
-                statusEl.style.color = '#dc2626';
-                console.error('セッション保存エラー:', error);
-            }
-        }
+        // saveCurrentSession関数は削除 - saveProcessedSession()に統合済み
 
         /**
          * 新セッション開始（引き継ぎ付き）
@@ -1312,8 +1260,8 @@
                     <div style="text-align: center; padding: 40px; color: #6b7280;">
                         <h3>📭 セッションデータなし</h3>
                         <p>まだセッションが保存されていません。<br>対話ログを保存してセッション管理を開始しましょう。</p>
-                        <button class="btn btn-primary" onclick="saveCurrentSession()" style="margin-top: 16px;">
-                            💾 最初のセッションを保存
+                        <button class="btn btn-primary" onclick="alert('対話ログを入力して統一処理を実行後、セッション保存オプションが表示されます')" style="margin-top: 16px;">
+                            💡 セッション保存の使い方
                         </button>
                     </div>
                 `;
@@ -1540,18 +1488,177 @@
         }
 
         function filterSessions() {
-            // TODO: 実装予定
-            alert('フィルター機能は実装予定です');
+            const searchInput = document.getElementById('sessionSearchInput');
+            const keyword = searchInput ? searchInput.value.trim() : '';
+            
+            if (!keyword) {
+                loadSessionList(); // 全件再表示
+                return;
+            }
+            
+            // 簡易フィルター実装
+            alert(`検索機能は次期バージョンで強化予定です\n現在のキーワード: "${keyword}"`);
         }
 
-        function continueFromSession(sessionId) {
-            // TODO: セッション継続機能
-            alert(`セッション${sessionId}からの継続機能は実装予定です`);
+        async function continueFromSession(sessionId) {
+            try {
+                const response = await fetch(`/api/sessions/${sessionId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const session = result.session;
+                    // セッション内容を入力エリアに設定
+                    document.getElementById('rawLog').value = session.content;
+                    document.getElementById('sessionContext').value = `継続セッション (${sessionId})`;
+                    
+                    // セッション詳細を閉じる
+                    hideSessionDetail();
+                    
+                    // 入力エリアにスクロール
+                    document.getElementById('rawLog').scrollIntoView({ behavior: 'smooth' });
+                    
+                    alert(`セッション ${sessionId} から継続開始しました`);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                alert(`セッション継続に失敗: ${error.message}`);
+            }
         }
 
-        function copySessionContent(sessionId) {
-            // TODO: 内容コピー機能
-            alert(`セッション${sessionId}の内容コピー機能は実装予定です`);
+        async function copySessionContent(sessionId) {
+            try {
+                const response = await fetch(`/api/sessions/${sessionId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const content = result.session.content;
+                    
+                    if (navigator.clipboard) {
+                        await navigator.clipboard.writeText(content);
+                        alert('セッション内容をクリップボードにコピーしました');
+                    } else {
+                        // フォールバック: テキストエリアに設定
+                        document.getElementById('rawLog').value = content;
+                        alert('セッション内容を入力エリアに設定しました');
+                    }
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                alert(`コピーに失敗: ${error.message}`);
+            }
+        }
+
+        /**
+         * 統一処理完了後にセッション保存オプションを表示
+         */
+        function showSessionSaveOption(result) {
+            const sessionStatus = document.getElementById('sessionStatus');
+            
+            // 品質スコアと革新度を取得
+            const qualityScore = result.extraction ? result.extraction.confidence : 50;
+            const innovationLevel = result.extraction ? result.extraction.predictedInnovationLevel : 5;
+            
+            sessionStatus.innerHTML = `
+                <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 12px; margin-top: 8px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                        <strong style="color: #15803d;">✅ 統一処理完了 - セッション保存可能</strong>
+                        <div style="display: flex; gap: 8px;">
+                            <span style="background: ${getInnovationColor(innovationLevel)}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                革新度 ${innovationLevel}/10
+                            </span>
+                            <span style="background: ${qualityScore >= 70 ? '#10b981' : '#ef4444'}; color: white; padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                品質 ${qualityScore}%
+                            </span>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <button class="btn btn-primary" onclick="saveProcessedSession()" style="font-size: 12px; padding: 6px 12px;">
+                            💾 処理済みデータをセッション保存
+                        </button>
+                        <span style="color: #6b7280; font-size: 12px;">
+                            重複処理なし・高速保存
+                        </span>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * 処理済み結果を使ったセッション保存（重複処理なし）
+         */
+        async function saveProcessedSession() {
+            if (!lastProcessedResults) {
+                showError('保存する処理結果がありません。先に統一処理を実行してください。');
+                return;
+            }
+
+            const rawLog = document.getElementById('rawLog').value.trim();
+            const sessionContext = document.getElementById('sessionContext').value.trim();
+            
+            if (!rawLog) {
+                showError('対話ログが入力されていません');
+                return;
+            }
+
+            const sessionStatus = document.getElementById('sessionStatus');
+            sessionStatus.innerHTML = '<div style="color: #0ea5e9; padding: 8px;">💾 セッション保存中...</div>';
+
+            try {
+                // 処理済み結果を使って直接セッション保存
+                const response = await fetch('/api/sessions/save', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        content: rawLog + (sessionContext ? '\n\n## セッション文脈\n' + sessionContext : ''),
+                        preProcessedResults: {
+                            conceptExtraction: lastProcessedResults.extraction,
+                            unifiedProcessing: lastProcessedResults.unified,
+                            qualityMetrics: lastProcessedResults.metrics
+                        },
+                        options: {
+                            customTags: ['web-session', 'processed'],
+                            skipReprocessing: true, // 重複処理を回避
+                            usePreProcessedData: true
+                        }
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    const session = result.session;
+                    sessionStatus.innerHTML = `
+                        <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 6px; padding: 12px;">
+                            <div style="color: #15803d; font-weight: bold; margin-bottom: 8px;">
+                                ✅ セッション保存完了！
+                            </div>
+                            <div style="font-size: 12px; color: #374151;">
+                                📁 ファイル: <strong>${session.filename}</strong><br>
+                                📊 品質: <strong>${session.qualityScore}%</strong> (革新度: ${session.innovationLevel}/10)<br>
+                                🚀 ID: <code>${session.id}</code>
+                            </div>
+                            <div style="margin-top: 8px;">
+                                <button class="btn btn-secondary" onclick="showSessionDashboard()" style="font-size: 11px; padding: 4px 8px;">
+                                    📊 セッション管理で確認
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // セッションデータを保持
+                    currentSessionData = session;
+                    
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                sessionStatus.innerHTML = `<div style="color: #dc2626; padding: 8px;">❌ 保存失敗: ${error.message}</div>`;
+                console.error('セッション保存エラー:', error);
+            }
         }
 
         // 初期化
