@@ -1727,11 +1727,12 @@ export class IntelligentConceptExtractor {
       // セッション学習の予測を統合
       for (const prediction of sessionPredictions) {
         result.predictedConcepts.push({
-          concept: prediction.concept,
+          term: prediction.concept,
           probability: prediction.probability,
+          predictedClassification: 'surface',
           reasoning: prediction.reasoning,
           emergenceIndicators: ['session_learning'],
-          contextualClues: [`頻度学習: ${prediction.reasoning}`]
+          contextClues: [`頻度学習: ${prediction.reasoning}`]
         });
       }
       
@@ -2138,7 +2139,7 @@ export class IntelligentConceptExtractor {
    * 対話タイプ別ベーススコア
    */
   private getBaseInnovationScore(dialogueType: string): number {
-    const baseScores = {
+    const baseScores: Record<string, number> = {
       'mathematical_research': 6,     // 数学研究：高ベース
       'structural_dialogue': 5,       // 構造的対話：中高ベース
       'ai_development': 4,            // AI開発：中ベース

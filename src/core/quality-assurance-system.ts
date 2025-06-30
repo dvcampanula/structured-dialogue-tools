@@ -186,7 +186,7 @@ export class QualityAssuranceSystem {
     });
 
     // 対話タイプによる調整
-    const typeBonus = {
+    const typeBonus: Record<string, number> = {
       'structural_dialogue': 15,
       'mathematical_research': 10,
       'academic_research': 10,

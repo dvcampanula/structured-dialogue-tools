@@ -6,7 +6,6 @@
  */
 
 import { RawLogSplitter, type LogChunk } from './raw-log-splitter.js';
-import { QualityAssessment, type QualityMetrics } from './quality-metrics.js';
 import { UnifiedLogProcessor, type UnifiedLogStructure } from './unified-log-processor.js';
 import { NamingHelper, type NamingSuggestion } from './naming-helper.js';
 import { QualityAssuranceSystem, type QualityAssuranceReport } from './quality-assurance-system.js';
@@ -23,7 +22,7 @@ export interface IntegratedLogAnalysis {
   
   // メタデータ
   namingSuggestion: NamingSuggestion;
-  legacyQualityMetrics: QualityMetrics;
+  legacyQualityMetrics: QualityAssuranceReport;
   
   // 実用機能
   continuityKeywords: string[];
@@ -61,7 +60,6 @@ export interface LogManagementOptions {
  */
 export class IntegratedLogManagement {
   private splitter: RawLogSplitter;
-  private qualityAssessment: QualityAssessment;
   private unifiedProcessor: UnifiedLogProcessor;
   private namingHelper: NamingHelper;
   private qualityAssurance: QualityAssuranceSystem;
@@ -69,7 +67,6 @@ export class IntegratedLogManagement {
 
   constructor(sharedConceptExtractor?: IntelligentConceptExtractor) {
     this.splitter = new RawLogSplitter();
-    this.qualityAssessment = new QualityAssessment();
     this.conceptExtractor = sharedConceptExtractor || new IntelligentConceptExtractor();
     this.unifiedProcessor = new UnifiedLogProcessor(this.conceptExtractor);
     this.namingHelper = new NamingHelper();
@@ -120,9 +117,8 @@ export class IntegratedLogManagement {
 
     // Step 5: 従来品質メトリクス
     console.log('📈 品質メトリクス計算...');
-    const legacyQualityMetrics = await this.qualityAssessment.assessQuality(
-      logStructure, conceptExtraction
-    );
+    const qualityEvaluation = await this.qualityAssurance.extractWithQualityAssurance(content);
+    const legacyQualityMetrics = qualityEvaluation.qualityReport;
 
     // Step 6: 命名提案
     let namingSuggestion: NamingSuggestion = {
