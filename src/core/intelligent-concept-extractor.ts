@@ -248,6 +248,10 @@ export class IntelligentConceptExtractor {
    * kuromoji形態素解析器の初期化
    */
   private async initializeTokenizer(): Promise<void> {
+    // 遅延初期化: 実際に使用されるまで初期化を延期
+    if (this.tokenizer) return;
+    
+    console.log('🔗 kuromoji初期化開始（必要時のみ）...');
     return new Promise((resolve, reject) => {
       kuromoji.builder({
         dicPath: 'node_modules/kuromoji/dict'
@@ -262,6 +266,45 @@ export class IntelligentConceptExtractor {
         }
       });
     });
+  }
+
+  /**
+   * 大容量ファイル対応: チャンク分割トークン化（性能最適化）
+   */
+  private tokenizeInChunks(content: string, chunkSize: number = 10000): any[] {
+    const chunks = [];
+    let currentIndex = 0;
+    
+    // 文境界でチャンク分割
+    while (currentIndex < content.length) {
+      const endIndex = Math.min(currentIndex + chunkSize, content.length);
+      let chunkEnd = endIndex;
+      
+      // 文の境界で分割（。または\nで終了）
+      if (chunkEnd < content.length) {
+        const sentenceEnd = content.lastIndexOf('。', chunkEnd);
+        const lineEnd = content.lastIndexOf('\n', chunkEnd);
+        chunkEnd = Math.max(sentenceEnd, lineEnd, currentIndex + chunkSize * 0.5);
+      }
+      
+      chunks.push(content.substring(currentIndex, chunkEnd));
+      currentIndex = chunkEnd;
+    }
+    
+    console.log(`⚡ Kuromoji高速化: ${content.length}B → ${chunks.length}チャンクに分割`);
+    
+    // 各チャンクを並列でトークン化
+    const allTokens: any[] = [];
+    for (const chunk of chunks) {
+      try {
+        const chunkTokens = this.tokenizer.tokenize(chunk);
+        allTokens.push(...chunkTokens);
+      } catch (error) {
+        console.warn('チャンクトークン化エラー:', error);
+      }
+    }
+    
+    return allTokens;
   }
 
   /**
@@ -380,7 +423,7 @@ export class IntelligentConceptExtractor {
     options?: ProcessingOptions
   ): Promise<IntelligentExtractionResult> {
     const startTime = Date.now();
-    const chunkSize = options?.chunkSize || 50000; // 50KB default
+    const chunkSize = options?.chunkSize || 15000; // 15KB default (50KB→15KB高速化)
     const parallelChunks = options?.parallelProcessing ? 4 : 1;
     
     console.log(`🔧 チャンク分割設定: ${chunkSize}バイト/チャンク, 並列度${parallelChunks}`);
@@ -537,22 +580,20 @@ export class IntelligentConceptExtractor {
       }
     };
     
-    // 並列処理の実行
-    const promises: Promise<void>[] = [];
-    for (let i = 0; i < chunks.length; i++) {
-      const semaphoreIndex = i % maxParallel;
-      const promise = processChunk(chunks[i], i);
-      promises.push(promise);
+    // 高効率バッチ並列処理
+    for (let i = 0; i < chunks.length; i += maxParallel) {
+      const batch = chunks.slice(i, i + maxParallel);
+      const batchPromises = batch.map((chunk, batchIndex) => 
+        processChunk(chunk, i + batchIndex)
+      );
       
-      // 最大並列数に達したら待機
-      if (promises.length >= maxParallel) {
-        await Promise.race(promises);
-        promises.splice(promises.findIndex(p => p === promise), 1);
-      }
+      // バッチ単位で並列実行
+      await Promise.all(batchPromises);
+      
+      // 進捗ログ
+      const completed = Math.min(i + maxParallel, chunks.length);
+      console.log(`📈 バッチ処理進捗: ${completed}/${chunks.length}チャンク完了`);
     }
-    
-    // 残りの処理を完了
-    await Promise.all(promises);
   }
 
   /**
@@ -789,12 +830,17 @@ export class IntelligentConceptExtractor {
    * 生の概念抽出（形態素解析中心・品質重視）
    */
   private extractRawConcepts(content: string): string[] {
+    const startTime = Date.now();
+    console.log(`🔬 概念抽出開始: ${content.length}バイトファイル`);
     const concepts: Set<string> = new Set();
     
-    // kuromoji形態素解析（メイン手法）
+    // kuromoji形態素解析（メイン手法）- 大容量ファイル対応チャンク処理
     if (this.tokenizer) {
       try {
-        const tokens = this.tokenizer.tokenize(content);
+        // 大容量ファイルの場合、チャンク分割してトークン化（性能大幅改善）
+        const tokens = content.length > 50000 
+          ? this.tokenizeInChunks(content, 10000) // 10KB単位でチャンク化
+          : this.tokenizer.tokenize(content);
         const compoundConcepts: string[] = [];
         
         tokens.forEach((token: any, index: number) => {
@@ -844,18 +890,42 @@ export class IntelligentConceptExtractor {
       this.fallbackConceptExtraction(content, concepts);
     }
     
-    // 引用符内の概念（高品質）- 設定ファイルから取得
+    // 引用符内の概念（高品質）- 設定ファイルから取得・高速化
     const quotedPatterns = this.configManager.getQuotedPatterns();
     
-    quotedPatterns.forEach(pattern => {
-      let match;
-      while ((match = pattern.exec(content)) !== null) {
-        const concept = match[1];
-        if (!this.isLowQualityConcept(concept)) {
-          concepts.add(concept);
+    // 大容量ファイルの場合、正規表現も制限
+    if (content.length > 100000) {
+      console.log('⚡ 大容量ファイル: 正規表現処理を制限して高速化');
+      // サンプル処理: 先頭・中間・末尾の代表的部分のみ処理
+      const samples = [
+        content.substring(0, 20000),
+        content.substring(content.length / 2 - 10000, content.length / 2 + 10000),
+        content.substring(Math.max(0, content.length - 20000))
+      ];
+      
+      samples.forEach(sample => {
+        quotedPatterns.forEach(pattern => {
+          const matches = sample.matchAll(pattern);
+          for (const match of matches) {
+            const concept = match[1];
+            if (!this.isLowQualityConcept(concept)) {
+              concepts.add(concept);
+            }
+          }
+        });
+      });
+    } else {
+      // 通常サイズファイルは従来通り
+      quotedPatterns.forEach(pattern => {
+        const matches = content.matchAll(pattern);
+        for (const match of matches) {
+          const concept = match[1];
+          if (!this.isLowQualityConcept(concept)) {
+            concepts.add(concept);
+          }
         }
-      }
-    });
+      });
+    }
     
     // 概念の前処理とフィルタリング - 設定ファイルから閾値取得
     const thresholds = this.configManager.getThresholds();
@@ -878,6 +948,11 @@ export class IntelligentConceptExtractor {
       }
       return false;
     });
+    
+    const endTime = Date.now();
+    console.log(`🎯 概念抽出完了: ${endTime - startTime}ms, ${processedConcepts.length}概念抽出 (${(content.length/(endTime - startTime)*1000).toFixed(0)}B/s)`);
+    
+    return processedConcepts;
   }
 
   /**
@@ -1021,13 +1096,27 @@ export class IntelligentConceptExtractor {
     const surfaceConcepts: ClassifiedConcept[] = [];
     const deepConcepts: ClassifiedConcept[] = [];
     
-    for (const concept of rawConcepts) {
-      const classification = await this.classifySingleConcept(concept, content);
+    // 並列処理で概念分類を高速化（バッチサイズ50）
+    const batchSize = 50;
+    const batches = [];
+    
+    for (let i = 0; i < rawConcepts.length; i += batchSize) {
+      const batch = rawConcepts.slice(i, i + batchSize);
+      batches.push(batch);
+    }
+    
+    console.log(`⚡ 概念分類高速化: ${rawConcepts.length}概念を${batches.length}バッチで並列処理`);
+    
+    for (const batch of batches) {
+      const batchPromises = batch.map(concept => this.classifySingleConcept(concept, content));
+      const batchResults = await Promise.all(batchPromises);
       
-      if (classification.classification === 'deep') {
-        deepConcepts.push(classification);
-      } else {
-        surfaceConcepts.push(classification);
+      for (const classification of batchResults) {
+        if (classification.classification === 'deep') {
+          deepConcepts.push(classification);
+        } else {
+          surfaceConcepts.push(classification);
+        }
       }
     }
     

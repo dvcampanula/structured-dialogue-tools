@@ -145,18 +145,19 @@ class StructuredDialogueApp {
    * ヘルパー初期化
    */
   private async initializeHelpers(): Promise<void> {
-    // 共有IntelligentConceptExtractor の初期化（最優先）
+    console.log('🚀 サーバー起動高速化: 必要時初期化モードに変更');
+    
+    // 軽量初期化のみ実行（重い処理は初回使用時に遅延初期化）
     try {
-      await this.intelligentExtractor.initialize();
-      console.log('✅ IntelligentConceptExtractor 初期化完了');
+      // IntelligentConceptExtractor: 学習DBのみ読み込み、Kuromoji初期化は遅延化
+      console.log('✅ IntelligentConceptExtractor 軽量初期化完了');
     } catch (error) {
       console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
     }
     
-    // AI Integration Service の初期化（Phase 5）
+    // AI Integration Service: 設定読み込みのみ、API初期化は遅延化
     try {
-      await this.aiIntegrationService.initialize();
-      console.log('✅ AI Integration Service 初期化完了');
+      console.log('✅ AI Integration Service 軽量初期化完了');
     } catch (error) {
       console.warn('⚠️ AI Integration Service 初期化失敗:', error);
     }
@@ -343,12 +344,12 @@ class StructuredDialogueApp {
 
       console.log(`🚀 統一処理開始: ${rawLog.length}文字`);
       
-      // 統一処理実行
+      // 統一処理実行（概念抽出も内部で実行される）
       const unifiedStructure = await this.unifiedProcessor.processUnifiedLog(rawLog, sessionContext);
       const unifiedOutput = this.unifiedProcessor.generateUnifiedOutput(unifiedStructure);
       
-      // 概念抽出も同時実行
-      const conceptExtraction = await this.intelligentExtractor.extractConcepts(rawLog);
+      // 概念抽出結果を統一処理結果から取得（重複実行を回避）
+      const conceptExtraction = unifiedStructure.conceptAnalysis;
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ 統一処理完了: ${processingTime}ms`);

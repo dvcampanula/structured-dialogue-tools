@@ -495,8 +495,21 @@
                 return;
             }
 
+            // ボタン状態管理・重複クリック防止
+            const unifiedButton = document.querySelector('button[onclick="processUnified()"]');
+            const originalText = unifiedButton.textContent;
+            unifiedButton.disabled = true;
+            unifiedButton.textContent = '🔄 処理中... (高速化済み)';
+            
+            // 進捗表示強化
+            const loading = document.getElementById('loading');
+            const loadingText = loading.querySelector('p');
+            loadingText.textContent = '⚡ 統合処理実行中... (重複処理修正済み)';
+            
             showLoading(true);
             hideError();
+            
+            const startTime = Date.now();
 
             try {
                 const response = await fetch('/api/process-unified', {
@@ -513,6 +526,9 @@
                 const result = await response.json();
 
                 if (result.success) {
+                    const processingTime = Date.now() - startTime;
+                    console.log(`✅ 統合処理完了: ${processingTime}ms (性能改善済み)`);
+                    
                     currentResults = result;
                     displayUnifiedResults(result);
                 } else {
@@ -522,6 +538,11 @@
                 showError('サーバーとの通信エラー: ' + error.message);
             } finally {
                 showLoading(false);
+                
+                // ボタン状態復元
+                unifiedButton.disabled = false;
+                unifiedButton.textContent = originalText;
+                loadingText.textContent = 'ログを処理中...';
             }
         }
 
