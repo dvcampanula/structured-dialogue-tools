@@ -1,7 +1,7 @@
 {
   "name": "structured-dialogue-tools",
-  "version": "1.0.0",
-  "description": "AIとの構造的対話ログを自動分割・命名・書式統一するツール群",
+  "version": "5.0.0",
+  "description": "Phase 2革命的機能: 文脈重要度・動的学習・予測的概念抽出によるAI対話ログ統合分析システム",
   "main": "src/web/structured-dialogue-app.ts",
   "type": "module",
   "scripts": {
