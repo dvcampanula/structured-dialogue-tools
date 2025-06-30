@@ -74,3 +74,6 @@ knowledge-extraction-results.json
 
 # Archive directory (keep structure but ignore contents)
 tests/archive/
+
+# Scripts directory (utility scripts, not for commits)
+scripts/

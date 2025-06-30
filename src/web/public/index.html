@@ -1261,7 +1261,7 @@
                         </div>
                     </div>
 
-                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
+                    <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px; margin-bottom: 24px;">
                         <h3 style="color: #334155; margin-bottom: 12px;">🚀 クイックアクション</h3>
                         <div style="display: flex; gap: 12px; flex-wrap: wrap;">
                             <button class="btn btn-primary" onclick="startNewSession()">
@@ -1270,9 +1270,40 @@
                             <button class="btn btn-secondary" onclick="getLatestHandover()">
                                 🔄 引き継ぎ確認
                             </button>
+                            <button class="btn btn-secondary" onclick="loadSessionList()">
+                                📋 セッション一覧
+                            </button>
                             <button class="btn btn-secondary" onclick="searchSessions()">
                                 🔍 セッション検索
                             </button>
+                        </div>
+                    </div>
+
+                    <!-- セッション一覧エリア -->
+                    <div id="sessionListArea" style="display: none;">
+                        <div style="background: #fef7ff; border: 1px solid #a855f7; border-radius: 8px; padding: 16px; margin-bottom: 16px;">
+                            <h3 style="color: #7e22ce; margin-bottom: 12px;">📋 セッション一覧</h3>
+                            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                                <input type="text" id="sessionSearchInput" placeholder="セッション検索..." style="flex: 1; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+                                <button class="btn btn-secondary" onclick="filterSessions()">🔍 検索</button>
+                                <button class="btn btn-secondary" onclick="hideSessionList()">✕ 閉じる</button>
+                            </div>
+                            <div id="sessionListContent" style="max-height: 400px; overflow-y: auto;">
+                                <!-- セッション一覧がここに表示される -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- セッション詳細エリア -->
+                    <div id="sessionDetailArea" style="display: none;">
+                        <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 16px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                                <h3 style="color: #15803d;">📄 セッション詳細</h3>
+                                <button class="btn btn-secondary" onclick="hideSessionDetail()">✕ 閉じる</button>
+                            </div>
+                            <div id="sessionDetailContent">
+                                <!-- セッション詳細がここに表示される -->
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1286,6 +1317,175 @@
                         </button>
                     </div>
                 `;
+            }
+        }
+
+        /**
+         * セッション一覧表示
+         */
+        async function loadSessionList() {
+            const sessionListArea = document.getElementById('sessionListArea');
+            const sessionListContent = document.getElementById('sessionListContent');
+            
+            try {
+                // 全セッション取得（検索API を空で実行）
+                const response = await fetch('/api/sessions/search', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        keywords: []
+                    })
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    const sessions = result.sessions || [];
+                    
+                    if (sessions.length === 0) {
+                        sessionListContent.innerHTML = '<p style="text-align: center; color: #6b7280;">セッションが見つかりません</p>';
+                    } else {
+                        sessionListContent.innerHTML = sessions.map(session => `
+                            <div style="border: 1px solid #e5e7eb; border-radius: 6px; padding: 12px; margin-bottom: 8px; background: white; cursor: pointer; transition: background-color 0.2s;" 
+                                 onclick="loadSessionDetail('${session.id}')" 
+                                 onmouseover="this.style.backgroundColor='#f9fafb'" 
+                                 onmouseout="this.style.backgroundColor='white'">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                    <strong style="color: #1f2937;">${session.filename || session.id}</strong>
+                                    <span style="font-size: 12px; color: #6b7280;">${new Date(session.timestamp).toLocaleString()}</span>
+                                </div>
+                                <div style="font-size: 12px; color: #6b7280; margin-bottom: 4px;">
+                                    ID: ${session.id}
+                                </div>
+                                <div style="display: flex; gap: 8px; align-items: center;">
+                                    <span style="background: ${getPhaseColor(session.phase)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                        ${session.phase}
+                                    </span>
+                                    <span style="background: ${getInnovationColor(session.innovationLevel)}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                        革新度 ${session.innovationLevel}/10
+                                    </span>
+                                    <span style="background: ${session.isReliable ? '#10b981' : '#ef4444'}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">
+                                        ${session.isReliable ? '信頼性高' : '要改善'}
+                                    </span>
+                                </div>
+                                <div style="margin-top: 6px; font-size: 11px; color: #9ca3af;">
+                                    タグ: ${session.tags ? session.tags.slice(0, 3).join(', ') : 'なし'}${session.tags && session.tags.length > 3 ? '...' : ''}
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                    
+                    sessionListArea.style.display = 'block';
+                    sessionListArea.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                showError('セッション一覧の取得に失敗しました: ' + error.message);
+            }
+        }
+
+        /**
+         * セッション詳細表示
+         */
+        async function loadSessionDetail(sessionId) {
+            const sessionDetailArea = document.getElementById('sessionDetailArea');
+            const sessionDetailContent = document.getElementById('sessionDetailContent');
+            
+            try {
+                const response = await fetch(`/api/sessions/${sessionId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const session = result.session;
+                    const analysis = session.analysis;
+                    
+                    sessionDetailContent.innerHTML = `
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #1f2937; margin-bottom: 8px;">基本情報</h4>
+                            <div style="background: #f9fafb; padding: 12px; border-radius: 6px;">
+                                <div style="margin-bottom: 4px;"><strong>ID:</strong> ${session.id}</div>
+                                <div style="margin-bottom: 4px;"><strong>ファイル名:</strong> ${session.filename}</div>
+                                <div style="margin-bottom: 4px;"><strong>作成日時:</strong> ${new Date(session.timestamp).toLocaleString()}</div>
+                                <div style="margin-bottom: 4px;"><strong>フェーズ:</strong> <span style="background: ${getPhaseColor(session.phase)}; color: white; padding: 2px 8px; border-radius: 4px;">${session.phase}</span></div>
+                                <div style="margin-bottom: 4px;"><strong>ステータス:</strong> ${session.status}</div>
+                            </div>
+                        </div>
+
+                        ${analysis ? `
+                            <div style="margin-bottom: 16px;">
+                                <h4 style="color: #1f2937; margin-bottom: 8px;">分析結果</h4>
+                                <div style="background: #f0f9ff; padding: 12px; border-radius: 6px;">
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 1.2rem; font-weight: bold; color: ${getInnovationColor(analysis.innovationLevel)};">${analysis.innovationLevel}/10</div>
+                                            <div style="font-size: 11px; color: #6b7280;">革新度</div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 1.2rem; font-weight: bold; color: ${analysis.isReliable ? '#10b981' : '#ef4444'};">${analysis.qualityScore}%</div>
+                                            <div style="font-size: 11px; color: #6b7280;">品質スコア</div>
+                                        </div>
+                                        <div style="text-align: center;">
+                                            <div style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${analysis.dialogueType}</div>
+                                            <div style="font-size: 11px; color: #6b7280;">対話タイプ</div>
+                                        </div>
+                                    </div>
+                                    ${analysis.deepConcepts && analysis.deepConcepts.length > 0 ? `
+                                        <div style="margin-top: 12px;">
+                                            <strong>深層概念:</strong>
+                                            <div style="margin-top: 4px;">
+                                                ${analysis.deepConcepts.map(concept => `
+                                                    <span style="background: #ec4899; color: white; padding: 2px 6px; border-radius: 4px; font-size: 11px; margin-right: 4px; margin-bottom: 2px; display: inline-block;">${concept.term}</span>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    ` : ''}
+                                    ${analysis.continuityKeywords && analysis.continuityKeywords.length > 0 ? `
+                                        <div style="margin-top: 8px;">
+                                            <strong>継続キーワード:</strong> ${analysis.continuityKeywords.join(', ')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #1f2937; margin-bottom: 8px;">タグ</h4>
+                            <div style="background: #fef3c7; padding: 12px; border-radius: 6px;">
+                                ${session.tags && session.tags.length > 0 ? 
+                                    session.tags.map(tag => `
+                                        <span style="background: #f59e0b; color: white; padding: 2px 8px; border-radius: 4px; font-size: 12px; margin-right: 4px; margin-bottom: 2px; display: inline-block;">${tag}</span>
+                                    `).join('') : 
+                                    '<span style="color: #6b7280;">タグなし</span>'
+                                }
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom: 16px;">
+                            <h4 style="color: #1f2937; margin-bottom: 8px;">セッション内容</h4>
+                            <div style="background: #f3f4f6; padding: 12px; border-radius: 6px; max-height: 200px; overflow-y: auto;">
+                                <pre style="white-space: pre-wrap; font-family: monospace; font-size: 12px; margin: 0;">${escapeHtml(session.content)}</pre>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 8px;">
+                            <button class="btn btn-primary" onclick="continueFromSession('${session.id}')">
+                                🔗 このセッションから継続
+                            </button>
+                            <button class="btn btn-secondary" onclick="copySessionContent('${session.id}')">
+                                📋 内容をコピー
+                            </button>
+                        </div>
+                    `;
+                    
+                    sessionDetailArea.style.display = 'block';
+                    sessionDetailArea.scrollIntoView({ behavior: 'smooth' });
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                showError('セッション詳細の取得に失敗しました: ' + error.message);
             }
         }
 
@@ -1317,6 +1517,41 @@
             } catch (error) {
                 showError('セッション検索に失敗しました: ' + error.message);
             }
+        }
+
+        // ヘルパー関数
+        function getPhaseColor(phase) {
+            const colors = {
+                'discovery': '#dc2626',
+                'development': '#d97706', 
+                'exploration': '#7c3aed',
+                'basic': '#6b7280',
+                'unknown': '#6b7280'
+            };
+            return colors[phase] || '#6b7280';
+        }
+
+        function hideSessionList() {
+            document.getElementById('sessionListArea').style.display = 'none';
+        }
+
+        function hideSessionDetail() {
+            document.getElementById('sessionDetailArea').style.display = 'none';
+        }
+
+        function filterSessions() {
+            // TODO: 実装予定
+            alert('フィルター機能は実装予定です');
+        }
+
+        function continueFromSession(sessionId) {
+            // TODO: セッション継続機能
+            alert(`セッション${sessionId}からの継続機能は実装予定です`);
+        }
+
+        function copySessionContent(sessionId) {
+            // TODO: 内容コピー機能
+            alert(`セッション${sessionId}の内容コピー機能は実装予定です`);
         }
 
         // 初期化

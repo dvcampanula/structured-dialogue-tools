@@ -3,7 +3,7 @@
 ## 🌐 WSL2 ネットワーク接続問題の解決方法
 
 ### 📊 現在の状況
-- **WSL IP**: `172.17.131.92`
+- **WSL IP**: `172.17.xxx.xxx` (実際のIPは `ip addr show eth0` で確認)
 - **サーバーポート**: `3000`
 - **リッスン設定**: `0.0.0.0` (全IPアドレス対応済み)
 
@@ -19,8 +19,9 @@ http://localhost:3000
 
 ### 方法2: WSL IPアドレス直接アクセス
 ```
-http://172.17.131.92:3000
+http://[WSL_IP]:3000
 ```
+**注意**: `[WSL_IP]`は実際のWSL IPアドレスに置き換えてください
 
 ### 方法3: WSL内でのテスト
 WSL内では正常に動作します：
@@ -35,8 +36,11 @@ curl http://localhost:3000
 ### Step 1: Windows側でポートプロキシ設定
 **管理者権限のPowerShellで実行**:
 ```powershell
-# ポートフォワーディング設定
-netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=172.17.131.92
+# WSL IPアドレス確認（まずこれを実行）
+wsl ip addr show eth0 | grep 'inet '
+
+# ポートフォワーディング設定（[WSL_IP]を実際のIPに置き換え）
+netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=[WSL_IP]
 
 # 設定確認
 netsh interface portproxy show all

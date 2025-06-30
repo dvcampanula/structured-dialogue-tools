@@ -214,11 +214,15 @@ export class SessionManagementSystem {
    * 引き継ぎデータ取得
    */
   getLatestHandover(): SessionHandover | null {
-    const activeHandovers = this.database.handovers
-      .filter(h => h.toSessionId === '')
+    if (this.database.handovers.length === 0) {
+      return null;
+    }
+    
+    // 最新の引き継ぎデータを取得（toSessionIdに関係なく）
+    const sortedHandovers = this.database.handovers
       .sort((a, b) => new Date(b.handoverDate).getTime() - new Date(a.handoverDate).getTime());
     
-    return activeHandovers[0] || null;
+    return sortedHandovers[0] || null;
   }
 
   /**
