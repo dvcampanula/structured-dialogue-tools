@@ -18,6 +18,7 @@ import { LogFormatUnifier } from '../core/log-format-unifier.js';
 import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
 import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
 import { SessionManagementSystem } from '../core/session-management-system.js';
+import { AIIntegrationService } from '../core/ai-integration-service.js';
 
 interface ProcessRequest {
   rawLog: string;
@@ -57,6 +58,7 @@ class StructuredDialogueApp {
   private formatUnifier: LogFormatUnifier;
   private unifiedProcessor: UnifiedLogProcessor;
   private intelligentExtractor: IntelligentConceptExtractor;
+  private aiIntegrationService: AIIntegrationService;
   private sessionManager: SessionManagementSystem;
   private port: number;
 
@@ -69,6 +71,7 @@ class StructuredDialogueApp {
     this.intelligentExtractor = new IntelligentConceptExtractor();
     this.unifiedProcessor = new UnifiedLogProcessor(this.intelligentExtractor);
     this.sessionManager = new SessionManagementSystem('./web_sessions', './web_session_database.json', this.intelligentExtractor);
+    this.aiIntegrationService = new AIIntegrationService(this.intelligentExtractor);
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -109,6 +112,13 @@ class StructuredDialogueApp {
     this.app.get('/api/sessions/:id', this.getSession.bind(this));
     this.app.post('/api/sessions/search', this.searchSessions.bind(this));
     
+    // AI Integration エンドポイント（Phase 5 NEW）
+    this.app.post('/api/ai/analyze', this.analyzeWithAI.bind(this));
+    this.app.post('/api/ai/compare', this.compareAIProviders.bind(this));
+    this.app.get('/api/ai/providers', this.getAIProviders.bind(this));
+    this.app.get('/api/ai/stats', this.getAIStats.bind(this));
+    this.app.get('/api/ai/history', this.getAIAnalysisHistory.bind(this));
+    
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
     this.app.post('/api/settings', this.updateSettings.bind(this));
@@ -141,6 +151,14 @@ class StructuredDialogueApp {
       console.log('✅ IntelligentConceptExtractor 初期化完了');
     } catch (error) {
       console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
+    }
+    
+    // AI Integration Service の初期化（Phase 5）
+    try {
+      await this.aiIntegrationService.initialize();
+      console.log('✅ AI Integration Service 初期化完了');
+    } catch (error) {
+      console.warn('⚠️ AI Integration Service 初期化失敗:', error);
     }
     
     // SessionManagementSystem の初期化（共有インスタンス使用）
@@ -971,6 +989,145 @@ class StructuredDialogueApp {
       
     } catch (error) {
       console.error('引き継ぎデータ取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * AI統合分析API（Phase 5）
+   */
+  private async analyzeWithAI(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { logContent, analysisType, providers, options } = req.body;
+
+      if (!logContent) {
+        res.status(400).json({
+          success: false,
+          error: 'logContent is required'
+        });
+        return;
+      }
+
+      const result = await this.aiIntegrationService.analyzeDialogue({
+        logContent,
+        analysisType: analysisType || 'concept-extraction',
+        providers,
+        options
+      });
+
+      res.json({
+        success: true,
+        result
+      });
+
+    } catch (error) {
+      console.error('AI分析エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * AIプロバイダー比較API（Phase 5）
+   */
+  private async compareAIProviders(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { logContent, analysisType, providers } = req.body;
+
+      if (!logContent || !providers || providers.length < 2) {
+        res.status(400).json({
+          success: false,
+          error: 'logContent and at least 2 providers are required'
+        });
+        return;
+      }
+
+      const result = await this.aiIntegrationService.analyzeDialogue({
+        logContent,
+        analysisType: analysisType || 'concept-extraction',
+        providers,
+        options: { compareResults: true }
+      });
+
+      res.json({
+        success: true,
+        comparison: result
+      });
+
+    } catch (error) {
+      console.error('AIプロバイダー比較エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * 利用可能なAIプロバイダー取得API（Phase 5）
+   */
+  private getAIProviders(req: express.Request, res: express.Response): void {
+    try {
+      const providers = this.aiIntegrationService.getAvailableProviders();
+      const stats = this.aiIntegrationService.getProviderStats();
+
+      res.json({
+        success: true,
+        providers,
+        stats
+      });
+
+    } catch (error) {
+      console.error('AIプロバイダー取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * AI統計情報取得API（Phase 5）
+   */
+  private getAIStats(req: express.Request, res: express.Response): void {
+    try {
+      const stats = this.aiIntegrationService.getProviderStats();
+
+      res.json({
+        success: true,
+        stats
+      });
+
+    } catch (error) {
+      console.error('AI統計取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * AI分析履歴取得API（Phase 5）
+   */
+  private getAIAnalysisHistory(req: express.Request, res: express.Response): void {
+    try {
+      const history = this.aiIntegrationService.getAnalysisHistory();
+      const limit = parseInt(req.query.limit as string) || 50;
+
+      res.json({
+        success: true,
+        history: history.slice(-limit),
+        total: history.length
+      });
+
+    } catch (error) {
+      console.error('AI分析履歴取得エラー:', error);
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : '不明なエラー'
