@@ -34,7 +34,7 @@ This appears to be a development environment with Node.js (v22.17.0) available v
 1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
 2. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
 3. **`docs/SESSION_COMPLETION_SUMMARY.md`** - Previous session comprehensive summary
-4. **`docs/INTELLIGENT_EXTRACTOR_ROADMAP.md`** - Technical development roadmap (Phase 1-8)
+4. **`docs/CURRENT_ROADMAP.md`** - Technical development roadmap (Phase 1-8)
 5. **`docs/ANALYSIS_RESULTS_DB.json`** - 75-concept learning database
 6. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
