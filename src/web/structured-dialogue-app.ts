@@ -96,8 +96,9 @@ class StructuredDialogueApp {
     // 統一処理エンドポイント（新機能）
     this.app.post('/api/process-unified', this.processUnified.bind(this));
     
-    // IntelligentConceptExtractor エンドポイント（NEW）
+    // IntelligentConceptExtractor エンドポイント（NEW + Phase 3）
     this.app.post('/api/extract-concepts', this.extractConcepts.bind(this));
+    this.app.post('/api/extract-concepts-chunked', this.extractConceptsChunked.bind(this));
     
     // SessionManagement エンドポイント（NEW）
     this.app.post('/api/sessions/save', this.saveSession.bind(this));
@@ -111,6 +112,8 @@ class StructuredDialogueApp {
     // 設定取得・更新
     this.app.get('/api/settings', this.getSettings.bind(this));
     this.app.post('/api/settings', this.updateSettings.bind(this));
+    this.app.get('/api/config/concept-extraction', this.getConceptExtractionConfig.bind(this));
+    this.app.get('/api/learning/session-stats', this.getSessionLearningStats.bind(this));
     
     // ツール別エンドポイント
     this.app.post('/api/split-only', this.splitOnly.bind(this));
@@ -372,13 +375,13 @@ class StructuredDialogueApp {
   }
 
   /**
-   * IntelligentConceptExtractor API エンドポイント
+   * IntelligentConceptExtractor API エンドポイント（Phase 3対応）
    */
   private async extractConcepts(req: express.Request, res: express.Response): Promise<void> {
     const startTime = Date.now();
     
     try {
-      const { logContent } = req.body;
+      const { logContent, options } = req.body;
       
       if (!logContent || typeof logContent !== 'string') {
         res.status(400).json({
@@ -388,10 +391,11 @@ class StructuredDialogueApp {
         return;
       }
 
-      console.log(`🔬 概念抽出開始: ${logContent.length}文字`);
+      const contentSize = Buffer.byteLength(logContent, 'utf8');
+      console.log(`🔬 概念抽出開始: ${logContent.length}文字 (${Math.round(contentSize/1024)}KB)`);
       
-      // IntelligentConceptExtractor による概念抽出
-      const extractionResult = await this.intelligentExtractor.extractConcepts(logContent);
+      // Phase 3: オプション付きで概念抽出
+      const extractionResult = await this.intelligentExtractor.extractConcepts(logContent, undefined, options);
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ 概念抽出完了: ${processingTime}ms, 革新度${extractionResult.predictedInnovationLevel}/10`);
@@ -402,10 +406,12 @@ class StructuredDialogueApp {
         extraction: extractionResult,
         summary: {
           originalLength: logContent.length,
+          contentSizeKB: Math.round(contentSize/1024),
           surfaceConceptsCount: extractionResult.surfaceConcepts.length,
           deepConceptsCount: extractionResult.deepConcepts.length,
           timeMarkersCount: extractionResult.timeRevolutionMarkers.length,
-          processingTime
+          processingTime,
+          usedChunking: contentSize > 100000
         }
       });
       
@@ -416,10 +422,88 @@ class StructuredDialogueApp {
         error: error instanceof Error ? error.message : '不明なエラー',
         summary: {
           originalLength: 0,
+          contentSizeKB: 0,
           surfaceConceptsCount: 0,
           deepConceptsCount: 0,
           timeMarkersCount: 0,
-          processingTime: Date.now() - startTime
+          processingTime: Date.now() - startTime,
+          usedChunking: false
+        }
+      });
+    }
+  }
+
+  /**
+   * Phase 3: チャンク分割概念抽出API（明示的な大規模ログ処理）
+   */
+  private async extractConceptsChunked(req: express.Request, res: express.Response): Promise<void> {
+    const startTime = Date.now();
+    
+    try {
+      const { logContent, options = {} } = req.body;
+      
+      if (!logContent || typeof logContent !== 'string') {
+        res.status(400).json({
+          success: false,
+          error: 'logContent (string) が必要です'
+        });
+        return;
+      }
+
+      const contentSize = Buffer.byteLength(logContent, 'utf8');
+      console.log(`⚡ 大規模ログ処理開始: ${logContent.length}文字 (${Math.round(contentSize/1024)}KB)`);
+      
+      // Phase 3: 強制的にチャンク処理を実行
+      const processingOptions = {
+        chunkSize: options.chunkSize || 50000, // 50KB default
+        parallelProcessing: options.parallelProcessing !== false, // default true
+        maxParallelChunks: options.maxParallelChunks || 4,
+        memoryOptimization: options.memoryOptimization !== false, // default true
+        ...options
+      };
+      
+      const extractionResult = await this.intelligentExtractor.extractConcepts(
+        logContent, 
+        undefined, 
+        processingOptions
+      );
+      
+      const processingTime = Date.now() - startTime;
+      const throughputKBPerSec = Math.round((contentSize / 1024) / (processingTime / 1000));
+      
+      console.log(`⚡ 大規模処理完了: ${processingTime}ms, ${throughputKBPerSec}KB/s, 革新度${extractionResult.predictedInnovationLevel}/10`);
+      
+      // レスポンス
+      res.json({
+        success: true,
+        extraction: extractionResult,
+        summary: {
+          originalLength: logContent.length,
+          contentSizeKB: Math.round(contentSize/1024),
+          surfaceConceptsCount: extractionResult.surfaceConcepts.length,
+          deepConceptsCount: extractionResult.deepConcepts.length,
+          timeMarkersCount: extractionResult.timeRevolutionMarkers.length,
+          processingTime,
+          throughputKBPerSec,
+          usedChunking: true,
+          chunkingOptions: processingOptions
+        }
+      });
+      
+    } catch (error) {
+      console.error('チャンク分割処理エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: error instanceof Error ? error.message : '不明なエラー',
+        summary: {
+          originalLength: 0,
+          contentSizeKB: 0,
+          surfaceConceptsCount: 0,
+          deepConceptsCount: 0,
+          timeMarkersCount: 0,
+          processingTime: Date.now() - startTime,
+          throughputKBPerSec: 0,
+          usedChunking: true
         }
       });
     }
@@ -519,6 +603,81 @@ class StructuredDialogueApp {
   private updateSettings(req: express.Request, res: express.Response): void {
     // TODO: 設定の永続化実装
     res.json({ success: true, message: '設定を更新しました' });
+  }
+
+  /**
+   * 概念抽出設定取得
+   */
+  private getConceptExtractionConfig(req: express.Request, res: express.Response): void {
+    try {
+      const configStats = this.intelligentExtractor['configManager'].getConfigStats();
+      const flatStopWords = this.intelligentExtractor['configManager'].getFlatStopWords();
+      
+      res.json({
+        success: true,
+        config: {
+          ...configStats,
+          stopWordsSample: flatStopWords.slice(0, 20), // 最初の20個をサンプルとして
+          totalCategories: Object.keys(configStats.categories).length,
+          isExternalized: true,
+          configPath: 'src/config/concept-extraction-config.json'
+        },
+        message: '外部設定ファイル化完了'
+      });
+    } catch (error) {
+      console.error('概念抽出設定取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: '設定取得に失敗しました',
+        isExternalized: false
+      });
+    }
+  }
+
+  /**
+   * セッション学習統計取得
+   */
+  private async getSessionLearningStats(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const sessionLearningSystem = this.intelligentExtractor['sessionLearningSystem'];
+      
+      // 学習データを構築（キャッシュされていない場合）
+      let stats = sessionLearningSystem.getLearningStats();
+      if (!stats) {
+        console.log('🔄 セッション学習データを構築中...');
+        await sessionLearningSystem.buildLearningData();
+        stats = sessionLearningSystem.getLearningStats();
+      }
+      
+      res.json({
+        success: true,
+        stats: stats || {
+          totalSessions: 0,
+          uniqueConcepts: 0,
+          userPatterns: 0,
+          averageInnovationLevel: 0,
+          topConcepts: [],
+          qualityTrends: null
+        },
+        message: 'セッション学習統計を取得しました',
+        features: {
+          sessionLearningEnabled: true,
+          predictiveIntegration: true,
+          realTimeUpdates: true
+        }
+      });
+    } catch (error) {
+      console.error('セッション学習統計取得エラー:', error);
+      res.status(500).json({
+        success: false,
+        error: '学習統計の取得に失敗しました',
+        features: {
+          sessionLearningEnabled: false,
+          predictiveIntegration: false,
+          realTimeUpdates: false
+        }
+      });
+    }
   }
 
   /**

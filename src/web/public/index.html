@@ -423,6 +423,8 @@
                     <div class="tab" onclick="switchTab('prompts')">💬 構造化プロンプト</div>
                     <div class="tab" onclick="switchTab('unified')">✨ 統一書式</div>
                     <div class="tab" onclick="switchTab('concepts')">🚀 概念抽出 v5.0</div>
+                    <div class="tab" onclick="switchTab('predictions')">🔮 予測分析 [Phase 3]</div>
+                    <div class="tab" onclick="switchTab('learning')">📚 学習統計 [NEW]</div>
                     <div class="tab" onclick="switchTab('metrics')">📊 品質分析</div>
                     <div class="tab" onclick="switchTab('sessions')">💾 セッション管理</div>
                 </div>
@@ -431,6 +433,8 @@
                 <div class="tab-content" id="prompts-content"></div>
                 <div class="tab-content" id="unified-content"></div>
                 <div class="tab-content" id="concepts-content"></div>
+                <div class="tab-content" id="predictions-content"></div>
+                <div class="tab-content" id="learning-content"></div>
                 <div class="tab-content" id="metrics-content"></div>
                 <div class="tab-content" id="sessions-content"></div>
             </div>
@@ -989,6 +993,11 @@
                 ` : ''}
             `;
 
+            // Phase 3: 予測分析タブのコンテンツを更新
+            if (extraction.predictiveExtraction) {
+                displayPredictiveAnalysis(extraction.predictiveExtraction, extraction);
+            }
+
             // 概念抽出タブをアクティブにして結果を表示
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
@@ -998,6 +1007,319 @@
 
             document.getElementById('results').style.display = 'block';
             document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        /**
+         * Phase 3: 予測分析の表示
+         */
+        function displayPredictiveAnalysis(predictiveExtraction, parentExtraction) {
+            const predictionsContent = document.getElementById('predictions-content');
+            
+            predictionsContent.innerHTML = `
+                <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #fef3c7, #fed7aa); border-radius: 12px;">
+                    <h2 style="color: #92400e; margin-bottom: 16px; display: flex; align-items: center;">
+                        🔮 Phase 3: 予測的概念抽出・創発パターン分析
+                        <span style="margin-left: auto; font-size: 1rem; font-weight: normal; color: #a3a3a3;">
+                            v${predictiveExtraction.analysisDepth || 3}.0
+                        </span>
+                    </h2>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div><strong>潜在概念:</strong> ${predictiveExtraction.predictedConcepts.length}個</div>
+                        <div><strong>創発パターン:</strong> ${predictiveExtraction.emergentPatterns.length}個</div>
+                        <div><strong>隠れた接続:</strong> ${predictiveExtraction.hiddenConnections.length}個</div>
+                        <div><strong>分析深度:</strong> Level ${predictiveExtraction.analysisDepth || 3}</div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                    <!-- 予測概念の可視化 -->
+                    <div style="background: #fdf4ff; border: 1px solid #c084fc; border-radius: 8px; padding: 16px;">
+                        <h3 style="color: #581c87; margin-bottom: 12px;">🔮 予測された潜在概念</h3>
+                        <div id="predicted-concepts-viz" style="max-height: 400px; overflow-y: auto;">
+                            ${predictiveExtraction.predictedConcepts.map((concept, index) => `
+                                <div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ${getProbabilityColor(concept.probability)}; position: relative;">
+                                    <div style="display: flex; justify-content: between; align-items: center;">
+                                        <strong style="color: #581c87;">${concept.concept}</strong>
+                                        <span style="margin-left: auto; font-size: 0.9rem; font-weight: bold; color: ${getProbabilityColor(concept.probability)};">
+                                            ${(concept.probability * 100).toFixed(1)}%
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 12px; color: #6b7280; margin-top: 4px;">
+                                        理由: ${concept.reasoning}
+                                    </div>
+                                    <div style="background: #f3f4f6; border-radius: 4px; height: 4px; margin-top: 8px;">
+                                        <div style="background: ${getProbabilityColor(concept.probability)}; height: 100%; border-radius: 4px; width: ${concept.probability * 100}%;"></div>
+                                    </div>
+                                    ${concept.emergenceIndicators && concept.emergenceIndicators.length > 0 ? `
+                                        <div style="margin-top: 8px; font-size: 11px;">
+                                            <strong>創発指標:</strong> ${concept.emergenceIndicators.join(', ')}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- 創発パターンの表示 -->
+                    <div style="background: #f0fdf4; border: 1px solid #22c55e; border-radius: 8px; padding: 16px;">
+                        <h3 style="color: #15803d; margin-bottom: 12px;">⚡ 創発パターン</h3>
+                        <div style="max-height: 400px; overflow-y: auto;">
+                            ${predictiveExtraction.emergentPatterns.map((pattern, index) => `
+                                <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px; border-left: 3px solid #22c55e;">
+                                    <div style="font-weight: bold; color: #15803d; font-size: 14px;">
+                                        ${pattern}
+                                    </div>
+                                </div>
+                            `).join('')}
+                            ${predictiveExtraction.emergentPatterns.length === 0 ? `
+                                <div style="text-align: center; color: #6b7280; font-style: italic; padding: 20px;">
+                                    創発パターンが検出されませんでした
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 隠れた接続の可視化 -->
+                ${predictiveExtraction.hiddenConnections.length > 0 ? `
+                    <div style="background: #fef2f2; border: 1px solid #f87171; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="color: #dc2626; margin-bottom: 12px;">🔗 隠れた概念間接続</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 12px;">
+                            ${predictiveExtraction.hiddenConnections.map(connection => `
+                                <div style="padding: 8px; background: white; border-radius: 4px; font-size: 14px;">
+                                    <span style="color: #dc2626; font-weight: bold;">${connection}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- Phase 3: 新概念検出の詳細 -->
+                ${parentExtraction.newConceptDetection ? `
+                    <div style="background: #f0f9ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                        <h3 style="color: #1d4ed8; margin-bottom: 12px;">🆕 新概念検出</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: bold; color: ${parentExtraction.newConceptDetection.hasNewConcepts ? '#059669' : '#6b7280'};">
+                                    ${parentExtraction.newConceptDetection.hasNewConcepts ? '✅' : '➖'}
+                                </div>
+                                <div style="font-size: 12px; color: #6b7280;">新概念発見</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #d97706;">${parentExtraction.newConceptDetection.newConceptCount}</div>
+                                <div style="font-size: 12px; color: #6b7280;">新概念数</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${parentExtraction.newConceptDetection.metaConceptCount}</div>
+                                <div style="font-size: 12px; color: #6b7280;">メタ概念数</div>
+                            </div>
+                            <div style="text-align: center;">
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #dc2626;">${parentExtraction.newConceptDetection.noveltyScore}/10</div>
+                                <div style="font-size: 12px; color: #6b7280;">新規性スコア</div>
+                            </div>
+                        </div>
+                    </div>
+                ` : ''}
+
+                <!-- 品質・性能指標 -->
+                <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
+                    <h3 style="color: #334155; margin-bottom: 12px;">📊 Phase 3 性能指標</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #059669;">${parentExtraction.processingTime}ms</div>
+                            <div style="font-size: 12px; color: #6b7280;">処理時間</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #d97706;">${parentExtraction.confidence}%</div>
+                            <div style="font-size: 12px; color: #6b7280;">総合信頼度</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #7c3aed;">${predictiveExtraction.predictedConcepts.length}</div>
+                            <div style="font-size: 12px; color: #6b7280;">予測概念数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #dc2626;">${predictiveExtraction.analysisDepth || 3}</div>
+                            <div style="font-size: 12px; color: #6b7280;">分析深度</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        /**
+         * Phase 3: 確率に基づく色決定
+         */
+        function getProbabilityColor(probability) {
+            if (probability >= 0.8) return '#059669'; // 高確率 - 緑
+            if (probability >= 0.6) return '#d97706'; // 中確率 - オレンジ
+            if (probability >= 0.4) return '#7c3aed'; // 低確率 - 紫
+            return '#6b7280'; // 最低確率 - グレー
+        }
+
+        /**
+         * 学習統計の表示
+         */
+        async function displayLearningStats() {
+            try {
+                const response = await fetch('/api/learning/session-stats');
+                const result = await response.json();
+                
+                const learningContent = document.getElementById('learning-content');
+                
+                if (result.success && result.stats) {
+                    const stats = result.stats;
+                    
+                    learningContent.innerHTML = `
+                        <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #ecfdf5, #d1fae5); border-radius: 12px;">
+                            <h2 style="color: #065f46; margin-bottom: 16px; display: flex; align-items: center;">
+                                📚 セッション学習統計 - 実利用データ活用
+                                <span style="margin-left: auto; font-size: 1rem; font-weight: normal; color: #6b7280;">
+                                    自動学習システム
+                                </span>
+                            </h2>
+                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                                <div><strong>総セッション数:</strong> ${stats.totalSessions}個</div>
+                                <div><strong>ユニーク概念:</strong> ${stats.uniqueConcepts}個</div>
+                                <div><strong>ユーザーパターン:</strong> ${stats.userPatterns}個</div>
+                                <div><strong>平均革新度:</strong> ${stats.averageInnovationLevel.toFixed(2)}/10</div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px;">
+                            <!-- 頻出概念ランキング -->
+                            <div style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 16px;">
+                                <h3 style="color: #92400e; margin-bottom: 12px;">🏆 頻出概念ランキング</h3>
+                                <div style="max-height: 400px; overflow-y: auto;">
+                                    ${stats.topConcepts.map((concept, index) => `
+                                        <div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 4px; border-left: 3px solid #f59e0b;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <strong style="color: #92400e;">${index + 1}. ${concept.concept}</strong>
+                                                <span style="font-size: 0.9rem; color: #6b7280;">
+                                                    ${concept.frequency}回 (信頼度: ${(concept.confidence * 100).toFixed(1)}%)
+                                                </span>
+                                            </div>
+                                            <div style="background: #f3f4f6; border-radius: 4px; height: 4px; margin-top: 4px;">
+                                                <div style="background: #f59e0b; height: 100%; border-radius: 4px; width: ${Math.min(100, concept.frequency * 10)}%;"></div>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                    ${stats.topConcepts.length === 0 ? `
+                                        <div style="text-align: center; color: #6b7280; font-style: italic; padding: 20px;">
+                                            学習データが不足しています
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+
+                            <!-- 学習機能状況 -->
+                            <div style="background: #f0f9ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px;">
+                                <h3 style="color: #1d4ed8; margin-bottom: 12px;">⚙️ 学習機能状況</h3>
+                                <div style="space-y: 12px;">
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <span style="font-weight: bold;">セッション学習</span>
+                                            <span style="color: ${result.features.sessionLearningEnabled ? '#059669' : '#dc2626'};">
+                                                ${result.features.sessionLearningEnabled ? '✅ 有効' : '❌ 無効'}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 12px; color: #6b7280;">
+                                            実際の使用パターンから概念予測精度を向上
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <span style="font-weight: bold;">予測統合</span>
+                                            <span style="color: ${result.features.predictiveIntegration ? '#059669' : '#dc2626'};">
+                                                ${result.features.predictiveIntegration ? '✅ 統合済み' : '❌ 未統合'}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 12px; color: #6b7280;">
+                                            セッション学習結果を予測システムに統合
+                                        </div>
+                                    </div>
+                                    
+                                    <div style="margin-bottom: 12px;">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                                            <span style="font-weight: bold;">リアルタイム更新</span>
+                                            <span style="color: ${result.features.realTimeUpdates ? '#059669' : '#dc2626'};">
+                                                ${result.features.realTimeUpdates ? '✅ 有効' : '❌ 無効'}
+                                            </span>
+                                        </div>
+                                        <div style="font-size: 12px; color: #6b7280;">
+                                            新しいセッションデータの自動学習
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 品質トレンド -->
+                        ${stats.qualityTrends ? `
+                            <div style="background: #fdf2f8; border: 1px solid #ec4899; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
+                                <h3 style="color: #831843; margin-bottom: 12px;">📈 品質トレンド分析</h3>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #059669;">${stats.qualityTrends.averageInnovationLevel.toFixed(2)}</div>
+                                        <div style="font-size: 12px; color: #6b7280;">平均革新度</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #d97706;">${stats.qualityTrends.successPatterns?.length || 0}</div>
+                                        <div style="font-size: 12px; color: #6b7280;">成功パターン</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 1.2rem; font-weight: bold; color: #7c3aed;">${stats.qualityTrends.failurePatterns?.length || 0}</div>
+                                        <div style="font-size: 12px; color: #6b7280;">改善要素</div>
+                                    </div>
+                                </div>
+                            </div>
+                        ` : ''}
+
+                        <!-- 活用方法 -->
+                        <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
+                            <h3 style="color: #334155; margin-bottom: 12px;">💡 セッション学習の活用</h3>
+                            <div style="font-size: 14px; color: #64748b; line-height: 1.6;">
+                                <p style="margin-bottom: 8px;">• <strong>概念予測精度向上:</strong> 実際の使用パターンから概念出現を予測</p>
+                                <p style="margin-bottom: 8px;">• <strong>ユーザー固有パターン:</strong> 個別の概念使用傾向を学習・適応</p>
+                                <p style="margin-bottom: 8px;">• <strong>品質相関分析:</strong> 高品質セッションの特徴を特定・活用</p>
+                                <p style="margin-bottom: 8px;">• <strong>時系列トレンド:</strong> 概念の時間的変化・進化パターンを追跡</p>
+                                <p style="margin-bottom: 8px;">• <strong>自動改善:</strong> 継続使用により予測精度が自動的に向上</p>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    learningContent.innerHTML = `
+                        <div style="text-align: center; padding: 40px; color: #6b7280;">
+                            <div style="font-size: 3rem; margin-bottom: 16px;">📚</div>
+                            <h3 style="margin-bottom: 12px;">学習データを構築中...</h3>
+                            <p>セッションデータベースから学習パターンを抽出しています。</p>
+                            <div style="margin-top: 16px; font-size: 12px;">
+                                エラー: ${result.error || 'データ不足'}
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('学習統計取得エラー:', error);
+                const learningContent = document.getElementById('learning-content');
+                learningContent.innerHTML = `
+                    <div style="text-align: center; padding: 40px; color: #dc2626;">
+                        <div style="font-size: 3rem; margin-bottom: 16px;">❌</div>
+                        <h3>学習統計の取得に失敗しました</h3>
+                        <p>サーバーとの通信でエラーが発生しました。</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 学習統計タブがクリックされた時に自動読み込み
+        const originalSwitchTab = switchTab;
+        function switchTab(tabName) {
+            originalSwitchTab.call(this, tabName);
+            
+            if (tabName === 'learning') {
+                displayLearningStats();
+            }
         }
 
         function getInnovationColor(level) {
