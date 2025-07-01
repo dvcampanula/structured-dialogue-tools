@@ -1884,15 +1884,30 @@ export class IntelligentConceptExtractor {
     ];
 
     latentPatterns.forEach(pattern => {
+      // パターンの健全性チェック
+      if (!pattern.predictedConcepts || !Array.isArray(pattern.predictedConcepts)) {
+        console.warn(`⚠️ 無効なパターンをスキップ:`, pattern);
+        return;
+      }
+      
       if (pattern.trigger.test(content)) {
         pattern.predictedConcepts.forEach(concept => {
+          // デバッグログ: concept値の確認
+          console.log(`🔍 予測概念デバッグ: concept='${concept}' (type: ${typeof concept})`);
+          
+          // undefinedまたは空文字列をスキップ
+          if (!concept || typeof concept !== 'string' || concept.trim() === '') {
+            console.warn(`⚠️ 無効な予測概念をスキップ: ${concept}`);
+            return;
+          }
+          
           // 既存概念と重複しないかチェック
           if (!existingConcepts.some(existing => existing.term === concept)) {
             const contextScore = this.calculatePredictionContextScore(concept, content, pattern.contextClues);
             
             if (contextScore > 0.3) {
               predictedConcepts.push({
-                term: concept,
+                term: concept || '不明な概念', // undefinedガード追加
                 probability: pattern.probability * contextScore,
                 predictedClassification: 'deep',
                 reasoning: `パターン予測: ${pattern.trigger.source}`,
