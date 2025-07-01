@@ -424,7 +424,7 @@ export class IntelligentConceptExtractor {
   ): Promise<IntelligentExtractionResult> {
     const startTime = Date.now();
     const chunkSize = options?.chunkSize || 15000; // 15KB default (50KB→15KB高速化)
-    const parallelChunks = options?.parallelProcessing ? 4 : 1;
+    const parallelChunks = options?.parallelProcessing !== false ? 4 : 1; // デフォルトで並列処理有効
     
     console.log(`🔧 チャンク分割設定: ${chunkSize}バイト/チャンク, 並列度${parallelChunks}`);
     

@@ -413,8 +413,14 @@ class StructuredDialogueApp {
       const contentSize = Buffer.byteLength(logContent, 'utf8');
       console.log(`🔬 概念抽出開始: ${logContent.length}文字 (${Math.round(contentSize/1024)}KB)`);
       
-      // Phase 3: オプション付きで概念抽出
-      const extractionResult = await this.intelligentExtractor.extractConcepts(logContent, undefined, options);
+      // Phase 3: オプション付きで概念抽出（並列処理デフォルト有効）
+      const processingOptions = {
+        parallelProcessing: true,
+        chunkSize: 15000,
+        maxParallelChunks: 4,
+        ...options // クライアント指定のオプションで上書き
+      };
+      const extractionResult = await this.intelligentExtractor.extractConcepts(logContent, undefined, processingOptions);
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ 概念抽出完了: ${processingTime}ms, 革新度${extractionResult.predictedInnovationLevel}/10`);
@@ -772,12 +778,15 @@ class StructuredDialogueApp {
       console.log(`💾 セッション保存開始: ${content.length}文字`);
       
       const saveOptions = {
-        autoAnalysis: options.autoAnalysis !== false,
+        autoAnalysis: options.skipReprocessing ? false : (options.autoAnalysis !== false), // 重複処理スキップ
         generateHandover: options.generateHandover !== false,
         archiveOldSessions: options.archiveOldSessions || false,
         backupEnabled: options.backupEnabled !== false,
         customTags: options.customTags || [],
-        forceHandover: options.forceHandover || false
+        forceHandover: options.forceHandover || false,
+        // 処理済みデータを直接使用
+        preProcessedResults: options.preProcessedResults || null,
+        usePreProcessedData: options.usePreProcessedData || false
       };
       
       // タイムアウト付きでセッション保存実行

@@ -119,8 +119,12 @@ class UnifiedLogProcessor {
    * ログ全体のヘッダー分析（IntelligentConceptExtractor統合版）
    */
   private async analyzeLogHeader(rawLog: string, sessionContext?: string): Promise<{header: LogHeader, conceptAnalysis: IntelligentExtractionResult}> {
-    // IntelligentConceptExtractorで高精度分析
-    const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog);
+    // IntelligentConceptExtractorで高精度分析（並列処理有効）
+    const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog, undefined, {
+      parallelProcessing: true,
+      chunkSize: 15000,
+      maxParallelChunks: 4
+    });
     
     // 深層概念を主要概念として採用
     const mainConcepts = intelligentResult.deepConcepts.slice(0, 5).map(c => c.term);
