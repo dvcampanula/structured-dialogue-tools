@@ -1,7 +1,7 @@
 {
   "name": "structured-dialogue-tools",
-  "version": "6.0.0",
-  "description": "Phase 5+予測品質評価: 外部AI統合・マルチプロバイダー対応・予測概念ベース品質評価による次世代構造的対話支援システム",
+  "version": "0.8.0",
+  "description": "4日間基盤構築完了: 外部AI統合・概念抽出・予測品質評価・セッション管理による構造的対話支援システム基盤",
   "main": "src/web/structured-dialogue-app.ts",
   "type": "module",
   "scripts": {
