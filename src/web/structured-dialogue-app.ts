@@ -18,6 +18,7 @@ import { LogFormatUnifier } from '../core/log-format-unifier.js';
 import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
 import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
 import { SessionManagementSystem } from '../core/session-management-system.js';
+import { PredictiveQualityAssessment } from '../core/predictive-quality-assessment.js';
 import { AIIntegrationService } from '../core/ai-integration-service.js';
 
 interface ProcessRequest {
@@ -60,6 +61,7 @@ class StructuredDialogueApp {
   private intelligentExtractor: IntelligentConceptExtractor;
   private aiIntegrationService: AIIntegrationService;
   private sessionManager: SessionManagementSystem;
+  private predictiveQualityAssessment: PredictiveQualityAssessment;
   private port: number;
 
   constructor(port: number = 3000) {
@@ -72,6 +74,7 @@ class StructuredDialogueApp {
     this.unifiedProcessor = new UnifiedLogProcessor(this.intelligentExtractor);
     this.sessionManager = new SessionManagementSystem('./web_sessions', './web_session_database.json', this.intelligentExtractor);
     this.aiIntegrationService = new AIIntegrationService(this.intelligentExtractor);
+    this.predictiveQualityAssessment = new PredictiveQualityAssessment();
     
     this.setupMiddleware();
     this.setupRoutes();
@@ -124,6 +127,9 @@ class StructuredDialogueApp {
     this.app.post('/api/settings', this.updateSettings.bind(this));
     this.app.get('/api/config/concept-extraction', this.getConceptExtractionConfig.bind(this));
     this.app.get('/api/learning/session-stats', this.getSessionLearningStats.bind(this));
+    
+    // 予測品質評価エンドポイント
+    this.app.post('/api/quality/predictive-assessment', this.getPredictiveQualityAssessment.bind(this));
     
     // ツール別エンドポイント
     this.app.post('/api/split-only', this.splitOnly.bind(this));
@@ -1170,6 +1176,59 @@ class StructuredDialogueApp {
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : '不明なエラー'
+      });
+    }
+  }
+
+  /**
+   * 予測品質評価API
+   */
+  private async getPredictiveQualityAssessment(req: express.Request, res: express.Response): Promise<void> {
+    try {
+      const { content } = req.body;
+      
+      if (!content || typeof content !== 'string') {
+        res.status(400).json({ 
+          error: 'Invalid request', 
+          details: 'content (string) is required' 
+        });
+        return;
+      }
+
+      console.log('🔮 予測品質評価API実行中...', { contentLength: content.length });
+
+      // 概念抽出を実行
+      const extractionResult = await this.intelligentExtractor.extractConcepts(content);
+      
+      // 予測品質評価を実行
+      const predictiveQuality = this.predictiveQualityAssessment.assessPredictiveQuality(extractionResult);
+      
+      // レポート生成
+      const report = this.predictiveQualityAssessment.formatPredictiveQualityReport(predictiveQuality);
+
+      console.log('✅ 予測品質評価完了:', {
+        predictiveQualityScore: predictiveQuality.predictiveQualityScore.toFixed(1),
+        valueDrivers: predictiveQuality.valueDrivers.length,
+        innovationSignals: predictiveQuality.innovationSignals.length
+      });
+
+      res.json({
+        success: true,
+        extractionResult,
+        predictiveQuality,
+        report,
+        metadata: {
+          processingTime: Date.now(),
+          contentLength: content.length,
+          apiVersion: 'predictive-quality-v1.0'
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ 予測品質評価APIエラー:', error);
+      res.status(500).json({ 
+        error: 'Internal server error', 
+        details: error instanceof Error ? error.message : 'Unknown error' 
       });
     }
   }

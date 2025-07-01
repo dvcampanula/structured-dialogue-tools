@@ -9,6 +9,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { IntegratedLogManagement, type IntegratedLogAnalysis } from './integrated-log-management.js';
 import { IntelligentConceptExtractor } from './intelligent-concept-extractor.js';
+import { PredictiveQualityAssessment, PredictiveQualityMetrics } from './predictive-quality-assessment.js';
 
 export interface SessionRecord {
   id: string;
@@ -29,6 +30,7 @@ export interface SessionHandover {
   contextSummary: string;
   qualityScore: number;
   handoverDate: string;
+  predictiveQualityMetrics?: PredictiveQualityMetrics;  // 予測品質評価追加
 }
 
 export interface SessionDatabase {
@@ -63,10 +65,12 @@ export class SessionManagementSystem {
   private databaseFile: string;
   private database: SessionDatabase;
   private conceptExtractor: IntelligentConceptExtractor;
+  private predictiveQualityAssessment: PredictiveQualityAssessment;
 
   constructor(sessionsDir = './sessions', databaseFile = './session_database.json', sharedConceptExtractor?: IntelligentConceptExtractor) {
     this.conceptExtractor = sharedConceptExtractor || new IntelligentConceptExtractor();
     this.logManager = new IntegratedLogManagement(this.conceptExtractor);
+    this.predictiveQualityAssessment = new PredictiveQualityAssessment();
     this.sessionsDir = path.resolve(sessionsDir);
     this.databaseFile = path.resolve(databaseFile);
     this.database = {
@@ -214,8 +218,24 @@ export class SessionManagementSystem {
       isReliable: fromSession.analysis?.qualityAssurance.isReliable
     });
 
-    if (!forceGenerate && !fromSession.analysis?.qualityAssurance.isReliable) {
-      console.log('⚠️  品質が低いため引き継ぎスキップ');
+    // 予測品質評価の実行
+    let predictiveQualityMetrics: PredictiveQualityMetrics | undefined;
+    if (fromSession.analysis?.conceptExtraction) {
+      console.log('🔮 予測品質評価実行中...');
+      predictiveQualityMetrics = this.predictiveQualityAssessment.assessPredictiveQuality(fromSession.analysis.conceptExtraction);
+      console.log('🔮 予測品質スコア:', predictiveQualityMetrics.predictiveQualityScore.toFixed(1));
+    }
+
+    // 引き継ぎ判定: 従来の品質評価 OR 予測品質評価（70%以上）で判定
+    const shouldGenerate = forceGenerate || 
+      fromSession.analysis?.qualityAssurance.isReliable ||
+      (predictiveQualityMetrics && predictiveQualityMetrics.predictiveQualityScore >= 70);
+
+    if (!shouldGenerate) {
+      console.log('⚠️  品質が低いため引き継ぎスキップ', {
+        legacyQuality: fromSession.analysis?.qualityAssurance?.reliabilityScore,
+        predictiveQuality: predictiveQualityMetrics?.predictiveQualityScore
+      });
       return null;
     }
 
@@ -226,7 +246,8 @@ export class SessionManagementSystem {
       guidance: fromSession.analysis?.sessionGuidance || '前回セッションからの継続です。',
       contextSummary: this.generateContextSummary(fromSession),
       qualityScore: fromSession.analysis?.qualityAssurance?.reliabilityScore || 0,
-      handoverDate: new Date().toISOString()
+      handoverDate: new Date().toISOString(),
+      predictiveQualityMetrics: predictiveQualityMetrics  // 予測品質評価を保存
     };
 
     this.database.handovers.push(handover);
@@ -236,7 +257,8 @@ export class SessionManagementSystem {
       handoverId: handover.fromSessionId,
       totalHandovers: this.database.handovers.length,
       keywords: handover.keywords,
-      qualityScore: handover.qualityScore
+      legacyQualityScore: handover.qualityScore,
+      predictiveQualityScore: predictiveQualityMetrics?.predictiveQualityScore
     });
     return handover;
   }
@@ -558,7 +580,9 @@ export class SessionManagementSystem {
       ``,
       `**今回の方針**: ${handover.guidance}`,
       ``,
-      `**品質スコア**: ${handover.qualityScore}% (前回セッション)`,
+      `**品質スコア**: ${handover.qualityScore}% (従来評価)`,
+      handover.predictiveQualityMetrics ? `**予測品質スコア**: ${handover.predictiveQualityMetrics.predictiveQualityScore.toFixed(1)}%` : '',
+      handover.predictiveQualityMetrics ? `**継続推奨**: ${handover.predictiveQualityMetrics.continuityRecommendations.join(', ')}` : '',
       ``,
       `---`,
       ``,
@@ -604,8 +628,8 @@ export class SessionManagementSystem {
         alternatives: [filename.replace('.md', '_alt.md')]
       },
       qualityAssurance: {
-        isReliable: qualityMetrics?.overallScore >= 70 || false,
-        reliabilityScore: qualityMetrics?.overallScore || 0,
+        isReliable: (qualityMetrics?.overallScore >= 70) || (conceptExtraction?.confidence >= 70) || false,
+        reliabilityScore: qualityMetrics?.overallScore || conceptExtraction?.confidence || 0,
         issues: [],
         recommendations: [],
         usageGuidelines: []
