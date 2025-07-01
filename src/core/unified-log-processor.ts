@@ -74,14 +74,14 @@ class UnifiedLogProcessor {
   /**
    * ログ全体を統一構造で処理
    */
-  async processUnifiedLog(rawLog: string, sessionContext?: string): Promise<UnifiedLogStructure> {
+  async processUnifiedLog(rawLog: string, sessionContext?: string, options?: any): Promise<UnifiedLogStructure> {
     // 品質測定開始
     this.qualityAssessment.startProcessing();
     const startTime = Date.now();
     
     // 1. 全体分析（概念抽出）
     this.qualityAssessment.startConceptExtraction();
-    const {header, conceptAnalysis} = await this.analyzeLogHeader(rawLog, sessionContext);
+    const {header, conceptAnalysis} = await this.analyzeLogHeader(rawLog, sessionContext, options);
     
     // 2. 文脈保持分割
     this.qualityAssessment.startChunkProcessing();
@@ -118,13 +118,15 @@ class UnifiedLogProcessor {
   /**
    * ログ全体のヘッダー分析（IntelligentConceptExtractor統合版）
    */
-  private async analyzeLogHeader(rawLog: string, sessionContext?: string): Promise<{header: LogHeader, conceptAnalysis: IntelligentExtractionResult}> {
-    // IntelligentConceptExtractorで高精度分析（並列処理有効）
-    const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog, undefined, {
+  private async analyzeLogHeader(rawLog: string, sessionContext?: string, options?: any): Promise<{header: LogHeader, conceptAnalysis: IntelligentExtractionResult}> {
+    // IntelligentConceptExtractorで高精度分析（UI設定またはデフォルト値使用）
+    const processingOptions = options || {
       parallelProcessing: true,
       chunkSize: 15000,
       maxParallelChunks: 4
-    });
+    };
+    
+    const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog, undefined, processingOptions);
     
     // 深層概念を主要概念として採用
     const mainConcepts = intelligentResult.deepConcepts.slice(0, 5).map(c => c.term);

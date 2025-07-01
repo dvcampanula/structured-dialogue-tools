@@ -332,7 +332,7 @@ class StructuredDialogueApp {
     const startTime = Date.now();
     
     try {
-      const { rawLog, sessionContext } = req.body;
+      const { rawLog, sessionContext, options } = req.body;
       
       if (!rawLog || typeof rawLog !== 'string') {
         res.status(400).json({
@@ -343,9 +343,12 @@ class StructuredDialogueApp {
       }
 
       console.log(`🚀 統一処理開始: ${rawLog.length}文字`);
+      if (options) {
+        console.log(`📊 処理オプション: 並列=${options.parallelProcessing}, チャンク=${options.chunkSize}B`);
+      }
       
       // 統一処理実行（概念抽出も内部で実行される）
-      const unifiedStructure = await this.unifiedProcessor.processUnifiedLog(rawLog, sessionContext);
+      const unifiedStructure = await this.unifiedProcessor.processUnifiedLog(rawLog, sessionContext, options);
       const unifiedOutput = this.unifiedProcessor.generateUnifiedOutput(unifiedStructure);
       
       // 概念抽出結果を統一処理結果から取得（重複実行を回避）
@@ -797,7 +800,7 @@ class StructuredDialogueApp {
       const sessionRecord = await Promise.race([
         this.sessionManager.saveSession(content, saveOptions),
         timeoutPromise
-      ]);
+      ]) as any; // Typed as SessionRecord from successful path
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ セッション保存完了: ${processingTime}ms`);

@@ -404,6 +404,14 @@
                             <label>書式統一</label>
                             <input type="checkbox" id="unifyFormat" checked>
                         </div>
+                        <div class="setting-item">
+                            <label>並列処理 (性能向上)</label>
+                            <input type="checkbox" id="parallelProcessing" checked>
+                        </div>
+                        <div class="setting-item">
+                            <label>チャンクサイズ (KB)</label>
+                            <input type="number" id="chunkSize" value="15" min="5" max="100" style="width: 60px;">
+                        </div>
                     </div>
                 </div>
             </div>
@@ -512,6 +520,15 @@
             const startTime = Date.now();
 
             try {
+                // UI設定から処理オプションを取得
+                const processingOptions = {
+                    parallelProcessing: document.getElementById('parallelProcessing').checked,
+                    chunkSize: parseInt(document.getElementById('chunkSize').value) * 1000, // KB→バイト変換
+                    maxParallelChunks: 4 // 固定値
+                };
+                
+                console.log('📊 統合処理オプション:', processingOptions);
+                
                 const response = await fetch('/api/process-unified', {
                     method: 'POST',
                     headers: {
@@ -519,7 +536,8 @@
                     },
                     body: JSON.stringify({
                         rawLog,
-                        sessionContext: sessionContext || undefined
+                        sessionContext: sessionContext || undefined,
+                        options: processingOptions
                     })
                 });
 
@@ -892,13 +910,23 @@
             hideError();
 
             try {
+                // UI設定から処理オプションを取得
+                const processingOptions = {
+                    parallelProcessing: document.getElementById('parallelProcessing').checked,
+                    chunkSize: parseInt(document.getElementById('chunkSize').value) * 1000, // KB→バイト変換
+                    maxParallelChunks: 4 // 固定値
+                };
+                
+                console.log('📊 処理オプション:', processingOptions);
+                
                 const response = await fetch('/api/extract-concepts', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        logContent: rawLog
+                        logContent: rawLog,
+                        options: processingOptions
                     })
                 });
 
