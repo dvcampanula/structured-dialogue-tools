@@ -81,3 +81,24 @@ scripts/
 
 # Performance test files
 test-phase3-performance.js
+
+# 🚫 一時・実験ファイル（新ルール）
+test-*.js
+debug-*
+temp-*
+experiment-*
+poc-*
+
+# 個人メモ・ノート
+notes.md
+notes-*.md
+todo-personal.*
+session-notes-*
+
+# 一時出力
+debug.txt
+output-*.json
+temp-output.*
+
+# 一時作業領域
+workspace/
