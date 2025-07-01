@@ -1037,8 +1037,14 @@
             `;
 
             // Phase 3: 予測分析タブのコンテンツを更新
+            console.log('🔍 概念抽出結果デバッグ:', extraction);
+            console.log('🔍 predictiveExtraction存在確認:', !!extraction.predictiveExtraction);
             if (extraction.predictiveExtraction) {
+                console.log('🔍 predictiveExtraction内容:', extraction.predictiveExtraction);
+                console.log('🔍 predictedConcepts配列:', extraction.predictiveExtraction.predictedConcepts);
                 displayPredictiveAnalysis(extraction.predictiveExtraction, extraction);
+            } else {
+                console.warn('⚠️ predictiveExtractionが存在しません');
             }
 
             // 概念抽出タブをアクティブにして結果を表示
@@ -1056,6 +1062,20 @@
          * Phase 3: 予測分析の表示
          */
         function displayPredictiveAnalysis(predictiveExtraction, parentExtraction) {
+            console.log('🔍 displayPredictiveAnalysis開始');
+            console.log('🔍 predictiveExtraction:', predictiveExtraction);
+            console.log('🔍 predictedConcepts:', predictiveExtraction.predictedConcepts);
+            console.log('🔍 predictedConcepts length:', predictiveExtraction.predictedConcepts?.length);
+            
+            // 各概念の詳細をチェック
+            if (predictiveExtraction.predictedConcepts) {
+                predictiveExtraction.predictedConcepts.forEach((concept, index) => {
+                    console.log(`🔍 概念${index}:`, concept);
+                    console.log(`🔍 概念${index} term:`, concept.term);
+                    console.log(`🔍 概念${index} termタイプ:`, typeof concept.term);
+                });
+            }
+            
             const predictionsContent = document.getElementById('predictions-content');
             
             predictionsContent.innerHTML = `
@@ -1082,7 +1102,7 @@
                             ${predictiveExtraction.predictedConcepts.map((concept, index) => `
                                 <div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ${getProbabilityColor(concept.probability)}; position: relative;">
                                     <div style="display: flex; justify-content: between; align-items: center;">
-                                        <strong style="color: #581c87;">${concept.concept}</strong>
+                                        <strong style="color: #581c87;">${concept.term}</strong>
                                         <span style="margin-left: auto; font-size: 0.9rem; font-weight: bold; color: ${getProbabilityColor(concept.probability)};">
                                             ${(concept.probability * 100).toFixed(1)}%
                                         </span>
