@@ -49,6 +49,9 @@ export interface SaveOptions {
   backupEnabled: boolean;
   customTags?: string[];
   forceHandover?: boolean;
+  // WebUI統合用: 処理済みデータ活用
+  preProcessedResults?: any;
+  usePreProcessedData?: boolean;
 }
 
 /**
@@ -107,9 +110,19 @@ export class SessionManagementSystem {
   ): Promise<SessionRecord> {
     console.log('💾 セッション保存開始...');
     
-    // Step 1: 分析実行
+    // Step 1: 分析実行（処理済みデータまたは新規分析）
     let analysis: IntegratedLogAnalysis | null = null;
-    if (options.autoAnalysis) {
+    
+    if (options.usePreProcessedData && options.preProcessedResults) {
+      console.log('📊 処理済みデータを使用してセッション作成...');
+      console.log('🔍 受信データキー:', Object.keys(options.preProcessedResults));
+      // 処理済みデータから分析結果を構築
+      analysis = this.constructAnalysisFromPreProcessed(options.preProcessedResults);
+      console.log('✅ 分析結果構築完了:', {
+        filename: analysis.namingSuggestion.filename,
+        qualityScore: analysis.qualityAssurance.reliabilityScore
+      });
+    } else if (options.autoAnalysis) {
       console.log('📊 セッション分析実行...');
       analysis = await this.logManager.analyzeLog(content);
     }
@@ -523,6 +536,63 @@ export class SessionManagementSystem {
     const backupFile = path.join(backupDir, `${session.id}_backup.json`);
     
     await fs.writeFile(backupFile, JSON.stringify(session, null, 2), 'utf-8');
+  }
+
+  /**
+   * 処理済みデータからIntegratedLogAnalysisを構築
+   */
+  private constructAnalysisFromPreProcessed(preProcessedResults: any): IntegratedLogAnalysis {
+    console.log('🔄 処理済みデータから分析結果を構築中...');
+    
+    const conceptExtraction = preProcessedResults.conceptExtraction;
+    const unifiedProcessing = preProcessedResults.unifiedProcessing;
+    const qualityMetrics = preProcessedResults.qualityMetrics;
+    
+    // 統一処理結果から命名提案を取得
+    const filename = unifiedProcessing?.header?.suggestedFilename || 'session_unnamed.md';
+    
+    return {
+      conceptExtraction: conceptExtraction || {
+        surfaceConcepts: [],
+        deepConcepts: [],
+        timeRevolutionMarkers: [],
+        predictedInnovationLevel: 0,
+        confidence: 0,
+        processingTime: 0
+      },
+      namingSuggestion: {
+        filename: filename,
+        confidence: 85,
+        reasoning: '統一処理結果から生成された提案',
+        category: 'unified_processing',
+        phase: 'p05', // Phase 5として設定
+        alternatives: [filename.replace('.md', '_alt.md')]
+      },
+      qualityAssurance: {
+        isReliable: qualityMetrics?.overallScore >= 70 || false,
+        reliabilityScore: qualityMetrics?.overallScore || 0,
+        issues: [],
+        recommendations: [],
+        usageGuidelines: []
+      },
+      logStructure: unifiedProcessing || {},
+      chunks: unifiedProcessing?.chunks || [],
+      legacyQualityMetrics: {
+        isReliable: qualityMetrics?.overallScore >= 70 || false,
+        reliabilityScore: qualityMetrics?.overallScore || 0,
+        issues: [],
+        recommendations: [],
+        usageGuidelines: []
+      },
+      continuityKeywords: conceptExtraction?.deepConcepts?.slice(0, 5).map((c: any) => c.term) || [],
+      sessionGuidance: '処理済みデータから生成されたセッション',
+      splitRecommendation: {
+        shouldSplit: false,
+        reason: '統一処理済みのため分割不要',
+        suggestedSplitPoints: [],
+        chunkSizes: []
+      }
+    };
   }
 
   private getDefaultSaveOptions(): SaveOptions {

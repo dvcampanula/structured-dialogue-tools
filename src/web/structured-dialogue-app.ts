@@ -779,6 +779,11 @@ class StructuredDialogueApp {
       }
 
       console.log(`💾 セッション保存開始: ${content.length}文字`);
+      console.log(`📊 受信データ構造確認:`, {
+        hasPreProcessedResults: !!options.preProcessedResults,
+        usePreProcessedData: options.usePreProcessedData,
+        skipReprocessing: options.skipReprocessing
+      });
       
       const saveOptions = {
         autoAnalysis: options.skipReprocessing ? false : (options.autoAnalysis !== false), // 重複処理スキップ
