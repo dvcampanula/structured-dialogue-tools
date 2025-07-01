@@ -5,6 +5,7 @@
  * 既存の分割・命名・書式ツールを統合したローカルサーバー
  */
 
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
@@ -161,9 +162,10 @@ class StructuredDialogueApp {
       console.warn('⚠️ IntelligentConceptExtractor 初期化失敗:', error);
     }
     
-    // AI Integration Service: 設定読み込みのみ、API初期化は遅延化
+    // AI Integration Service: API プロバイダー初期化
     try {
-      console.log('✅ AI Integration Service 軽量初期化完了');
+      await this.aiIntegrationService.initialize();
+      console.log('✅ AI Integration Service 初期化完了');
     } catch (error) {
       console.warn('⚠️ AI Integration Service 初期化失敗:', error);
     }

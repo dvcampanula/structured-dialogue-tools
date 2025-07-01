@@ -80,23 +80,31 @@ export class AIIntegrationService {
 
       // Anthropic プロバイダーの初期化
       if (process.env.ANTHROPIC_API_KEY) {
-        const anthropicProvider = new AnthropicProvider();
-        const anthropicConfig = {
-          name: 'anthropic' as const,
-          displayName: 'Anthropic Claude',
-          apiEndpoint: 'https://api.anthropic.com/v1/messages',
-          apiKey: process.env.ANTHROPIC_API_KEY,
-          model: 'claude-3-sonnet-20240229',
-          capabilities: [
-            { type: 'text-generation' as const, description: 'Text generation', supported: true },
-            { type: 'conversation' as const, description: 'Conversation', supported: true },
-            { type: 'analysis' as const, description: 'Analysis', supported: true },
-            { type: 'concept-extraction' as const, description: 'Concept extraction', supported: true }
-          ],
-          limits: { maxTokens: 4000, rateLimitRpm: 50 }
-        };
+        console.log('🔑 Anthropic API key found, initializing provider...');
+        try {
+          const anthropicProvider = new AnthropicProvider();
+          const anthropicConfig = {
+            name: 'anthropic' as const,
+            displayName: 'Anthropic Claude',
+            apiEndpoint: 'https://api.anthropic.com/v1/messages',
+            apiKey: process.env.ANTHROPIC_API_KEY,
+            model: 'claude-3-5-sonnet-20241022',
+            capabilities: [
+              { type: 'text-generation' as const, description: 'Text generation', supported: true },
+              { type: 'conversation' as const, description: 'Conversation', supported: true },
+              { type: 'analysis' as const, description: 'Analysis', supported: true },
+              { type: 'concept-extraction' as const, description: 'Concept extraction', supported: true }
+            ],
+            limits: { maxTokens: 4000, rateLimitRpm: 50 }
+          };
 
-        await this.providerManager.registerProvider(anthropicProvider, anthropicConfig);
+          await this.providerManager.registerProvider(anthropicProvider, anthropicConfig);
+          console.log('✅ Anthropic provider registered successfully');
+        } catch (error) {
+          console.error('❌ Anthropic provider registration failed:', error);
+        }
+      } else {
+        console.log('⚠️ ANTHROPIC_API_KEY not found');
       }
 
       const availableProviders = this.providerManager.getAvailableProviders();
