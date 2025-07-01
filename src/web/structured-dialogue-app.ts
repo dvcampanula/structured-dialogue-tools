@@ -756,6 +756,7 @@ class StructuredDialogueApp {
    */
   private async saveSession(req: express.Request, res: express.Response): Promise<void> {
     const startTime = Date.now();
+    const TIMEOUT_MS = 25000; // 25秒タイムアウト
     
     try {
       const { content, options = {} } = req.body;
@@ -779,7 +780,15 @@ class StructuredDialogueApp {
         forceHandover: options.forceHandover || false
       };
       
-      const sessionRecord = await this.sessionManager.saveSession(content, saveOptions);
+      // タイムアウト付きでセッション保存実行
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Session save timeout')), TIMEOUT_MS);
+      });
+      
+      const sessionRecord = await Promise.race([
+        this.sessionManager.saveSession(content, saveOptions),
+        timeoutPromise
+      ]);
       
       const processingTime = Date.now() - startTime;
       console.log(`✅ セッション保存完了: ${processingTime}ms`);
@@ -804,7 +813,8 @@ class StructuredDialogueApp {
       res.status(500).json({
         success: false,
         error: error instanceof Error ? error.message : '不明なエラー',
-        processingTime: Date.now() - startTime
+        processingTime: Date.now() - startTime,
+        isTimeout: error instanceof Error && error.message === 'Session save timeout'
       });
     }
   }

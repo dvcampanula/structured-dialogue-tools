@@ -1950,6 +1950,13 @@
                 return;
             }
 
+            // 重複クリック防止
+            const saveButton = document.querySelector('button[onclick="saveProcessedSession()"]');
+            if (saveButton.disabled) {
+                console.log('🔒 セッション保存は既に実行中です');
+                return;
+            }
+            
             const rawLog = document.getElementById('rawLog').value.trim();
             const sessionContext = document.getElementById('sessionContext').value.trim();
             
@@ -1958,16 +1965,28 @@
                 return;
             }
 
+            // ボタン無効化・テキスト変更
+            saveButton.disabled = true;
+            const originalText = saveButton.textContent;
+            saveButton.textContent = '💾 保存中...';
+
             const sessionStatus = document.getElementById('sessionStatus');
             sessionStatus.innerHTML = '<div style="color: #0ea5e9; padding: 8px;">💾 セッション保存中...</div>';
 
             try {
-                // 処理済み結果を使って直接セッション保存
+                // タイムアウト設定（30秒）
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    controller.abort();
+                    console.log('⏰ セッション保存タイムアウト');
+                }, 30000);
+
                 const response = await fetch('/api/sessions/save', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
                     },
+                    signal: controller.signal,
                     body: JSON.stringify({
                         content: rawLog + (sessionContext ? '\n\n## セッション文脈\n' + sessionContext : ''),
                         preProcessedResults: {
@@ -1983,6 +2002,7 @@
                     })
                 });
 
+                clearTimeout(timeoutId);
                 const result = await response.json();
 
                 if (result.success) {
@@ -2012,8 +2032,16 @@
                     throw new Error(result.error);
                 }
             } catch (error) {
-                sessionStatus.innerHTML = `<div style="color: #dc2626; padding: 8px;">❌ 保存失敗: ${error.message}</div>`;
+                if (error.name === 'AbortError') {
+                    sessionStatus.innerHTML = `<div style="color: #dc2626; padding: 8px;">⏰ 保存タイムアウト: 30秒以内に完了しませんでした</div>`;
+                } else {
+                    sessionStatus.innerHTML = `<div style="color: #dc2626; padding: 8px;">❌ 保存失敗: ${error.message}</div>`;
+                }
                 console.error('セッション保存エラー:', error);
+            } finally {
+                // ボタン状態を必ず復元
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
             }
         }
 
