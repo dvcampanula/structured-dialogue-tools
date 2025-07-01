@@ -149,7 +149,7 @@ export class PredictiveQualityAssessment {
     
     // パターン強度の平均（ゼロ除算対策）
     const avgStrength = patterns.length > 0 
-      ? patterns.reduce((sum, p) => sum + (p.strength || 0), 0) / patterns.length
+      ? patterns.reduce((sum, p) => sum + (typeof p === 'object' && p && 'strength' in p ? (p as any).strength : 0.5), 0) / patterns.length
       : 0;
     const strengthScore = avgStrength * 60; // 0-1 → 0-60
     
@@ -166,9 +166,10 @@ export class PredictiveQualityAssessment {
     const typeScore = this.getDialogueTypeScore(result.dialogueTypeDetection);
     score += typeScore;
     
-    // セッション継続キーワードの品質
-    if (result.sessionContinuityKeywords && result.sessionContinuityKeywords.length > 0) {
-      score += Math.min(25, result.sessionContinuityKeywords.length * 5);
+    // セッション継続キーワードの品質（簡易版）
+    const contextKeywords = result.surfaceConcepts.length + result.deepConcepts.length;
+    if (contextKeywords > 0) {
+      score += Math.min(25, contextKeywords * 2);
     }
     
     // 概念進化の可能性
@@ -188,8 +189,10 @@ export class PredictiveQualityAssessment {
    * メタ概念ボーナス計算
    */
   private calculateMetaConceptBonus(result: IntelligentExtractionResult): number {
-    // メタ概念パターンの検出状況から算出
-    const metaPatterns = result.metaConceptPatterns || [];
+    // メタ概念パターンの検出状況から算出（簡易版）
+    const metaPatterns = result.deepConcepts.filter(c => 
+      c.term.includes('メタ') || c.term.includes('システム') || c.term.includes('構造')
+    );
     return Math.min(20, metaPatterns.length * 3);
   }
   
@@ -258,19 +261,22 @@ export class PredictiveQualityAssessment {
         .forEach(pattern => {
           drivers.push({
             type: 'emergent_pattern',
-            description: `創発パターン: ${pattern.pattern}`,
-            impact: (pattern.strength || 0) * 100,
+            description: `創発パターン: ${typeof pattern === 'string' ? pattern : (pattern as any).pattern || pattern}`,
+            impact: (typeof pattern === 'object' && pattern && 'strength' in pattern ? (pattern as any).strength : 0.5) * 100,
             confidence: 85
           });
         });
     }
     
-    // メタ概念による価値
-    if (result.metaConceptPatterns && result.metaConceptPatterns.length > 0) {
+    // メタ概念による価値（簡易版）
+    const metaConceptCount = result.deepConcepts.filter(c => 
+      c.term.includes('メタ') || c.term.includes('システム') || c.term.includes('構造')
+    ).length;
+    if (metaConceptCount > 0) {
       drivers.push({
         type: 'meta_concept',
-        description: `メタ概念パターン検出: ${result.metaConceptPatterns.length}件`,
-        impact: Math.min(100, result.metaConceptPatterns.length * 15),
+        description: `メタ概念パターン検出: ${metaConceptCount}件`,
+        impact: Math.min(100, metaConceptCount * 15),
         confidence: 80
       });
     }

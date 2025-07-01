@@ -1130,9 +1130,12 @@ export class IntelligentConceptExtractor {
     deepConcepts.sort((a, b) => b.confidence - a.confidence);
     surfaceConcepts.sort((a, b) => b.confidence - a.confidence);
     
+    // 深層概念の品質向上：学習データと新規概念のバランス調整
+    const balancedDeepConcepts = this.balanceDeepConceptQuality(deepConcepts, content);
+    
     return {
       surfaceConcepts: surfaceConcepts.slice(0, 8),
-      deepConcepts: deepConcepts.slice(0, 5) // 深層概念は厳選
+      deepConcepts: balancedDeepConcepts.slice(0, 6) // 品質向上で数を微増
     };
   }
 
@@ -1184,6 +1187,87 @@ export class IntelligentConceptExtractor {
       reasoning,
       matchedPatterns
     };
+  }
+
+  /**
+   * 深層概念の品質バランス調整
+   */
+  private balanceDeepConceptQuality(deepConcepts: ClassifiedConcept[], content: string): ClassifiedConcept[] {
+    // 学習データ概念と新規概念を分離
+    const learnedConcepts = deepConcepts.filter(c => c.reasoning.includes('学習データ'));
+    const newConcepts = deepConcepts.filter(c => !c.reasoning.includes('学習データ'));
+    
+    // 新規概念の品質強化：文脈重要度で再評価
+    const enhancedNewConcepts = newConcepts.map(concept => {
+      const contextualScore = this.calculateContextualImportance(concept.term, content);
+      const semanticDepth = this.analyzeSemanticDepth(concept.term, content);
+      
+      // 信頼度を文脈ベースで調整
+      concept.confidence = Math.min(0.9, concept.confidence + contextualScore * 0.3 + semanticDepth * 0.2);
+      concept.reasoning += ` + 文脈重要度(${contextualScore.toFixed(2)}) + 意味深度(${semanticDepth.toFixed(2)})`;
+      
+      return concept;
+    });
+    
+    // 学習概念80%、新規概念20%の比率で品質バランス維持
+    const targetLearnedCount = Math.ceil(6 * 0.6); // 60%に調整（学習データ偏重を軽減）
+    const targetNewCount = 6 - targetLearnedCount;
+    
+    const balancedConcepts = [
+      ...learnedConcepts.slice(0, targetLearnedCount),
+      ...enhancedNewConcepts.slice(0, targetNewCount)
+    ];
+    
+    return balancedConcepts.sort((a, b) => b.confidence - a.confidence);
+  }
+
+  /**
+   * 意味的深度の分析
+   */
+  private analyzeSemanticDepth(concept: string, content: string): number {
+    let depthScore = 0;
+    
+    // 抽象度指標
+    const abstractionIndicators = ['理論', 'モデル', 'システム', 'フレームワーク', 'パラダイム', '構造'];
+    if (abstractionIndicators.some(ind => concept.includes(ind))) {
+      depthScore += 0.3;
+    }
+    
+    // 関連性密度（周辺での言及頻度）
+    const contextMentions = content.split(concept).length - 1;
+    if (contextMentions >= 3) depthScore += 0.2;
+    
+    // 複合性（文字数・複雑さ）
+    if (concept.length > 8) depthScore += 0.15;
+    
+    // 新規性（既存パターンとの差異）
+    const isNovelCombination = this.detectNovelCombination(concept);
+    if (isNovelCombination) depthScore += 0.25;
+    
+    return Math.min(1.0, depthScore);
+  }
+
+  /**
+   * 新規概念組み合わせの検出
+   */
+  private detectNovelCombination(concept: string): boolean {
+    // 複合語の検出
+    const parts = concept.split(/[・、＋\s]+/);
+    if (parts.length >= 2) {
+      // 各部分が既知でも組み合わせが新規なら革新的
+      const hasKnownParts = parts.some(part => this.conceptPatterns.has(part));
+      const hasNovelParts = parts.some(part => !this.conceptPatterns.has(part));
+      return hasKnownParts && hasNovelParts;
+    }
+    
+    // 既知概念の拡張形
+    for (const [knownConcept] of this.conceptPatterns) {
+      if (concept.includes(knownConcept) && concept.length > knownConcept.length + 2) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 
   /**
@@ -2016,29 +2100,31 @@ export class IntelligentConceptExtractor {
   private discoverHiddenConnections(content: string, deepConcepts: ClassifiedConcept[]): string[] {
     const connections: string[] = [];
     
-    // 因果関係の暗示
-    const causalPatterns = [
-      /なぜなら.*結果/,
-      /原因.*影響/,
-      /によって.*変化/
-    ];
+    // 改良版：具体的な関係性を抽出して定型文を防ぐ
+    const conceptTerms = deepConcepts.map(c => c.term);
     
-    causalPatterns.forEach(pattern => {
-      const matches = content.match(pattern);
-      if (matches) {
-        connections.push(`因果関係: ${matches[0]}`);
+    // 1. 概念間の直接的関連性を特定
+    for (let i = 0; i < conceptTerms.length; i++) {
+      for (let j = i + 1; j < conceptTerms.length; j++) {
+        const concept1 = conceptTerms[i];
+        const concept2 = conceptTerms[j];
+        
+        const connectionAnalysis = this.analyzeConceptualConnection(concept1, concept2, content);
+        if (connectionAnalysis.hasConnection) {
+          connections.push(`${concept1} ↔️ ${concept2}: ${connectionAnalysis.relationshipType}`);
+        }
       }
-    });
+    }
     
-    // 階層関係の暗示
-    deepConcepts.forEach(concept => {
-      const hierarchyRegex = new RegExp(`(上位|下位|基盤|基礎).*${concept.term}|${concept.term}.*(発展|拡張|応用)`, 'gi');
-      if (hierarchyRegex.test(content)) {
-        connections.push(`階層関係: ${concept.term}`);
-      }
-    });
+    // 2. 文脇的隠れたパターンの検出
+    const implicitPatterns = this.detectImplicitPatterns(content, conceptTerms);
+    connections.push(...implicitPatterns);
     
-    return connections;
+    // 3. 概念群のクラスター分析
+    const clusterConnections = this.analyzeConceptClusters(conceptTerms, content);
+    connections.push(...clusterConnections);
+    
+    return connections.slice(0, 8); // 品質重視で上位8件に限定
   }
 
   /**
@@ -2047,31 +2133,256 @@ export class IntelligentConceptExtractor {
   private predictConceptEvolution(content: string, deepConcepts: ClassifiedConcept[]): string[] {
     const predictions: string[] = [];
     
-    // 進化パターンの検出
-    const evolutionIndicators = [
-      { pattern: /発展.*可能/, prediction: '概念拡張の可能性' },
-      { pattern: /応用.*広がり/, prediction: '応用領域の拡大' },
-      { pattern: /統合.*統一/, prediction: '概念統合の進行' },
-      { pattern: /分化.*特化/, prediction: '概念分化の傾向' }
-    ];
-    
-    evolutionIndicators.forEach(({ pattern, prediction }) => {
-      if (pattern.test(content)) {
-        predictions.push(prediction);
-      }
-    });
-    
-    // 概念の成熟度分析
+    // 改良版：具体的な進化方向を予測
     deepConcepts.forEach(concept => {
-      const maturityScore = this.assessConceptMaturity(concept.term, content);
-      if (maturityScore > 0.7) {
-        predictions.push(`${concept.term}の成熟・確立`);
-      } else if (maturityScore < 0.3) {
-        predictions.push(`${concept.term}の初期発展段階`);
+      const evolutionAnalysis = this.analyzeConceptEvolutionPath(concept.term, content);
+      
+      if (evolutionAnalysis.evolutionDirection !== 'static') {
+        predictions.push(
+          `${concept.term} → ${evolutionAnalysis.evolutionDirection}: ${evolutionAnalysis.reasoning}`
+        );
       }
     });
     
-    return predictions;
+    // 概念間のシナジー分析
+    const synergies = this.detectConceptSynergies(deepConcepts, content);
+    predictions.push(...synergies);
+    
+    return predictions.slice(0, 6); // 品質重視で上位6件に限定
+  }
+
+  /**
+   * 概念間の実際の関連性を分析
+   */
+  private analyzeConceptualConnection(concept1: string, concept2: string, content: string): {
+    hasConnection: boolean;
+    relationshipType: string;
+  } {
+    // 共起分析
+    const concept1Positions = this.findConceptPositions(concept1, content);
+    const concept2Positions = this.findConceptPositions(concept2, content);
+    
+    let minDistance = Infinity;
+    for (const pos1 of concept1Positions) {
+      for (const pos2 of concept2Positions) {
+        const distance = Math.abs(pos1 - pos2);
+        if (distance < minDistance) {
+          minDistance = distance;
+        }
+      }
+    }
+    
+    // 近接度に基づく関連性判定
+    if (minDistance < 200) { // 200文字以内での共起
+      const relationship = this.determineRelationshipType(concept1, concept2, content, minDistance);
+      return { hasConnection: true, relationshipType: relationship };
+    }
+    
+    return { hasConnection: false, relationshipType: '' };
+  }
+
+  /**
+   * 関係性タイプの判定
+   */
+  private determineRelationshipType(concept1: string, concept2: string, content: string, distance: number): string {
+    const contextWindow = this.extractContextWindow(concept1, concept2, content);
+    
+    // 因果関係
+    if (/によって|から|結果|影響/.test(contextWindow)) {
+      return '因果関係';
+    }
+    
+    // 階層関係
+    if (/基盤|土台|発展|応用|拡張/.test(contextWindow)) {
+      return '階層関係';
+    }
+    
+    // 対比関係
+    if (/一方|対して|違い|比較/.test(contextWindow)) {
+      return '対比関係';
+    }
+    
+    // 補完関係
+    if (/組み合わせ|連携|協働|統合/.test(contextWindow)) {
+      return '補完関係';
+    }
+    
+    return distance < 50 ? '密接な関連' : '関連性';
+  }
+
+  /**
+   * 概念の位置を特定
+   */
+  private findConceptPositions(concept: string, content: string): number[] {
+    const positions: number[] = [];
+    let index = content.indexOf(concept);
+    while (index !== -1) {
+      positions.push(index);
+      index = content.indexOf(concept, index + 1);
+    }
+    return positions;
+  }
+
+  /**
+   * 文脈ウィンドウの抽出
+   */
+  private extractContextWindow(concept1: string, concept2: string, content: string): string {
+    const pos1 = content.indexOf(concept1);
+    const pos2 = content.indexOf(concept2);
+    if (pos1 === -1 || pos2 === -1) return '';
+    
+    const start = Math.max(0, Math.min(pos1, pos2) - 100);
+    const end = Math.min(content.length, Math.max(pos1 + concept1.length, pos2 + concept2.length) + 100);
+    
+    return content.substring(start, end);
+  }
+
+  /**
+   * 暗黙的パターンの検出
+   */
+  private detectImplicitPatterns(content: string, conceptTerms: string[]): string[] {
+    const patterns: string[] = [];
+    
+    // 反復パターン
+    const repetitionAnalysis = this.analyzeRepetitionPatterns(content, conceptTerms);
+    patterns.push(...repetitionAnalysis);
+    
+    // 進展パターン
+    const progressionAnalysis = this.analyzeProgressionPatterns(content, conceptTerms);
+    patterns.push(...progressionAnalysis);
+    
+    return patterns;
+  }
+
+  /**
+   * 概念クラスター分析
+   */
+  private analyzeConceptClusters(conceptTerms: string[], content: string): string[] {
+    const clusters: string[] = [];
+    
+    // 意味的類似性によるクラスタリング
+    const semanticClusters = this.groupBySemanticSimilarity(conceptTerms);
+    
+    for (const cluster of semanticClusters) {
+      if (cluster.length >= 2) {
+        clusters.push(`概念群: [${cluster.join(', ')}] - 意味的関連性`);
+      }
+    }
+    
+    return clusters;
+  }
+
+  /**
+   * 概念進化パスの分析
+   */
+  private analyzeConceptEvolutionPath(concept: string, content: string): {
+    evolutionDirection: string;
+    reasoning: string;
+  } {
+    const contextAnalysis = this.analyzeConceptContext(concept, content);
+    
+    // 発展段階の分析
+    if (/初期|萌芽|始まり/.test(contextAnalysis.reasoning)) {
+      return { evolutionDirection: '発展初期段階', reasoning: '新興概念として発展の可能性' };
+    }
+    
+    if (/成熟|確立|定着/.test(contextAnalysis.reasoning)) {
+      return { evolutionDirection: '成熟・安定化', reasoning: '概念の確立と安定化傾向' };
+    }
+    
+    if (/変化|転換|革新/.test(contextAnalysis.reasoning)) {
+      return { evolutionDirection: '変革・発展', reasoning: '概念の変革と新たな発展方向' };
+    }
+    
+    return { evolutionDirection: 'static', reasoning: '' };
+  }
+
+  /**
+   * 概念シナジーの検出
+   */
+  private detectConceptSynergies(deepConcepts: ClassifiedConcept[], content: string): string[] {
+    const synergies: string[] = [];
+    
+    // 3概念以上の組み合わせ効果を分析
+    for (let i = 0; i < deepConcepts.length - 2; i++) {
+      for (let j = i + 1; j < deepConcepts.length - 1; j++) {
+        for (let k = j + 1; k < deepConcepts.length; k++) {
+          const combo = [deepConcepts[i].term, deepConcepts[j].term, deepConcepts[k].term];
+          const synergyAnalysis = this.analyzeTrinityEffect(combo, content);
+          
+          if (synergyAnalysis.hasSynergy) {
+            synergies.push(`三位一体効果: ${combo.join(' × ')} → ${synergyAnalysis.effect}`);
+          }
+        }
+      }
+    }
+    
+    return synergies;
+  }
+
+  /**
+   * 補助メソッド群（簡易実装）
+   */
+  private analyzeRepetitionPatterns(content: string, concepts: string[]): string[] {
+    return concepts.filter(c => (content.split(c).length - 1) >= 3)
+      .map(c => `反復パターン: "${c}" - 重要概念として強調`);
+  }
+
+  private analyzeProgressionPatterns(content: string, concepts: string[]): string[] {
+    const timeIndicators = ['まず', '次に', 'そして', '最終的に', '最後に'];
+    const patterns: string[] = [];
+    
+    timeIndicators.forEach(indicator => {
+      const regex = new RegExp(`${indicator}.*?(${concepts.join('|')})`, 'gi');
+      const matches = content.match(regex);
+      if (matches && matches.length > 0) {
+        patterns.push(`時系列パターン: ${indicator} → 概念発展の段階性`);
+      }
+    });
+    
+    return patterns;
+  }
+
+  private groupBySemanticSimilarity(concepts: string[]): string[][] {
+    // 簡易的な意味的グルーピング
+    const clusters: string[][] = [];
+    const used = new Set<string>();
+    
+    for (const concept of concepts) {
+      if (used.has(concept)) continue;
+      
+      const cluster = [concept];
+      used.add(concept);
+      
+      for (const other of concepts) {
+        if (used.has(other)) continue;
+        
+        // 簡易的な類似性判定
+        if (this.calculateSemanticSimilarity(concept, other) > 0.3) {
+          cluster.push(other);
+          used.add(other);
+        }
+      }
+      
+      if (cluster.length > 1) clusters.push(cluster);
+    }
+    
+    return clusters;
+  }
+
+  private calculateSemanticSimilarity(concept1: string, concept2: string): number {
+    // 文字的類似性による簡易計算
+    const common = concept1.split('').filter(char => concept2.includes(char)).length;
+    const total = Math.max(concept1.length, concept2.length);
+    return common / total;
+  }
+
+  private analyzeTrinityEffect(concepts: string[], content: string): { hasSynergy: boolean; effect: string } {
+    const combinedRegex = new RegExp(concepts.join('.*'), 'gi');
+    if (combinedRegex.test(content)) {
+      return { hasSynergy: true, effect: '相乗的概念統合' };
+    }
+    return { hasSynergy: false, effect: '' };
   }
 
   /**

@@ -147,11 +147,21 @@ class QualityAssessment {
   private assessStructuralQuality(structure: UnifiedLogStructure): StructuralQualityMetrics {
     const { header, chunks } = structure;
     
-    // チャンク間バランスの評価
+    // チャンク間バランスの評価（改良版：自然な分散を考慮）
     const chunkSizes = chunks.map(chunk => chunk.content.length);
     const avgSize = chunkSizes.reduce((a, b) => a + b, 0) / chunkSizes.length;
     const variance = chunkSizes.reduce((acc, size) => acc + Math.pow(size - avgSize, 2), 0) / chunkSizes.length;
-    const chunkBalanceScore = Math.max(0, 100 - (Math.sqrt(variance) / avgSize * 100));
+    const coefficientOfVariation = Math.sqrt(variance) / avgSize;
+    
+    // 自然な分散範囲（0.3-0.7）を許容し、その範囲内では高スコア維持
+    let chunkBalanceScore;
+    if (coefficientOfVariation <= 0.3) {
+      chunkBalanceScore = 95; // 非常に均等
+    } else if (coefficientOfVariation <= 0.7) {
+      chunkBalanceScore = 85 - (coefficientOfVariation - 0.3) * 25; // 自然な分散範囲
+    } else {
+      chunkBalanceScore = Math.max(20, 75 - (coefficientOfVariation - 0.7) * 40); // 大きな分散のみペナルティ
+    }
     
     // 文脈保持スコア (チャンク数と総文字数のバランス)
     const contextPreservationScore = Math.min(100, 
