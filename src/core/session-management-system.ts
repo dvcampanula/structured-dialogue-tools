@@ -178,11 +178,22 @@ export class SessionManagementSystem {
     }
 
     // 条件付き処理: 引き継ぎ生成を並列実行
+    console.log('🔍 引き継ぎ生成条件チェック:', {
+      generateHandover: options.generateHandover,
+      isReliable: analysis?.qualityAssurance.isReliable,
+      forceHandover: options.forceHandover,
+      qualityScore: analysis?.qualityAssurance?.reliabilityScore
+    });
+    
     if (options.generateHandover && (analysis?.qualityAssurance.isReliable || options.forceHandover)) {
       parallelTasks.push(
         this.generateHandover(sessionRecord, options.forceHandover)
           .then(() => console.log('🔄 引き継ぎデータ生成完了'))
       );
+    } else {
+      console.log('⚠️ 引き継ぎデータ生成スキップ:', {
+        reason: !options.generateHandover ? 'generateHandover=false' : 'quality check failed'
+      });
     }
 
     // 🚀 並列実行: 全てのファイルI/O操作を同時実行
@@ -196,7 +207,12 @@ export class SessionManagementSystem {
    * 引き継ぎ生成
    */
   async generateHandover(fromSession: SessionRecord, forceGenerate = false): Promise<SessionHandover | null> {
-    console.log('🔗 引き継ぎデータ生成...');
+    console.log('🔗 引き継ぎデータ生成...', {
+      sessionId: fromSession.id,
+      forceGenerate,
+      qualityScore: fromSession.analysis?.qualityAssurance?.reliabilityScore,
+      isReliable: fromSession.analysis?.qualityAssurance.isReliable
+    });
 
     if (!forceGenerate && !fromSession.analysis?.qualityAssurance.isReliable) {
       console.log('⚠️  品質が低いため引き継ぎスキップ');
@@ -216,7 +232,12 @@ export class SessionManagementSystem {
     this.database.handovers.push(handover);
     await this.saveDatabase();
 
-    console.log('✅ 引き継ぎデータ生成完了');
+    console.log('✅ 引き継ぎデータ生成完了:', {
+      handoverId: handover.fromSessionId,
+      totalHandovers: this.database.handovers.length,
+      keywords: handover.keywords,
+      qualityScore: handover.qualityScore
+    });
     return handover;
   }
 
@@ -246,7 +267,13 @@ export class SessionManagementSystem {
    * 引き継ぎデータ取得
    */
   getLatestHandover(): SessionHandover | null {
+    console.log('🔍 引き継ぎデータ取得:', {
+      totalHandovers: this.database.handovers.length,
+      handoverIds: this.database.handovers.map(h => h.fromSessionId)
+    });
+    
     if (this.database.handovers.length === 0) {
+      console.log('📭 引き継ぎデータなし');
       return null;
     }
     
@@ -254,7 +281,14 @@ export class SessionManagementSystem {
     const sortedHandovers = this.database.handovers
       .sort((a, b) => new Date(b.handoverDate).getTime() - new Date(a.handoverDate).getTime());
     
-    return sortedHandovers[0] || null;
+    const latest = sortedHandovers[0] || null;
+    console.log('📋 最新引き継ぎデータ:', latest ? {
+      fromSessionId: latest.fromSessionId,
+      qualityScore: latest.qualityScore,
+      handoverDate: latest.handoverDate
+    } : 'なし');
+    
+    return latest;
   }
 
   /**
@@ -547,7 +581,7 @@ export class SessionManagementSystem {
     
     const conceptExtraction = preProcessedResults.conceptExtraction;
     const unifiedProcessing = preProcessedResults.unifiedProcessing;
-    const qualityMetrics = preProcessedResults.qualityMetrics;
+    const qualityMetrics = preProcessedResults.qualityMetrics || unifiedProcessing?.qualityMetrics;
     
     // 統一処理結果から命名提案を取得
     const filename = unifiedProcessing?.header?.suggestedFilename || 'session_unnamed.md';

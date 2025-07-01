@@ -1473,6 +1473,8 @@
             try {
                 const response = await fetch('/api/sessions/handover/latest');
                 const result = await response.json();
+                
+                console.log('🔍 引き継ぎデータ取得結果:', result);
 
                 if (result.success) {
                     if (result.hasHandover) {
@@ -2007,7 +2009,9 @@
                     hasExtraction: !!lastProcessedResults.extraction,
                     hasUnified: !!lastProcessedResults.unified,
                     hasMetrics: !!lastProcessedResults.metrics,
-                    unifiedKeys: lastProcessedResults.unified ? Object.keys(lastProcessedResults.unified) : null
+                    unifiedKeys: lastProcessedResults.unified ? Object.keys(lastProcessedResults.unified) : null,
+                    unifiedQualityMetrics: !!lastProcessedResults.unified?.qualityMetrics,
+                    extractionKeys: lastProcessedResults.extraction ? Object.keys(lastProcessedResults.extraction) : null
                 });
                 
                 // タイムアウト設定（30秒）
@@ -2028,7 +2032,7 @@
                         preProcessedResults: {
                             conceptExtraction: lastProcessedResults.extraction,
                             unifiedProcessing: lastProcessedResults.unified,
-                            qualityMetrics: lastProcessedResults.metrics
+                            qualityMetrics: lastProcessedResults.metrics || lastProcessedResults.unified?.qualityMetrics
                         },
                         options: {
                             customTags: ['web-session', 'processed'],
