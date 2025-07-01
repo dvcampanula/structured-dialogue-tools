@@ -76,14 +76,14 @@ export class PredictiveQualityAssessment {
     });
     
     return {
-      predictiveValueScore,
-      conceptInnovationDensity,
-      emergentPatternStrength,
-      continuityPotential,
-      predictiveQualityScore,
-      valueDrivers,
-      innovationSignals,
-      continuityRecommendations
+      predictiveValueScore: this.ensureValidNumber(predictiveValueScore),
+      conceptInnovationDensity: this.ensureValidNumber(conceptInnovationDensity),
+      emergentPatternStrength: this.ensureValidNumber(emergentPatternStrength),
+      continuityPotential: this.ensureValidNumber(continuityPotential),
+      predictiveQualityScore: this.ensureValidNumber(predictiveQualityScore),
+      valueDrivers: valueDrivers || [],
+      innovationSignals: innovationSignals || [],
+      continuityRecommendations: continuityRecommendations || []
     };
   }
   
@@ -105,8 +105,10 @@ export class PredictiveQualityAssessment {
     // 予測概念数によるベーススコア
     const conceptCountScore = Math.min(30, predictedConcepts.length * 3);
     
-    // 平均確率によるスコア
-    const avgProbability = predictedConcepts.reduce((sum, c) => sum + c.probability, 0) / predictedConcepts.length;
+    // 平均確率によるスコア（ゼロ除算対策）
+    const avgProbability = predictedConcepts.length > 0 
+      ? predictedConcepts.reduce((sum, c) => sum + c.probability, 0) / predictedConcepts.length
+      : 0;
     const probabilityScore = avgProbability * 30;
     
     return Math.min(100, highConfidenceBonus + conceptCountScore + probabilityScore);
@@ -145,8 +147,10 @@ export class PredictiveQualityAssessment {
     // パターン数によるベーススコア
     const patternCountScore = Math.min(40, patterns.length * 8);
     
-    // パターン強度の平均
-    const avgStrength = patterns.reduce((sum, p) => sum + (p.strength || 0), 0) / patterns.length;
+    // パターン強度の平均（ゼロ除算対策）
+    const avgStrength = patterns.length > 0 
+      ? patterns.reduce((sum, p) => sum + (p.strength || 0), 0) / patterns.length
+      : 0;
     const strengthScore = avgStrength * 60; // 0-1 → 0-60
     
     return Math.min(100, patternCountScore + strengthScore);
@@ -368,42 +372,68 @@ export class PredictiveQualityAssessment {
     emergentPatternStrength: number;
     continuityPotential: number;
   }): number {
+    // NaN/undefined対策
+    const safeMetrics = {
+      predictiveValueScore: this.ensureValidNumber(metrics.predictiveValueScore),
+      conceptInnovationDensity: this.ensureValidNumber(metrics.conceptInnovationDensity),
+      emergentPatternStrength: this.ensureValidNumber(metrics.emergentPatternStrength),
+      continuityPotential: this.ensureValidNumber(metrics.continuityPotential)
+    };
+    
     // 重み付け: 予測価値30%, 革新密度25%, 創発強度25%, 継続性20%
-    return (
-      metrics.predictiveValueScore * 0.30 +
-      metrics.conceptInnovationDensity * 0.25 +
-      metrics.emergentPatternStrength * 0.25 +
-      metrics.continuityPotential * 0.20
+    const score = (
+      safeMetrics.predictiveValueScore * 0.30 +
+      safeMetrics.conceptInnovationDensity * 0.25 +
+      safeMetrics.emergentPatternStrength * 0.25 +
+      safeMetrics.continuityPotential * 0.20
     );
+    
+    return this.ensureValidNumber(score);
+  }
+  
+  /**
+   * 数値の安全性確保（NaN/undefined/null → 0変換）
+   */
+  private ensureValidNumber(value: number | null | undefined): number {
+    if (typeof value !== 'number' || isNaN(value) || !isFinite(value)) {
+      return 0;
+    }
+    return Math.max(0, Math.min(100, value)); // 0-100範囲にクランプ
   }
   
   /**
    * 品質評価の可読性レポート生成
    */
   formatPredictiveQualityReport(metrics: PredictiveQualityMetrics): string {
+    // 安全な数値表示関数
+    const safeFormat = (value: number | null | undefined): string => {
+      const safe = this.ensureValidNumber(value);
+      return safe.toFixed(1);
+    };
+    
     return `
 # 🔮 予測概念ベース品質評価レポート
 
-## 🎯 総合予測品質スコア: ${metrics.predictiveQualityScore.toFixed(1)}/100
+## 🎯 総合予測品質スコア: ${safeFormat(metrics.predictiveQualityScore)}/100
 
 ## 📊 詳細指標
-- **🔮 予測価値スコア**: ${metrics.predictiveValueScore.toFixed(1)}/100
-- **💡 革新概念密度**: ${metrics.conceptInnovationDensity.toFixed(1)}/100  
-- **⚡ 創発パターン強度**: ${metrics.emergentPatternStrength.toFixed(1)}/100
-- **🔄 継続可能性**: ${metrics.continuityPotential.toFixed(1)}/100
+- **🔮 予測価値スコア**: ${safeFormat(metrics.predictiveValueScore)}/100
+- **💡 革新概念密度**: ${safeFormat(metrics.conceptInnovationDensity)}/100  
+- **⚡ 創発パターン強度**: ${safeFormat(metrics.emergentPatternStrength)}/100
+- **🔄 継続可能性**: ${safeFormat(metrics.continuityPotential)}/100
 
 ## 🚀 価値推進要因
-${metrics.valueDrivers.map(driver => 
-  `- **${driver.description}** (影響度: ${driver.impact.toFixed(1)}, 信頼度: ${driver.confidence.toFixed(1)})`
-).join('\n')}
+${metrics.valueDrivers?.map(driver => 
+  `- **${driver.description}** (影響度: ${safeFormat(driver.impact)}, 信頼度: ${safeFormat(driver.confidence)})`
+).join('\n') || 'なし'}
 
 ## 🎨 革新シグナル
-${metrics.innovationSignals.map(signal =>
-  `- **${signal.signal}** - 強度: ${signal.strength.toFixed(1)}, 新規性: ${signal.novelty.toFixed(1)}, 可能性: ${signal.potential.toFixed(1)}`  
-).join('\n')}
+${metrics.innovationSignals?.map(signal =>
+  `- **${signal.signal}** - 強度: ${safeFormat(signal.strength)}, 新規性: ${safeFormat(signal.novelty)}, 可能性: ${safeFormat(signal.potential)}`  
+).join('\n') || 'なし'}
 
 ## 🔄 継続推奨事項
-${metrics.continuityRecommendations.map(rec => `- ${rec}`).join('\n')}
+${metrics.continuityRecommendations?.map(rec => `- ${rec}`).join('\n') || 'なし'}
     `.trim();
   }
 }

@@ -321,8 +321,8 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>🚀 構造的対話ツール v5.0</h1>
-            <p>Phase 2革命的機能: 文脈重要度・動的学習・予測的概念抽出</p>
+            <h1>🚀 構造的対話ツール v0.8.0</h1>
+            <p>Phase 0基盤完了 (v0.8.0): 概念抽出・AI統合・セッション管理・予測品質評価</p>
         </div>
         
         <div class="main">
@@ -430,10 +430,10 @@
                     <div class="tab active" onclick="switchTab('chunks')">📦 分割結果</div>
                     <div class="tab" onclick="switchTab('prompts')">💬 構造化プロンプト</div>
                     <div class="tab" onclick="switchTab('unified')">✨ 統一書式</div>
-                    <div class="tab" onclick="switchTab('concepts')">🚀 概念抽出 v5.0</div>
-                    <div class="tab" onclick="switchTab('predictions')">🔮 予測分析 [Phase 3]</div>
-                    <div class="tab" onclick="switchTab('ai-analysis')">🤖 AI統合分析 [Phase 5]</div>
-                    <div class="tab" onclick="switchTab('learning')">📚 学習統計 [NEW]</div>
+                    <div class="tab" onclick="switchTab('concepts')">🚀 概念抽出</div>
+                    <div class="tab" onclick="switchTab('predictions')">🔮 予測分析</div>
+                    <div class="tab" onclick="switchTab('ai-analysis')">🤖 AI統合分析</div>
+                    <div class="tab" onclick="switchTab('learning')">📚 学習統計</div>
                     <div class="tab" onclick="switchTab('metrics')">📊 品質分析</div>
                     <div class="tab" onclick="switchTab('sessions')">💾 セッション管理</div>
                 </div>
@@ -1089,7 +1089,7 @@
             predictionsContent.innerHTML = `
                 <div style="margin-bottom: 24px; padding: 20px; background: linear-gradient(135deg, #fef3c7, #fed7aa); border-radius: 12px;">
                     <h2 style="color: #92400e; margin-bottom: 16px; display: flex; align-items: center;">
-                        🔮 Phase 3: 予測的概念抽出・創発パターン分析
+                        🔮 予測品質評価: 4軸評価・革新度予測・継続性分析
                         <span style="margin-left: auto; font-size: 1rem; font-weight: normal; color: #a3a3a3;">
                             v${predictiveExtraction.analysisDepth || 3}.0
                         </span>
@@ -1165,7 +1165,7 @@
                     </div>
                 ` : ''}
 
-                <!-- Phase 3: 新概念検出の詳細 -->
+                <!-- 新概念検出の詳細 -->
                 ${parentExtraction.newConceptDetection ? `
                     <div style="background: #f0f9ff; border: 1px solid #3b82f6; border-radius: 8px; padding: 16px; margin-bottom: 20px;">
                         <h3 style="color: #1d4ed8; margin-bottom: 12px;">🆕 新概念検出</h3>
@@ -1194,7 +1194,7 @@
 
                 <!-- 品質・性能指標 -->
                 <div style="background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 8px; padding: 16px;">
-                    <h3 style="color: #334155; margin-bottom: 12px;">📊 Phase 3 性能指標</h3>
+                    <h3 style="color: #334155; margin-bottom: 12px;">📊 予測分析性能指標</h3>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px;">
                         <div style="text-align: center;">
                             <div style="font-size: 1.1rem; font-weight: bold; color: #059669;">${parentExtraction.processingTime}ms</div>
@@ -1883,7 +1883,7 @@
             }
             
             // 簡易フィルター実装
-            alert(`検索機能は次期バージョンで強化予定です\n現在のキーワード: "${keyword}"`);
+            alert(`検索機能は開発中です\n現在のキーワード: "${keyword}"`);
         }
 
         async function continueFromSession(sessionId) {
@@ -2086,7 +2086,7 @@
         }
 
         /**
-         * AI統合分析機能（Phase 5）
+         * AI統合分析機能
          */
         async function runAIAnalysis() {
             const logContent = document.getElementById('rawLog').value.trim();
@@ -2238,7 +2238,7 @@
             
             content.innerHTML = `
                 <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
-                    <h3 style="color: #1e293b; margin: 0 0 16px 0;">🤖 AI統合分析システム (Phase 5)</h3>
+                    <h3 style="color: #1e293b; margin: 0 0 16px 0;">🤖 AI統合分析システム</h3>
                     <p style="color: #64748b; margin: 0 0 16px 0;">複数のAIプロバイダーを使用して対話ログを分析し、比較結果を提供します。</p>
                     
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px;">
