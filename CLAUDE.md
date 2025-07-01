@@ -40,6 +40,32 @@ This appears to be a development environment with Node.js (v22.17.0) available v
 
 **Current Status**: IntelligentConceptExtractor v2.0.0実装完了 - 75概念学習データベース構築、次回はTypeScript統合修正と形態素解析導入
 
+## 📋 Code & Commit Guidelines
+
+**IMPORTANT**: Follow strict commit hygiene to maintain project health:
+
+### 🚫 DO NOT commit temporary files:
+- **Test scripts**: `test-*.js`, `debug-*.ts`, `experiment-*.js`
+- **Personal notes**: `notes-*.md`, `session-notes-*`, `todo-personal.*`
+- **Debug output**: `debug.txt`, `output-*.json`, `temp-output.*`
+- **Proof of concepts**: `poc-*`, `temp-*`
+
+### ✅ DO commit permanent value:
+- **Core system code**: `src/core/*` implementations
+- **API implementations**: Production endpoints and functionality
+- **Long-term documentation**: README, handover documents, technical specs
+- **Configuration**: `package.json`, `tsconfig.json`, environment examples
+
+### 🔧 Use workspace/ for temporary work:
+```bash
+workspace/experiments/    # Test scripts, POCs
+workspace/debug/          # Debug files, output logs  
+workspace/temp/           # Temporary files
+workspace/notes/          # Personal session notes
+```
+
+**Reference**: See `docs/COMMIT_GUIDELINES.md` for detailed criteria.
+
 ---
 
 # Claude Code 構造的対話プロンプト
