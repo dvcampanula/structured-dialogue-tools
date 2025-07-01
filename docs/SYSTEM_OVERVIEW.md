@@ -1,6 +1,6 @@
-# システム概要
+# システム概要 v6.0
 
-**Structured Dialogue Tools - 統合システムアーキテクチャ**
+**Structured Dialogue Tools - Phase 5+予測品質評価統合システム（2025-07-01現在）**
 
 ---
 
@@ -76,13 +76,16 @@
 ```mermaid
 graph TD
     A[生ログ入力] --> B[IntelligentConceptExtractor]
-    B --> C[概念抽出・革新度判定]
+    B --> C[概念抽出・革新度判定・予測概念抽出]
     C --> D[QualityAssuranceSystem]
     D --> E[6項目品質評価]
-    E --> F[UnifiedLogProcessor]
-    F --> G[ログ構造化・分割]
-    G --> H[統合結果生成]
-    H --> I[WebUI表示]
+    C --> F[🔮PredictiveQualityAssessment]
+    F --> G[4軸予測品質評価]
+    E --> H[UnifiedLogProcessor]
+    G --> H
+    H --> I[ログ構造化・分割]
+    I --> J[統合結果生成]
+    J --> K[WebUI表示]
 ```
 
 ### 2. セッション管理フロー

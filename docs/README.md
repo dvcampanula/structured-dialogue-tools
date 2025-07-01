@@ -1,20 +1,23 @@
-# Structured Dialogue Tools
+# Structured Dialogue Tools v6.0
 
-**構造的対話による知的生産革命を実現する統合AIシステム**
+**Phase 5+予測品質評価: 次世代構造的対話支援システム（2025-07-01現在）**
 
 ---
 
 ## 🎯 概要
 
 AIとの対話ログを高度に分析・構造化し、継続的な知的生産サイクルを支援する完全統合システムです。
+**Phase 5外部AI統合 + 革命的予測品質評価システム**を搭載。
 
 ### ✨ 主要機能
 
-- **🧠 IntelligentConceptExtractor v2.0**: 75概念学習データベース + kuromoji形態素解析 + 性能最適化
-- **💾 SessionManagementSystem**: 完全なセッション保存・引き継ぎワークフロー  
+- **🧠 IntelligentConceptExtractor v6.0**: 75概念学習DB + kuromoji形態素解析 + 予測概念抽出
+- **🔮 PredictiveQualityAssessment**: 4軸予測品質評価（対話長非依存・潜在価値発見）
+- **🤖 AI統合システム**: OpenAI + Anthropic API統合・マルチプロバイダー対応
+- **💾 SessionManagementSystem**: 完全なセッション保存・引き継ぎワークフロー（予測評価統合）
 - **🔍 IntegratedLogManagement**: 統合ログ分析・品質保証・継続性支援
-- **🌐 統合WebUI**: ワンクリック処理・セッション管理・ダッシュボード
-- **📊 QualityAssuranceSystem**: リアルタイム品質評価（6項目メトリクス）
+- **🌐 統合WebUI**: 9タブシステム・AI分析・予測分析・学習統計
+- **📊 品質評価システム**: 従来評価 + 予測評価によるハイブリッド判定
 
 ### 🚀 革新的特徴
 
@@ -23,8 +26,14 @@ AIとの対話ログを高度に分析・構造化し、継続的な知的生産
 ✅ After:  165KB/15-30秒高速処理→統合分析→AI連携→継続的対話サイクル
 ```
 
-**完全自動化ワークフロー + AI統合:**
-対話ログ → 高速概念抽出 → AI統合分析 → 品質評価 → セッション保存 → 引き継ぎ → 継続対話
+#### 🔮 革命的品質評価システム
+```
+❌ 従来: 革新度10/10・信頼度77% → 品質スコア59.1% → 引き継ぎ失敗
+✅ 予測: 4軸評価（予測価値・革新密度・創発強度・継続性）→ 対話長非依存・潜在価値発見
+```
+
+**完全自動化ワークフロー + AI統合 + 予測品質評価:**
+対話ログ → 高速概念抽出 → 予測概念分析 → AI統合分析 → ハイブリッド品質評価 → セッション保存 → 引き継ぎ → 継続対話
 
 ---
 
@@ -62,8 +71,10 @@ node --import tsx/esm src/web/structured-dialogue-app.ts
 structured-dialogue-tools/
 ├── src/
 │   ├── core/                    # 核心システム
-│   │   ├── intelligent-concept-extractor.ts    # v4.0 概念抽出エンジン ★
-│   │   ├── session-management-system.ts        # セッション管理システム ★
+│   │   ├── intelligent-concept-extractor.ts    # v6.0 概念抽出エンジン ★
+│   │   ├── predictive-quality-assessment.ts    # 🔮 予測品質評価システム ★NEW
+│   │   ├── session-management-system.ts        # セッション管理システム（予測統合）★
+│   │   ├── ai-integration-service.ts           # AI統合サービス ★
 │   │   ├── integrated-log-management.ts        # 統合ログ管理 ★
 │   │   ├── quality-assurance-system.ts         # 品質保証システム ★
 │   │   ├── unified-log-processor.ts            # 統一処理エンジン
@@ -99,6 +110,45 @@ structured-dialogue-tools/
 - **品質保証**: 6項目リアルタイム評価
 - **継続性支援**: 次回セッション用キーワード生成
 - **分割推奨**: ログサイズ・複雑度に基づく自動判定
+
+---
+
+## 🔌 API エンドポイント（25個）
+
+### 🧠 概念抽出・予測分析
+- `POST /api/extract-concepts` - 概念抽出（自動判定）
+- `POST /api/extract-concepts-chunked` - 大規模ログ専用チャンク処理
+- `POST /api/quality/predictive-assessment` - 🔮予測品質評価（NEW）
+
+### 🤖 AI統合分析
+- `POST /api/ai/analyze` - AI統合分析実行
+- `POST /api/ai/compare` - マルチプロバイダー比較分析
+- `GET /api/ai/providers` - 利用可能AIプロバイダー一覧
+- `GET /api/ai/stats` - AI分析統計
+- `GET /api/ai/history` - AI分析履歴
+
+### 💾 セッション管理
+- `POST /api/sessions/save` - セッション保存
+- `POST /api/sessions/start-new` - 新規セッション開始
+- `GET /api/sessions/list` - セッション一覧
+- `GET /api/sessions/stats` - セッション統計
+- `GET /api/sessions/handover/latest` - 最新引き継ぎ情報
+- `GET /api/sessions/:id` - セッション詳細取得
+- `POST /api/sessions/search` - セッション検索
+
+### ⚙️ 設定・統計
+- `GET /api/settings` - 設定取得
+- `POST /api/settings` - 設定更新
+- `GET /api/config/concept-extraction` - 概念抽出設定
+- `GET /api/learning/session-stats` - 学習統計
+
+### 🛠️ 統一処理・ツール
+- `POST /api/process-unified` - 統一処理（推奨）
+- `POST /api/process-log` - ログ処理
+- `POST /api/split-only` - 分割のみ
+- `POST /api/name-only` - 命名のみ  
+- `POST /api/format-only` - フォーマットのみ
+- `GET /api/health` - ヘルスチェック
 
 ---
 
