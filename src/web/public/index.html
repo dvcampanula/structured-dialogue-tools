@@ -957,8 +957,8 @@
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
                         <div><strong>対話タイプ:</strong> ${extraction.dialogueTypeDetection}</div>
                         <div><strong>社会的インパクト:</strong> ${extraction.predictedSocialImpact}</div>
-                        <div><strong>突破確率:</strong> ${extraction.breakthroughProbability}%</div>
-                        <div><strong>信頼度:</strong> ${extraction.confidence}%</div>
+                        <div><strong>突破確率:</strong> ${extraction.breakthroughProbability.toFixed(1)}%</div>
+                        <div><strong>信頼度:</strong> ${extraction.confidence.toFixed(1)}%</div>
                     </div>
                 </div>
 
@@ -1037,14 +1037,8 @@
             `;
 
             // Phase 3: 予測分析タブのコンテンツを更新
-            console.log('🔍 概念抽出結果デバッグ:', extraction);
-            console.log('🔍 predictiveExtraction存在確認:', !!extraction.predictiveExtraction);
             if (extraction.predictiveExtraction) {
-                console.log('🔍 predictiveExtraction内容:', extraction.predictiveExtraction);
-                console.log('🔍 predictedConcepts配列:', extraction.predictiveExtraction.predictedConcepts);
                 displayPredictiveAnalysis(extraction.predictiveExtraction, extraction);
-            } else {
-                console.warn('⚠️ predictiveExtractionが存在しません');
             }
 
             // 概念抽出タブをアクティブにして結果を表示
@@ -1062,20 +1056,6 @@
          * Phase 3: 予測分析の表示
          */
         function displayPredictiveAnalysis(predictiveExtraction, parentExtraction) {
-            console.log('🔍 displayPredictiveAnalysis開始');
-            console.log('🔍 predictiveExtraction:', predictiveExtraction);
-            console.log('🔍 predictedConcepts:', predictiveExtraction.predictedConcepts);
-            console.log('🔍 predictedConcepts length:', predictiveExtraction.predictedConcepts?.length);
-            
-            // 各概念の詳細をチェック
-            if (predictiveExtraction.predictedConcepts) {
-                predictiveExtraction.predictedConcepts.forEach((concept, index) => {
-                    console.log(`🔍 概念${index}:`, concept);
-                    console.log(`🔍 概念${index} term:`, concept.term);
-                    console.log(`🔍 概念${index} termタイプ:`, typeof concept.term);
-                });
-            }
-            
             const predictionsContent = document.getElementById('predictions-content');
             
             predictionsContent.innerHTML = `
@@ -1177,7 +1157,7 @@
                                 <div style="font-size: 12px; color: #6b7280;">メタ概念数</div>
                             </div>
                             <div style="text-align: center;">
-                                <div style="font-size: 1.2rem; font-weight: bold; color: #dc2626;">${parentExtraction.newConceptDetection.noveltyScore}/10</div>
+                                <div style="font-size: 1.2rem; font-weight: bold; color: #dc2626;">${parentExtraction.newConceptDetection.noveltyScore.toFixed(2)}/10</div>
                                 <div style="font-size: 12px; color: #6b7280;">新規性スコア</div>
                             </div>
                         </div>
@@ -1193,7 +1173,7 @@
                             <div style="font-size: 12px; color: #6b7280;">処理時間</div>
                         </div>
                         <div style="text-align: center;">
-                            <div style="font-size: 1.1rem; font-weight: bold; color: #d97706;">${parentExtraction.confidence}%</div>
+                            <div style="font-size: 1.1rem; font-weight: bold; color: #d97706;">${parentExtraction.confidence.toFixed(1)}%</div>
                             <div style="font-size: 12px; color: #6b7280;">総合信頼度</div>
                         </div>
                         <div style="text-align: center;">

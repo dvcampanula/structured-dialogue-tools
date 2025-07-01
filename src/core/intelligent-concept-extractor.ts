@@ -1892,9 +1892,6 @@ export class IntelligentConceptExtractor {
       
       if (pattern.trigger.test(content)) {
         pattern.predictedConcepts.forEach(concept => {
-          // デバッグログ: concept値の確認
-          console.log(`🔍 予測概念デバッグ: concept='${concept}' (type: ${typeof concept})`);
-          
           // undefinedまたは空文字列をスキップ
           if (!concept || typeof concept !== 'string' || concept.trim() === '') {
             console.warn(`⚠️ 無効な予測概念をスキップ: ${concept}`);
