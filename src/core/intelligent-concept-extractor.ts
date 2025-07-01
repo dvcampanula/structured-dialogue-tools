@@ -428,6 +428,12 @@ export class IntelligentConceptExtractor {
     
     console.log(`🔧 チャンク分割設定: ${chunkSize}バイト/チャンク, 並列度${parallelChunks}`);
     
+    if (parallelChunks > 1) {
+      console.log(`⚡ 並列処理モード: 最大${parallelChunks}並列でチャンク処理実行`);
+    } else {
+      console.log(`🔄 逐次処理モード: 1チャンクずつ順次処理`);
+    }
+    
     // Phase 2: 手動分析結果による動的学習（最初に実行）
     if (manualAnalysis) {
       await this.performDynamicLearning(manualAnalysis, logContent);

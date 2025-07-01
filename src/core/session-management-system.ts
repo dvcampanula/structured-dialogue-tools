@@ -130,8 +130,9 @@ export class SessionManagementSystem {
     // Step 2: セッションID生成
     const sessionId = this.generateSessionId();
     
-    // Step 3: ファイル名決定
-    const filename = analysis?.namingSuggestion.filename || `session_${sessionId}.md`;
+    // Step 3: ファイル名決定（ユニーク性保証）
+    const baseFilename = analysis?.namingSuggestion.filename || `session_${sessionId}.md`;
+    const filename = this.ensureUniqueFilename(baseFilename, sessionId);
     const filepath = path.join(this.sessionsDir, filename);
     const saveContent = this.formatSessionContent(content, analysis, sessionId);
     
@@ -593,6 +594,31 @@ export class SessionManagementSystem {
         chunkSizes: []
       }
     };
+  }
+
+  /**
+   * ユニークなファイル名を保証（上書き防止）
+   */
+  private ensureUniqueFilename(baseFilename: string, sessionId: string): string {
+    // セッションIDを含む場合はそのまま使用（既にユニーク）
+    if (baseFilename.includes(sessionId)) {
+      return baseFilename;
+    }
+    
+    // log_pXX_xxx_yyy.md 形式の場合、セッションIDを挿入
+    const logPattern = /^(log_p\d+_[^_]+_[^_]+)\.md$/;
+    const match = baseFilename.match(logPattern);
+    
+    if (match) {
+      const baseName = match[1];
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+      return `${baseName}_${timestamp}.md`;
+    }
+    
+    // その他の形式の場合、タイムスタンプ追加
+    const nameWithoutExt = baseFilename.replace('.md', '');
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_');
+    return `${nameWithoutExt}_${timestamp}.md`;
   }
 
   private getDefaultSaveOptions(): SaveOptions {
