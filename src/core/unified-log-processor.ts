@@ -13,6 +13,7 @@ interface UnifiedLogStructure {
   header: LogHeader;
   chunks: ProcessedChunk[];
   metadata: ProcessingMetadata;
+  conceptAnalysis: IntelligentExtractionResult; // 概念抽出結果を追加
   qualityMetrics?: QualityMetrics;
 }
 
@@ -80,7 +81,7 @@ class UnifiedLogProcessor {
     
     // 1. 全体分析（概念抽出）
     this.qualityAssessment.startConceptExtraction();
-    const header = await this.analyzeLogHeader(rawLog, sessionContext);
+    const {header, conceptAnalysis} = await this.analyzeLogHeader(rawLog, sessionContext);
     
     // 2. 文脈保持分割
     this.qualityAssessment.startChunkProcessing();
@@ -99,7 +100,8 @@ class UnifiedLogProcessor {
     const structure: UnifiedLogStructure = {
       header,
       chunks: processedChunks,
-      metadata
+      metadata,
+      conceptAnalysis
     };
     
     const qualityMetrics = this.qualityAssessment.assessQuality(structure, rawLog.length);
@@ -108,6 +110,7 @@ class UnifiedLogProcessor {
       header,
       chunks: processedChunks,
       metadata,
+      conceptAnalysis,
       qualityMetrics
     };
   }
@@ -115,7 +118,7 @@ class UnifiedLogProcessor {
   /**
    * ログ全体のヘッダー分析（IntelligentConceptExtractor統合版）
    */
-  private async analyzeLogHeader(rawLog: string, sessionContext?: string): Promise<LogHeader> {
+  private async analyzeLogHeader(rawLog: string, sessionContext?: string): Promise<{header: LogHeader, conceptAnalysis: IntelligentExtractionResult}> {
     // IntelligentConceptExtractorで高精度分析
     const intelligentResult = await this.intelligentExtractor.extractConcepts(rawLog);
     
@@ -134,7 +137,7 @@ class UnifiedLogProcessor {
     // ファイル名提案
     const suggestedFilename = this.generateFilename(title, mainConcepts);
     
-    return {
+    const header: LogHeader = {
       title,
       mainConcepts,
       discussionScope,
@@ -142,6 +145,11 @@ class UnifiedLogProcessor {
       totalChunks: 0, // 後で更新
       dialogueType,
       suggestedFilename
+    };
+    
+    return {
+      header,
+      conceptAnalysis: intelligentResult
     };
   }
 
