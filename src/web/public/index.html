@@ -2002,6 +2002,14 @@
             sessionStatus.innerHTML = '<div style="color: #0ea5e9; padding: 8px;">💾 セッション保存中...</div>';
 
             try {
+                // デバッグ: lastProcessedResults の内容を確認
+                console.log('🔍 lastProcessedResults 構造:', {
+                    hasExtraction: !!lastProcessedResults.extraction,
+                    hasUnified: !!lastProcessedResults.unified,
+                    hasMetrics: !!lastProcessedResults.metrics,
+                    unifiedKeys: lastProcessedResults.unified ? Object.keys(lastProcessedResults.unified) : null
+                });
+                
                 // タイムアウト設定（30秒）
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => {

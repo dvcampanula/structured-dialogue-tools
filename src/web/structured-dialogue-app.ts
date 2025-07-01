@@ -780,10 +780,21 @@ class StructuredDialogueApp {
 
       console.log(`💾 セッション保存開始: ${content.length}文字`);
       console.log(`📊 受信データ構造確認:`, {
-        hasPreProcessedResults: !!options.preProcessedResults,
+        hasPreProcessedResults: !!req.body.preProcessedResults,
         usePreProcessedData: options.usePreProcessedData,
         skipReprocessing: options.skipReprocessing
       });
+      
+      if (req.body.preProcessedResults) {
+        console.log('🔍 preProcessedResults詳細:', {
+          hasConceptExtraction: !!req.body.preProcessedResults.conceptExtraction,
+          hasUnifiedProcessing: !!req.body.preProcessedResults.unifiedProcessing,
+          hasQualityMetrics: !!req.body.preProcessedResults.qualityMetrics,
+          unifiedKeys: req.body.preProcessedResults.unifiedProcessing ? Object.keys(req.body.preProcessedResults.unifiedProcessing) : null
+        });
+      } else {
+        console.log('❌ preProcessedResults が送信されていません');
+      }
       
       const saveOptions = {
         autoAnalysis: options.skipReprocessing ? false : (options.autoAnalysis !== false), // 重複処理スキップ
@@ -792,8 +803,8 @@ class StructuredDialogueApp {
         backupEnabled: options.backupEnabled !== false,
         customTags: options.customTags || [],
         forceHandover: options.forceHandover || false,
-        // 処理済みデータを直接使用
-        preProcessedResults: options.preProcessedResults || null,
+        // 処理済みデータを直接使用（req.bodyのトップレベルから取得）
+        preProcessedResults: req.body.preProcessedResults || null,
         usePreProcessedData: options.usePreProcessedData || false
       };
       
