@@ -74,6 +74,10 @@ knowledge-extraction-results.json
 
 # Archive directory (keep structure but ignore contents)
 tests/archive/
+docs/archive/
 
 # Scripts directory (utility scripts, not for commits)
 scripts/
+
+# Performance test files
+test-phase3-performance.js
