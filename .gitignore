@@ -100,5 +100,5 @@ debug.txt
 output-*.json
 temp-output.*
 
-# 一時作業領域
-workspace/docs/archive/
+# 一時作業領域 (全体除外)
+workspace/
