@@ -27,22 +27,21 @@ This appears to be a development environment with Node.js (v22.17.0) available v
 - NVM (Node Version Manager) is installed and configured
 - Current Node.js version: v22.17.0
 
-## 🔄 Session Continuity
+## IMPORTANT: Session Continuity & Development Guidelines
 
-**IMPORTANT**: When starting a new session, always check these files for context:
+**When starting a new session, always check these files for context:**
 
 1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
 2. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
-3. **`docs/SESSION_COMPLETION_SUMMARY.md`** - Previous session comprehensive summary
-4. **`docs/CURRENT_ROADMAP.md`** - Technical development roadmap (Phase 1-8)
-5. **`docs/ANALYSIS_RESULTS_DB.json`** - 75-concept learning database
-6. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
+3. **`docs/UNIFIED_ROADMAP.md`** - Technical development roadmap and project phases
+4. **`docs/ANALYSIS_RESULTS_DB.json`** - 75-concept learning database
+5. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Status**: IntelligentConceptExtractor v2.0.0実装完了 - 75概念学習データベース構築、次回はTypeScript統合修正と形態素解析導入
+**Current Status**: IntelligentConceptExtractor v2.0.0実装完了 - 75概念学習データベース構築、自動動的学習システム実装完了
 
-## 📋 Code & Commit Guidelines
+**Code References**: When referencing specific functions or pieces of code include the pattern `file_path:line_number` to allow the user to easily navigate to the source code location.
 
-**IMPORTANT**: Follow strict commit hygiene to maintain project health:
+**Follow strict commit hygiene to maintain project health:**
 
 ### 🚫 DO NOT commit temporary files:
 - **Test scripts**: `test-*.js`, `debug-*.ts`, `experiment-*.js`

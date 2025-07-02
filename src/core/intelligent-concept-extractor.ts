@@ -424,6 +424,13 @@ export class IntelligentConceptExtractor {
     // 🚀 Phase 4キャッシュ最適化: 結果をキャッシュに保存
     this.cacheManager.cacheResult(logContent, result, { manualAnalysis, options });
     
+    // 🧠 Phase 5: 自動動的学習 - 結果品質が良い場合に学習データベース更新
+    if (result.confidence >= 70 && this.shouldPerformAutomaticLearning(result)) {
+      this.performAutomaticLearning(result, logContent).catch(error => 
+        console.warn('自動動的学習でエラー:', error)
+      );
+    }
+    
     return result;
   }
 
@@ -865,7 +872,7 @@ export class IntelligentConceptExtractor {
 
     // 深層概念の学習
     Object.values(this.learningData.analysisHistory).forEach(log => {
-      log.deepConcepts.forEach(concept => {
+      log.deepConcepts.filter(concept => !this.isLowQualityConcept(concept)).forEach(concept => {
         const pattern: ConceptPattern = {
           term: concept,
           type: 'deep',
@@ -886,7 +893,7 @@ export class IntelligentConceptExtractor {
       });
       
       // 表面概念の学習
-      log.surfaceConcepts.forEach(concept => {
+      log.surfaceConcepts.filter(concept => !this.isLowQualityConcept(concept)).forEach(concept => {
         if (!this.conceptPatterns.has(concept)) {
           this.conceptPatterns.set(concept, {
             term: concept,
@@ -1249,16 +1256,19 @@ export class IntelligentConceptExtractor {
     const surfaceConcepts: ClassifiedConcept[] = [];
     const deepConcepts: ClassifiedConcept[] = [];
     
+    // 事前フィルタリング: 低品質概念を分類前に除外
+    const filteredConcepts = rawConcepts.filter(concept => !this.isLowQualityConcept(concept));
+    
     // 動的バッチサイズ最適化（チャンク並列との競合考慮）
-    const optimalBatchSize = this.calculateOptimalBatchSize(rawConcepts.length, content);
+    const optimalBatchSize = this.calculateOptimalBatchSize(filteredConcepts.length, content);
     const batches = [];
     
-    for (let i = 0; i < rawConcepts.length; i += optimalBatchSize) {
-      const batch = rawConcepts.slice(i, i + optimalBatchSize);
+    for (let i = 0; i < filteredConcepts.length; i += optimalBatchSize) {
+      const batch = filteredConcepts.slice(i, i + optimalBatchSize);
       batches.push(batch);
     }
     
-    console.log(`⚡ 最適化概念分類: ${rawConcepts.length}概念を${batches.length}バッチ(サイズ${optimalBatchSize})で処理`);
+    console.log(`⚡ 最適化概念分類: ${rawConcepts.length}→${filteredConcepts.length}概念を${batches.length}バッチ(サイズ${optimalBatchSize})で処理`);
     
     for (const batch of batches) {
       const batchPromises = batch.map(concept => this.conceptClassifier.classifySingleConcept(concept, content));
@@ -1530,9 +1540,12 @@ export class IntelligentConceptExtractor {
    * 既知概念パターンかチェック
    */
   private isKnownConceptPattern(concept: string): boolean {
+    if (this.isLowQualityConcept(concept)) return false;
+    
     return this.learningData?.analysisHistory && 
       Object.values(this.learningData.analysisHistory).some(analysis => 
         [...(analysis.deepConcepts || []), ...(analysis.surfaceConcepts || [])]
+          .filter(c => !this.isLowQualityConcept(c))
           .includes(concept)
       ) || false;
   }
@@ -2951,6 +2964,156 @@ export class IntelligentConceptExtractor {
   }
 
   // 分離された機能のため削除済み
+
+  /**
+   * 自動動的学習の実行判定
+   */
+  private shouldPerformAutomaticLearning(result: IntelligentExtractionResult): boolean {
+    // 学習判定条件
+    const hasNovelConcepts = result.deepConcepts.some(c => c.confidence >= 80);
+    const hasHighInnovation = result.predictedInnovationLevel >= 7;
+    const hasDetectedPhenomena = result.detectedPhenomena && result.detectedPhenomena.length > 0;
+    const hasEvolutionaryFindings = result.evolutionaryDiscovery?.anomalies && result.evolutionaryDiscovery.anomalies.length > 0;
+    
+    // 学習頻度制限（1時間に1回程度）
+    const lastLearningTime = this.getLastLearningTime();
+    const oneHourAgo = Date.now() - (60 * 60 * 1000);
+    const canLearnNow = !lastLearningTime || lastLearningTime < oneHourAgo;
+    
+    return canLearnNow && (hasNovelConcepts || hasHighInnovation || hasDetectedPhenomena || !!hasEvolutionaryFindings);
+  }
+
+  /**
+   * 自動動的学習の実行
+   */
+  private async performAutomaticLearning(result: IntelligentExtractionResult, logContent: string): Promise<void> {
+    console.log('🧠 自動動的学習開始: 高品質結果から新パターンを学習');
+    
+    try {
+      // 1. 新しい高品質概念をパターンとして学習
+      await this.learnFromHighQualityConcepts(result.deepConcepts);
+      
+      // 2. 検出された現象パターンを学習
+      if (result.detectedPhenomena && result.detectedPhenomena.length > 0) {
+        await this.learnFromDetectedPhenomena(result.detectedPhenomena);
+      }
+      
+      // 3. 進化的発見パターンを学習
+      if (result.evolutionaryDiscovery?.anomalies) {
+        await this.learnFromEvolutionaryFindings(result.evolutionaryDiscovery);
+      }
+      
+      // 4. 学習時刻を記録
+      this.setLastLearningTime(Date.now());
+      
+      // 5. 学習データベースを保存
+      await this.saveLearningDatabase();
+      
+      console.log('✅ 自動動的学習完了: 新パターンを学習データベースに統合');
+      
+    } catch (error) {
+      console.warn('❌ 自動動的学習エラー:', error);
+    }
+  }
+
+  /**
+   * 高品質概念からの学習
+   */
+  private async learnFromHighQualityConcepts(deepConcepts: ClassifiedConcept[]): Promise<void> {
+    const highQualityConcepts = deepConcepts.filter(c => 
+      c.confidence >= 80 && 
+      !this.isLowQualityConcept(c.term)
+    );
+    
+    for (const concept of highQualityConcepts) {
+      const existingPattern = this.conceptPatterns.get(concept.term);
+      
+      if (!existingPattern) {
+        // 新しい概念パターンとして学習
+        this.conceptPatterns.set(concept.term, {
+          term: concept.term,
+          type: 'deep',
+          frequency: 1,
+          innovationLevel: concept.confidence / 10,
+          contexts: ['auto_learned'],
+          associatedTimeMarkers: [],
+          socialImpact: concept.confidence >= 90 ? 'high' : 'medium'
+        });
+        
+        console.log(`  📚 新概念パターン学習: "${concept.term}" (信頼度: ${concept.confidence}%)`);
+      } else {
+        // 既存パターンの強化
+        existingPattern.frequency += 1;
+        existingPattern.innovationLevel = Math.max(existingPattern.innovationLevel, concept.confidence / 10);
+      }
+    }
+  }
+
+  /**
+   * 検出現象からの学習
+   */
+  private async learnFromDetectedPhenomena(phenomena: DetectedPhenomenon[]): Promise<void> {
+    for (const phenomenon of phenomena) {
+      if (phenomenon.confidence >= 0.7) {
+        // 現象パターンを革新キーワードとして学習
+        if (!this.revolutionaryKeywords.includes(phenomenon.name)) {
+          this.revolutionaryKeywords.push(phenomenon.name);
+          console.log(`  🔬 新現象パターン学習: "${phenomenon.name}" (信頼度: ${phenomenon.confidence})`);
+        }
+      }
+    }
+  }
+
+  /**
+   * 進化的発見からの学習
+   */
+  private async learnFromEvolutionaryFindings(evolutionaryDiscovery: EvolutionaryDiscoveryResult): Promise<void> {
+    // 異常パターンから新しい概念関係を学習
+    if (evolutionaryDiscovery.anomalies && evolutionaryDiscovery.anomalies.length > 0) {
+      console.log(`  🧬 異常パターンから学習: ${evolutionaryDiscovery.anomalies.length}個の新パターン発見`);
+    }
+    
+    // 新パターンを革新指標として統合
+    if (evolutionaryDiscovery.newPatterns) {
+      for (const pattern of evolutionaryDiscovery.newPatterns) {
+        if (pattern.confidence >= 0.7) {
+          this.revolutionaryKeywords.push(pattern.description);
+          console.log(`  🚀 新パターン学習: "${pattern.description}"`);
+        }
+      }
+    }
+  }
+
+  /**
+   * 最終学習時刻の取得/設定
+   */
+  private getLastLearningTime(): number | null {
+    try {
+      const stored = process.env.LAST_AUTO_LEARNING_TIME;
+      return stored ? parseInt(stored) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  private setLastLearningTime(time: number): void {
+    process.env.LAST_AUTO_LEARNING_TIME = time.toString();
+  }
+
+  /**
+   * 学習データベースの保存
+   */
+  private async saveLearningDatabase(): Promise<void> {
+    try {
+      if (this.learningData) {
+        this.learningData.lastUpdated = new Date().toISOString();
+        await fs.writeFile(this.dbPath, JSON.stringify(this.learningData, null, 2), 'utf-8');
+        console.log('💾 学習データベース保存完了');
+      }
+    } catch (error) {
+      console.warn('❌ 学習データベース保存エラー:', error);
+    }
+  }
 }
 
 // 内部型定義
