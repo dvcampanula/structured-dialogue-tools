@@ -13,7 +13,7 @@ import kuromoji from 'kuromoji';
 import { ConceptExtractionConfigManager } from './concept-extraction-config-manager.js';
 import { SessionLearningSystem } from './session-learning-system.js';
 import { PhenomenonDetector, type DetectedPhenomenon, type PhenomenonPattern } from './phenomenon-detector.js';
-import { EvolutionaryPatternDiscoverySystem, type EvolutionaryDiscoveryResult } from './evolutionary-pattern-discovery.js';
+// import { EvolutionaryPatternDiscoverySystem, type EvolutionaryDiscoveryResult } from './evolutionary-pattern-discovery.js';
 import { DialoguePhaseAnalyzer, type DialoguePhaseResult, type DialoguePhase } from './dialogue-phase-analyzer.js';
 import { AcademicValueAssessor, type AcademicValueAssessment, type AcademicValue } from './academic-value-assessor.js';
 import { TimeMarkerDetector, type TimeRevolutionMarker } from './time-marker-detector.js';

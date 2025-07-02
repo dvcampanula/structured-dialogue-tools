@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/web/structured-dialogue-app.ts",
+    "start:minimal": "node src/web/minimal-ai-server.js",
     "dev": "tsx --watch src/web/structured-dialogue-app.ts",
+    "dev:minimal": "tsx --watch src/web/minimal-ai-server.js",
     "test:split": "cd tests && tsx test-splitter.ts",
     "test:multiple": "cd tests && tsx test-multiple-logs.ts",
     "test:naming": "tsx src/core/naming-helper.ts",

@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ミニマムAI - 育てる自家製対話AI</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(90deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 24px 32px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+        
+        .mode-switch {
+            display: flex;
+            justify-content: center;
+            padding: 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .mode-btn {
+            padding: 12px 24px;
+            margin: 0 8px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+        
+        .mode-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        
+        .mode-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .main-content {
+            display: flex;
+            min-height: 600px;
+        }
+        
+        .chat-section {
+            flex: 1;
+            padding: 32px;
+            border-right: 1px solid #e2e8f0;
+        }
+        
+        .analysis-section {
+            flex: 1;
+            padding: 32px;
+            background: #f8fafc;
+        }
+        
+        .chat-input {
+            width: 100%;
+            min-height: 120px;
+            padding: 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            margin-bottom: 16px;
+            transition: border-color 0.2s;
+        }
+        
+        .chat-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+        }
+        
+        .chat-controls {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 14px;
+        }
+        
+        .btn-primary {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #6b7280;
+            color: white;
+        }
+        
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .response-box {
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+            min-height: 150px;
+        }
+        
+        .response-meta {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 12px;
+            font-size: 13px;
+            color: #6b7280;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .analysis-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-btn {
+            padding: 8px 16px;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+        }
+        
+        .tab-btn.active {
+            background: #4f46e5;
+            color: white;
+            border-color: #4f46e5;
+        }
+        
+        .analysis-content {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 300px;
+        }
+        
+        .concept-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+        
+        .concept-tag {
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .anomaly-item {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+        }
+        
+        .anomaly-score {
+            background: #dc2626;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .graph-container {
+            height: 200px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6b7280;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        
+        .loading::after {
+            content: "";
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #e2e8f0;
+            border-top: 2px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .learning-progress {
+            background: #f0f9ff;
+            border: 1px solid #bae6fd;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 16px;
+        }
+        
+        .progress-bar {
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 8px 0;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4f46e5, #7c3aed);
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌱 ミニマムAI</h1>
+            <p>育てる自家製対話AI - プライベート・軽量・高速</p>
+        </div>
+        
+        <div class="mode-switch">
+            <div class="mode-btn active" data-mode="simple">😊 シンプルモード</div>
+            <div class="mode-btn" data-mode="analysis">🔬 分析モード</div>
+        </div>
+        
+        <div class="main-content">
+            <div class="chat-section">
+                <h3>💬 対話エリア</h3>
+                <textarea class="chat-input" placeholder="何でもお気軽にお話しください。ミニマムAIがお手伝いします。
+
+例:
+- 構造的対話について考えてみたい
+- AIシステムの設計アプローチを教えて
+- レイヤード・プロンプティングと認知について"></textarea>
+                
+                <div class="chat-controls">
+                    <button class="btn btn-primary" onclick="sendMessage()">💬 送信</button>
+                    <button class="btn btn-secondary" onclick="clearChat()">🗑️ クリア</button>
+                    <button class="btn btn-secondary" onclick="exportChat()">📥 エクスポート</button>
+                </div>
+                
+                <div class="response-box" id="responseBox">
+                    <div class="loading hidden" id="loading">応答を生成中</div>
+                    <div id="responseContent">
+                        <div style="text-align: center; color: #6b7280; padding: 40px;">
+                            ここに応答が表示されます
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="learning-progress">
+                    <div style="display: flex; justify-content: between; align-items: center;">
+                        <span>🧠 学習進捗</span>
+                        <span id="learningCount">0個のパターン学習済み</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 15%"></div>
+                    </div>
+                    <div style="font-size: 12px; color: #6b7280;">使用とともに賢くなります</div>
+                </div>
+            </div>
+            
+            <div class="analysis-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="conceptCount">101</div>
+                        <div class="stat-label">学習済み概念</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="confidenceScore">85.0%</div>
+                        <div class="stat-label">信頼度</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="phaseDetected">-</div>
+                        <div class="stat-label">検出フェーズ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="anomalyCount">-</div>
+                        <div class="stat-label">異常パターン</div>
+                    </div>
+                </div>
+                
+                <div class="analysis-tabs">
+                    <div class="tab-btn active" data-tab="concepts">📝 概念</div>
+                    <div class="tab-btn" data-tab="anomalies">⚠️ 異常</div>
+                    <div class="tab-btn" data-tab="graph">🕸️ グラフ</div>
+                    <div class="tab-btn" data-tab="learning">🧠 学習</div>
+                </div>
+                
+                <div class="analysis-content">
+                    <div id="tab-concepts">
+                        <h4>抽出された概念</h4>
+                        <div class="concept-list" id="conceptList">
+                            <div class="concept-tag">構造的対話</div>
+                            <div class="concept-tag">AI</div>
+                            <div class="concept-tag">対話</div>
+                        </div>
+                        <p style="font-size: 14px; color: #6b7280;">入力テキストから自動抽出された重要概念です。</p>
+                    </div>
+                    
+                    <div id="tab-anomalies" class="hidden">
+                        <h4>異常パターン発見</h4>
+                        <div id="anomaliesList">
+                            <div style="text-align: center; color: #6b7280; padding: 20px;">
+                                対話を開始すると、珍しい概念組み合わせを自動検出します
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="tab-graph" class="hidden">
+                        <h4>概念関係グラフ</h4>
+                        <div class="graph-container" id="graphContainer">
+                            <canvas id="graphChart" width="400" height="200"></canvas>
+                        </div>
+                        <div id="graphInsights" style="margin-top: 12px; font-size: 13px; color: #6b7280;">
+                            グラフ分析結果がここに表示されます
+                        </div>
+                    </div>
+                    
+                    <div id="tab-learning" class="hidden">
+                        <h4>個人特化学習</h4>
+                        <div id="learningPatterns">
+                            <div style="text-align: center; color: #6b7280; padding: 20px;">
+                                対話履歴から自動学習したパターンが表示されます
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ミニマムAI WebUI JavaScript
+        let currentMode = 'simple';
+        let learningCount = 0;
+        
+        // モード切替
+        document.querySelectorAll('.mode-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentMode = btn.dataset.mode;
+                
+                const analysisSection = document.querySelector('.analysis-section');
+                if (currentMode === 'simple') {
+                    analysisSection.style.display = 'none';
+                    document.querySelector('.chat-section').style.borderRight = 'none';
+                } else {
+                    analysisSection.style.display = 'block';
+                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                }
+            });
+        });
+        
+        // タブ切替
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.add('hidden'));
+                document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+            });
+        });
+        
+        // メッセージ送信
+        async function sendMessage() {
+            const input = document.querySelector('.chat-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // ローディング表示
+            document.getElementById('loading').classList.remove('hidden');
+            document.getElementById('responseContent').classList.add('hidden');
+            
+            try {
+                // ミニマムAI API呼び出し（モック）
+                const response = await callMinimalAI(message);
+                displayResponse(response);
+                
+                if (currentMode === 'analysis') {
+                    updateAnalysisDisplay(response.analysis);
+                }
+                
+                // 学習カウント更新
+                learningCount++;
+                updateLearningProgress();
+                
+            } catch (error) {
+                displayError(error);
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('responseContent').classList.remove('hidden');
+            }
+        }
+        
+        // ミニマムAI API呼び出し（実装版）
+        async function callMinimalAI(message) {
+            const endpoint = currentMode === 'analysis' ? '/api/chat/analysis' : '/api/chat/simple';
+            
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`API Error: ${response.status}`);
+                }
+                
+                const result = await response.json();
+                
+                if (!result.success) {
+                    throw new Error(result.error);
+                }
+                
+                return result.data;
+                
+            } catch (error) {
+                console.error('API呼び出しエラー:', error);
+                throw error;
+            }
+        }
+        
+        // 応答表示
+        function displayResponse(response) {
+            const content = document.getElementById('responseContent');
+            content.innerHTML = `
+                <div class="response-meta">
+                    <span>🎯 フェーズ: ${response.detectedPhase}</span>
+                    <span>🎲 信頼度: ${(response.confidence * 100).toFixed(1)}%</span>
+                </div>
+                <div style="font-size: 16px; line-height: 1.6; color: #374151;">
+                    ${response.response}
+                </div>
+                <div style="margin-top: 12px;">
+                    <strong>💡 推薦概念:</strong> ${response.suggestedConcepts.join(', ')}
+                </div>
+            `;
+            
+            // 統計更新
+            document.getElementById('phaseDetected').textContent = response.detectedPhase;
+            document.getElementById('confidenceScore').textContent = (response.confidence * 100).toFixed(1) + '%';
+        }
+        
+        // 分析表示更新
+        function updateAnalysisDisplay(analysis) {
+            // 概念リスト更新
+            const conceptList = document.getElementById('conceptList');
+            conceptList.innerHTML = analysis.conceptGraph.nodes.map(node => 
+                `<div class="concept-tag">${node.id}</div>`
+            ).join('');
+            
+            // 異常パターン更新
+            const anomaliesList = document.getElementById('anomaliesList');
+            if (analysis.anomalies.length > 0) {
+                anomaliesList.innerHTML = analysis.anomalies.map(anomaly => `
+                    <div class="anomaly-item">
+                        <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 8px;">
+                            <strong>"${anomaly.conceptPair[0]}" ⬌ "${anomaly.conceptPair[1]}"</strong>
+                            <span class="anomaly-score">${anomaly.anomalyScore.toFixed(2)}</span>
+                        </div>
+                        <div style="font-size: 13px; color: #6b7280;">
+                            ${anomaly.context[0]}
+                        </div>
+                    </div>
+                `).join('');
+                document.getElementById('anomalyCount').textContent = analysis.anomalies.length;
+            } else {
+                anomaliesList.innerHTML = '<div style="text-align: center; color: #6b7280; padding: 20px;">異常パターンは検出されませんでした</div>';
+                document.getElementById('anomalyCount').textContent = '0';
+            }
+            
+            // グラフ洞察更新
+            const graphInsights = document.getElementById('graphInsights');
+            graphInsights.innerHTML = analysis.graphInsights.map(insight => 
+                `<div>• ${insight}</div>`
+            ).join('');
+        }
+        
+        // 学習進捗更新
+        function updateLearningProgress() {
+            document.getElementById('learningCount').textContent = `${learningCount}個のパターン学習済み`;
+            const progress = Math.min((learningCount / 10) * 100, 100);
+            document.getElementById('progressFill').style.width = progress + '%';
+        }
+        
+        // チャットクリア
+        function clearChat() {
+            document.querySelector('.chat-input').value = '';
+            document.getElementById('responseContent').innerHTML = `
+                <div style="text-align: center; color: #6b7280; padding: 40px;">
+                    ここに応答が表示されます
+                </div>
+            `;
+        }
+        
+        // エクスポート
+        function exportChat() {
+            const data = {
+                timestamp: new Date().toISOString(),
+                learningCount: learningCount,
+                lastResponse: document.getElementById('responseContent').textContent
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `minimal-ai-export-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+        
+        // 統計情報を取得
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    document.getElementById('conceptCount').textContent = result.data.totalConcepts;
+                    document.getElementById('confidenceScore').textContent = (result.data.confidence * 100).toFixed(1) + '%';
+                }
+            } catch (error) {
+                console.error('統計情報取得エラー:', error);
+            }
+        }
+        
+        // エラー表示
+        function displayError(error) {
+            const content = document.getElementById('responseContent');
+            content.innerHTML = `
+                <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; color: #dc2626;">
+                    <strong>❌ エラー:</strong> ${error.message}
+                    <div style="margin-top: 8px; font-size: 13px; color: #991b1b;">
+                        サーバーが起動していることを確認してください
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 初期化
+        document.addEventListener('DOMContentLoaded', () => {
+            // 初期状態でシンプルモード
+            document.querySelector('.analysis-section').style.display = 'none';
+            document.querySelector('.chat-section').style.borderRight = 'none';
+            
+            // 統計情報読み込み
+            loadStats();
+            
+            // Enterキーで送信
+            document.querySelector('.chat-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                    sendMessage();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
