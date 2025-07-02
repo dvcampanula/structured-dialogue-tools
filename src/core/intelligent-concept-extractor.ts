@@ -12,6 +12,14 @@ import * as path from 'path';
 import kuromoji from 'kuromoji';
 import { ConceptExtractionConfigManager } from './concept-extraction-config-manager.js';
 import { SessionLearningSystem } from './session-learning-system.js';
+import { PhenomenonDetector, type DetectedPhenomenon, type PhenomenonPattern } from './phenomenon-detector.js';
+import { DialoguePhaseAnalyzer, type DialoguePhaseResult, type DialoguePhase } from './dialogue-phase-analyzer.js';
+import { AcademicValueAssessor, type AcademicValueAssessment, type AcademicValue } from './academic-value-assessor.js';
+import { TimeMarkerDetector, type TimeRevolutionMarker } from './time-marker-detector.js';
+import { ConceptExtractionCacheManager } from './cache-manager.js';
+import { ConceptClassifier, type ClassifiedConcept as ImportedClassifiedConcept } from './concept-classifier.js';
+import { PredictiveExtractor, type PredictiveExtractionResult, type PredictiveConcept } from './predictive-extractor.js';
+import { ChunkProcessor, type ProcessingOptions } from './chunk-processor.js';
 
 // 学習データベースの型定義
 interface AnalysisResultsDB {
@@ -45,13 +53,7 @@ interface LogAnalysisResult {
 }
 
 // Phase 3: 処理オプションの型定義
-export interface ProcessingOptions {
-  chunkSize?: number; // バイト単位（デフォルト: 50000）
-  parallelProcessing?: boolean; // 並列処理有効化
-  maxParallelChunks?: number; // 最大並列数
-  memoryOptimization?: boolean; // メモリ最適化有効化
-  progressCallback?: (progress: number, totalChunks: number) => void; // 進捗コールバック
-}
+// ProcessingOptions は chunk-processor.ts からインポート
 
 // 抽出結果の型定義
 export interface IntelligentExtractionResult {
@@ -95,21 +97,10 @@ export interface IntelligentExtractionResult {
   predictiveExtraction?: PredictiveExtractionResult;
 }
 
-export interface ClassifiedConcept {
-  term: string;
-  classification: 'surface' | 'deep';
-  confidence: number;
-  reasoning: string;
-  matchedPatterns: string[];
-}
+// ClassifiedConcept型はconcept-classifier.tsからインポート
+export type ClassifiedConcept = ImportedClassifiedConcept;
 
-export interface TimeRevolutionMarker {
-  marker: string;
-  timeExpression: string;
-  efficiency: 'moderate' | 'high' | 'revolutionary';
-  context: string;
-  position: number;
-}
+// TimeRevolutionMarkerは time-marker-detector.ts からインポート
 
 // Phase 2: 動的学習用の型定義
 export interface ManualAnalysisInput {
@@ -129,22 +120,9 @@ export interface DynamicLearningResult {
   improvedAccuracy: number;
 }
 
-// Phase 2: 予測的概念抽出用の型定義
-export interface PredictiveConcept {
-  term: string;
-  probability: number;
-  predictedClassification: 'surface' | 'deep';
-  reasoning: string;
-  contextClues: string[];
-  emergenceIndicators: string[];
-}
+// PredictiveConcept および PredictiveExtractionResult型は predictive-extractor.ts からインポート
 
-export interface PredictiveExtractionResult {
-  predictedConcepts: PredictiveConcept[];
-  emergentPatterns: string[];
-  hiddenConnections: string[];
-  conceptEvolutionPrediction: string[];
-}
+// 型定義は分離モジュールからインポート済み
 
 export interface QualityPrediction {
   conceptDensity: number;
@@ -173,7 +151,6 @@ export interface RealTimeQualityMetrics {
 export class IntelligentConceptExtractor {
   private learningData: AnalysisResultsDB | null = null;
   private conceptPatterns: Map<string, ConceptPattern> = new Map();
-  private timePatterns: RegExp[] = [];
   private innovationIndicators: string[] = [];
   private tokenizer: any = null;
   private _isInitialized: boolean = false;
@@ -184,10 +161,15 @@ export class IntelligentConceptExtractor {
   private configManager: ConceptExtractionConfigManager;
   private sessionLearningSystem: SessionLearningSystem;
   
-  // 🚀 Phase 4キャッシュシステム: 概念抽出結果キャッシュ
-  private extractionCache: Map<string, IntelligentExtractionResult> = new Map();
-  private readonly MAX_CACHE_SIZE = 100; // LRU制限
-  private cacheAccessOrder: string[] = []; // LRU管理用
+  // 分離された分析システム
+  private phenomenonDetector: PhenomenonDetector;
+  private dialoguePhaseAnalyzer: DialoguePhaseAnalyzer;
+  private academicValueAssessor: AcademicValueAssessor;
+  private timeMarkerDetector: TimeMarkerDetector;
+  private cacheManager: ConceptExtractionCacheManager;
+  private conceptClassifier: ConceptClassifier;
+  private predictiveExtractor: PredictiveExtractor;
+  private chunkProcessor: ChunkProcessor;
 
   constructor(
     private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json',
@@ -195,7 +177,16 @@ export class IntelligentConceptExtractor {
   ) {
     this.configManager = new ConceptExtractionConfigManager();
     this.sessionLearningSystem = new SessionLearningSystem();
-    this.initializeTimePatterns();
+    
+    // 分離された分析システムを初期化
+    this.phenomenonDetector = new PhenomenonDetector();
+    this.dialoguePhaseAnalyzer = new DialoguePhaseAnalyzer();
+    this.academicValueAssessor = new AcademicValueAssessor();
+    this.timeMarkerDetector = new TimeMarkerDetector();
+    this.cacheManager = new ConceptExtractionCacheManager();
+    this.conceptClassifier = new ConceptClassifier();
+    this.predictiveExtractor = new PredictiveExtractor();
+    this.chunkProcessor = new ChunkProcessor();
   }
 
   /**
@@ -227,7 +218,23 @@ export class IntelligentConceptExtractor {
       await this.learnConceptPatterns();
       await this.learnInnovationIndicators();
       
-      console.log(`🧠 パターン学習完了: ${this.conceptPatterns.size}概念パターン`);
+      // ConceptClassifierに学習パターンを設定
+      this.conceptClassifier.updatePatterns(this.conceptPatterns);
+      this.conceptClassifier.updateRevolutionaryKeywords(this.revolutionaryKeywords);
+      
+      // PredictiveExtractorに学習パターンを設定
+      this.predictiveExtractor.updatePatterns(this.conceptPatterns);
+      this.predictiveExtractor.updateInnovationIndicators(this.innovationIndicators);
+      this.predictiveExtractor.updateRevolutionaryKeywords(this.revolutionaryKeywords);
+      
+      // ChunkProcessorにトークナイザーを設定
+      this.chunkProcessor.setTokenizer(this.tokenizer);
+      
+      // 分離クラスの統計取得
+      const phenomenonStats = this.phenomenonDetector.getPhenomenonStats();
+      const timeStats = this.timeMarkerDetector.getPatternStats();
+      
+      console.log(`🧠 パターン学習完了: ${this.conceptPatterns.size}概念パターン, ${phenomenonStats.patternCount}現象パターン, ${timeStats.patternCount}時間パターン`);
       
       this._isInitialized = true;
       
@@ -271,41 +278,6 @@ export class IntelligentConceptExtractor {
   /**
    * 大容量ファイル対応: チャンク分割トークン化（性能最適化）
    */
-  private tokenizeInChunks(content: string, chunkSize: number = 10000): any[] {
-    const chunks = [];
-    let currentIndex = 0;
-    
-    // 文境界でチャンク分割
-    while (currentIndex < content.length) {
-      const endIndex = Math.min(currentIndex + chunkSize, content.length);
-      let chunkEnd = endIndex;
-      
-      // 文の境界で分割（。または\nで終了）
-      if (chunkEnd < content.length) {
-        const sentenceEnd = content.lastIndexOf('。', chunkEnd);
-        const lineEnd = content.lastIndexOf('\n', chunkEnd);
-        chunkEnd = Math.max(sentenceEnd, lineEnd, currentIndex + chunkSize * 0.5);
-      }
-      
-      chunks.push(content.substring(currentIndex, chunkEnd));
-      currentIndex = chunkEnd;
-    }
-    
-    console.log(`⚡ Kuromoji高速化: ${content.length}B → ${chunks.length}チャンクに分割`);
-    
-    // 各チャンクを並列でトークン化
-    const allTokens: any[] = [];
-    for (const chunk of chunks) {
-      try {
-        const chunkTokens = this.tokenizer.tokenize(chunk);
-        allTokens.push(...chunkTokens);
-      } catch (error) {
-        console.warn('チャンクトークン化エラー:', error);
-      }
-    }
-    
-    return allTokens;
-  }
 
   /**
    * メイン抽出関数 - プロトコル v1.0完全自動適用 + Phase 2動的学習 + Phase 3性能最適化 + Phase 4キャッシュ
@@ -315,13 +287,11 @@ export class IntelligentConceptExtractor {
       throw new Error('学習データが初期化されていません。initialize()を呼び出してください。');
     }
 
-    // 🚀 Phase 4キャッシュ最適化: キャッシュキー生成とチェック
-    const cacheKey = this.generateCacheKey(logContent, manualAnalysis, options);
-    
-    if (this.extractionCache.has(cacheKey)) {
+    // 🚀 Phase 4キャッシュ最適化: 分離されたCacheManagerを使用
+    const cachedResult = this.cacheManager.getCachedResult(logContent, { manualAnalysis, options });
+    if (cachedResult) {
       console.log('⚡ キャッシュから概念抽出結果を取得');
-      this.updateCacheAccess(cacheKey);
-      return this.extractionCache.get(cacheKey)!;
+      return cachedResult;
     }
 
     const startTime = Date.now();
@@ -343,7 +313,7 @@ export class IntelligentConceptExtractor {
     }
     
     // Step 1: 基本概念抽出
-    const rawConcepts = this.extractRawConcepts(logContent);
+    const rawConcepts = await this.extractRawConcepts(logContent);
     console.log(`📝 基本概念抽出: ${rawConcepts.length}個`);
     
     // Step 2: 表面vs深層の自動分類
@@ -351,14 +321,14 @@ export class IntelligentConceptExtractor {
     console.log(`🎯 分類完了: 表面${surfaceConcepts.length}個, 深層${deepConcepts.length}個`);
     
     // Step 3: 時間革命マーカーの検出
-    const timeRevolutionMarkers = this.detectTimeRevolutionMarkers(logContent);
+    const timeRevolutionMarkers = this.timeMarkerDetector.detectTimeRevolutionMarkers(logContent);
     console.log(`⚡ 時間革命マーカー: ${timeRevolutionMarkers.length}個`);
     
     // Step 4: 新概念検出とボーナス適用
     const newConceptDetection = this.detectNewConcepts(deepConcepts, logContent);
     
     // Step 5: 革新度・社会的インパクトの予測（新概念ボーナス適用）
-    const baseInnovationLevel = this.predictInnovationLevel(deepConcepts, timeRevolutionMarkers, logContent);
+    const baseInnovationLevel = this.predictiveExtractor.predictInnovationLevelFromConcepts(deepConcepts, timeRevolutionMarkers, logContent);
     const innovationPrediction = this.applyNewConceptBonus(baseInnovationLevel, newConceptDetection, deepConcepts);
     const socialImpactPrediction = this.predictSocialImpact(deepConcepts, innovationPrediction);
     
@@ -366,13 +336,13 @@ export class IntelligentConceptExtractor {
     const dialogueType = this.detectDialogueType(logContent);
     
     // Step 7: 品質予測
-    const qualityPrediction = this.predictQuality(surfaceConcepts, deepConcepts, timeRevolutionMarkers);
+    const qualityPrediction = this.predictiveExtractor.predictQualityFromConcepts(surfaceConcepts, deepConcepts, timeRevolutionMarkers);
     
     // Step 8: 類似パターンの検出
     const similarPatterns = this.findSimilarPatterns(deepConcepts);
     
     // Phase 2: Step 9: 予測的概念抽出（セッション学習統合）
-    const predictiveExtraction = await this.performPredictiveExtraction(logContent, surfaceConcepts, deepConcepts);
+    const predictiveExtraction = await this.predictiveExtractor.performPredictiveExtraction(logContent, [...surfaceConcepts, ...deepConcepts].map(c => c.term));
     console.log(`🔮 予測的抽出: ${predictiveExtraction.predictedConcepts.length}個の潜在概念`);
     
     const processingTime = Date.now() - startTime;
@@ -409,7 +379,7 @@ export class IntelligentConceptExtractor {
     }
     
     // 🚀 Phase 4キャッシュ最適化: 結果をキャッシュに保存
-    this.addToCache(cacheKey, result);
+    this.cacheManager.cacheResult(logContent, result, { manualAnalysis, options });
     
     return result;
   }
@@ -424,7 +394,12 @@ export class IntelligentConceptExtractor {
   ): Promise<IntelligentExtractionResult> {
     const startTime = Date.now();
     const chunkSize = options?.chunkSize || 15000; // 15KB default (50KB→15KB高速化)
-    const parallelChunks = options?.parallelProcessing !== false ? 4 : 1; // デフォルトで並列処理有効
+    
+    // Step 1: コンテンツをチャンクに分割（並列度計算に必要）
+    const chunks = this.chunkProcessor.splitIntoChunks(logContent, chunkSize);
+    
+    // 動的並列度調整（バッチ処理との競合考慮）
+    const parallelChunks = this.chunkProcessor.calculateOptimalParallelChunks(logContent, chunks.length, options);
     
     console.log(`🔧 チャンク分割設定: ${chunkSize}バイト/チャンク, 並列度${parallelChunks}`);
     
@@ -440,8 +415,6 @@ export class IntelligentConceptExtractor {
       console.log('🧠 動的学習実行完了');
     }
     
-    // Step 1: 内容をチャンクに分割
-    const chunks = this.splitIntoChunks(logContent, chunkSize);
     console.log(`📄 ${chunks.length}チャンクに分割完了`);
     
     // Step 2: 各チャンクから概念を並列抽出
@@ -451,9 +424,9 @@ export class IntelligentConceptExtractor {
     
     // 並列処理または逐次処理
     if (parallelChunks > 1) {
-      await this.processChunksInParallel(chunks, parallelChunks, allSurfaceConcepts, allDeepConcepts, allTimeMarkers);
+      await this.processChunksUsingProcessor(chunks, parallelChunks, allSurfaceConcepts, allDeepConcepts, allTimeMarkers, true);
     } else {
-      await this.processChunksSequentially(chunks, allSurfaceConcepts, allDeepConcepts, allTimeMarkers);
+      await this.processChunksUsingProcessor(chunks, 1, allSurfaceConcepts, allDeepConcepts, allTimeMarkers, false);
     }
     
     // Step 3: 結果をマージ・重複除去・最適化
@@ -464,15 +437,15 @@ export class IntelligentConceptExtractor {
     
     // Step 4: 統合分析（全体コンテキストで実行）
     const newConceptDetection = this.detectNewConcepts(deepConcepts, logContent);
-    const baseInnovationLevel = this.predictInnovationLevel(deepConcepts, timeRevolutionMarkers, logContent);
+    const baseInnovationLevel = this.predictiveExtractor.predictInnovationLevelFromConcepts(deepConcepts, timeRevolutionMarkers, logContent);
     const innovationPrediction = this.applyNewConceptBonus(baseInnovationLevel, newConceptDetection, deepConcepts);
-    const socialImpactPrediction = this.predictSocialImpact(deepConcepts, innovationPrediction);
+    const socialImpactPrediction = this.predictiveExtractor.predictSocialImpactFromConcepts(deepConcepts, innovationPrediction);
     const dialogueType = this.detectDialogueType(logContent);
-    const qualityPrediction = this.predictQuality(surfaceConcepts, deepConcepts, timeRevolutionMarkers);
+    const qualityPrediction = this.predictiveExtractor.predictQualityFromConcepts(surfaceConcepts, deepConcepts, timeRevolutionMarkers);
     const similarPatterns = this.findSimilarPatterns(deepConcepts);
     
     // Phase 2: 予測的概念抽出（チャンク処理済みデータを使用・セッション学習統合）
-    const predictiveExtraction = await this.performPredictiveExtraction(logContent, surfaceConcepts, deepConcepts);
+    const predictiveExtraction = await this.predictiveExtractor.performPredictiveExtraction(logContent, [...surfaceConcepts, ...deepConcepts].map(c => c.term));
     console.log(`🔮 予測的抽出: ${predictiveExtraction.predictedConcepts.length}個の潜在概念`);
     
     const processingTime = Date.now() - startTime;
@@ -498,9 +471,126 @@ export class IntelligentConceptExtractor {
     console.log(`⚡ チャンク処理完了 (${processingTime}ms, ${chunks.length}チャンク): 革新度${innovationPrediction}/10`);
     
     // メモリ最適化: 大きな一時データをクリア
-    this.performMemoryCleanup();
+    this.cacheManager.performMemoryCleanup();
     
     return result;
+  }
+
+  /**
+   * ChunkProcessorを使用したチャンク処理アダプター
+   */
+  private async processChunksUsingProcessor(
+    chunks: string[],
+    maxConcurrency: number,
+    allSurfaceConcepts: ClassifiedConcept[],
+    allDeepConcepts: ClassifiedConcept[],
+    allTimeMarkers: TimeRevolutionMarker[],
+    useParallel: boolean
+  ): Promise<void> {
+    // チャンク処理関数の定義
+    const processChunk = async (chunk: string, index: number) => {
+      const chunkSurfaceConcepts: ClassifiedConcept[] = [];
+      const chunkDeepConcepts: ClassifiedConcept[] = [];
+      const chunkTimeMarkers: TimeRevolutionMarker[] = [];
+      
+      // 基本的な概念抽出
+      const basicConcepts = this.extractBasicConceptsFromChunk(chunk);
+      const { surfaceConcepts, deepConcepts } = await this.classifyConcepts(basicConcepts, chunk);
+      
+      // 概念を分類
+      chunkSurfaceConcepts.push(...surfaceConcepts);
+      chunkDeepConcepts.push(...deepConcepts);
+      
+      // 時間革命マーカーの検出
+      const timeMarkers = this.timeMarkerDetector.detectTimeRevolutionMarkers(chunk);
+      chunkTimeMarkers.push(...timeMarkers);
+      
+      return {
+        surfaceConcepts: chunkSurfaceConcepts,
+        deepConcepts: chunkDeepConcepts,
+        timeMarkers: chunkTimeMarkers
+      };
+    };
+    
+    // 並列または逐次処理
+    const options: ProcessingOptions = {
+      useParallelProcessing: useParallel,
+      maxConcurrency,
+      enableDetailedLogging: true
+    };
+    
+    let results;
+    if (useParallel) {
+      results = await this.chunkProcessor.processChunksInParallel(chunks, processChunk, options);
+    } else {
+      results = await this.chunkProcessor.processChunksSequentially(chunks, processChunk, options);
+    }
+    
+    // 結果をマージ
+    for (const result of results) {
+      if (result) {
+        allSurfaceConcepts.push(...result.surfaceConcepts);
+        allDeepConcepts.push(...result.deepConcepts);
+        allTimeMarkers.push(...result.timeMarkers);
+      }
+    }
+  }
+
+  /**
+   * チャンクから基本概念を抽出
+   */
+  private extractBasicConceptsFromChunk(chunk: string): string[] {
+    // 既存の概念抽出ロジックを簡素化して使用
+    const concepts: string[] = [];
+    
+    // 形態素解析ベースの抽出（簡易版）
+    try {
+      if (this.tokenizer) {
+        const tokens = this.tokenizer.tokenize(chunk);
+        tokens.forEach((token: any) => {
+          if (token.part_of_speech.startsWith('名詞') && token.surface_form.length >= 2) {
+            concepts.push(token.surface_form);
+          }
+        });
+      }
+    } catch (error) {
+      console.warn('チャンク形態素解析エラー:', error);
+    }
+    
+    // パターンベースの抽出（バックアップ）
+    const patternConcepts = this.extractConceptsByRegexPatterns(chunk);
+    concepts.push(...patternConcepts);
+    
+    // 重複除去
+    return [...new Set(concepts)].filter(concept => concept.length >= 2);
+  }
+
+  /**
+   * 正規表現パターンによる概念抽出（簡易版）
+   */
+  private extractConceptsByRegexPatterns(content: string): string[] {
+    const concepts: string[] = [];
+    
+    // 基本的な概念パターン
+    const patterns = [
+      /([一-龯]{2,10})(理論|システム|手法|アプローチ|モデル)/g,
+      /([一-龯]{2,8})(的|性)/g,
+      /(メタ|構造|動的|統合)([一-龯]{2,8})/g
+    ];
+    
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(content)) !== null) {
+        if (match[1] && match[1].length >= 2) {
+          concepts.push(match[1]);
+        }
+        if (match[0] && match[0].length >= 2) {
+          concepts.push(match[0]);
+        }
+      }
+    }
+    
+    return concepts;
   }
 
   /**
@@ -516,7 +606,7 @@ export class IntelligentConceptExtractor {
     }
     
     // 明示的な並列処理要求
-    if (options?.parallelProcessing) {
+    if (options?.useParallelProcessing) {
       return true;
     }
     
@@ -569,9 +659,9 @@ export class IntelligentConceptExtractor {
       try {
         console.log(`🔄 チャンク${index + 1}/${chunks.length}処理中...`);
         
-        const rawConcepts = this.extractRawConcepts(chunk);
+        const rawConcepts = await this.extractRawConcepts(chunk);
         const { surfaceConcepts, deepConcepts } = await this.classifyConcepts(rawConcepts, chunk);
-        const timeMarkers = this.detectTimeRevolutionMarkers(chunk);
+        const timeMarkers = this.timeMarkerDetector.detectTimeRevolutionMarkers(chunk);
         
         // 結果をマージ
         allSurfaceConcepts.push(...surfaceConcepts);
@@ -615,9 +705,9 @@ export class IntelligentConceptExtractor {
       console.log(`🔄 チャンク${i + 1}/${chunks.length}処理中...`);
       
       const chunk = chunks[i];
-      const rawConcepts = this.extractRawConcepts(chunk);
+      const rawConcepts = await this.extractRawConcepts(chunk);
       const { surfaceConcepts, deepConcepts } = await this.classifyConcepts(rawConcepts, chunk);
-      const timeMarkers = this.detectTimeRevolutionMarkers(chunk);
+      const timeMarkers = this.timeMarkerDetector.detectTimeRevolutionMarkers(chunk);
       
       allSurfaceConcepts.push(...surfaceConcepts);
       allDeepConcepts.push(...deepConcepts);
@@ -693,15 +783,7 @@ export class IntelligentConceptExtractor {
   /**
    * Phase 3: メモリクリーンアップ
    */
-  private performMemoryCleanup(): void {
-    // JavaScriptでは明示的なメモリ解放は不要だが、
-    // 大きなオブジェクトへの参照をクリアしてGCを促進
-    if (global.gc) {
-      global.gc();
-    }
-    
-    console.log('🧹 メモリクリーンアップ実行');
-  }
+  // performMemoryCleanup は CacheManager に分離済み
 
   /**
    * 学習データから概念パターンを抽出
@@ -766,18 +848,7 @@ export class IntelligentConceptExtractor {
     });
   }
 
-  /**
-   * 時間革命パターンの初期化
-   */
-  private initializeTimePatterns(): void {
-    this.timePatterns = [
-      /(\d+分|数分|短時間|瞬時|即座|一瞬)で([^。]+)/g,
-      /(\d+時間|昼休み|休憩時間)で([^。]+)/g,
-      /(30分|2-3時間|短期間|高速|効率的)([^。]+)/g,
-      /(従来の\d+倍|劇的な効率|革命的な速度)/g,
-      /(時間革命|効率革命|速度向上)/g
-    ];
-  }
+  // initializeTimePatterns は TimeMarkerDetector に分離済み
 
   /**
    * メタ概念設定の読み込み
@@ -835,7 +906,7 @@ export class IntelligentConceptExtractor {
   /**
    * 生の概念抽出（形態素解析中心・品質重視）
    */
-  private extractRawConcepts(content: string): string[] {
+  private async extractRawConcepts(content: string): Promise<string[]> {
     const startTime = Date.now();
     console.log(`🔬 概念抽出開始: ${content.length}バイトファイル`);
     const concepts: Set<string> = new Set();
@@ -845,7 +916,7 @@ export class IntelligentConceptExtractor {
       try {
         // 大容量ファイルの場合、チャンク分割してトークン化（性能大幅改善）
         const tokens = content.length > 50000 
-          ? this.tokenizeInChunks(content, 10000) // 10KB単位でチャンク化
+          ? await this.chunkProcessor.tokenizeInChunks(content) // 10KB単位でチャンク化
           : this.tokenizer.tokenize(content);
         const compoundConcepts: string[] = [];
         
@@ -1102,19 +1173,19 @@ export class IntelligentConceptExtractor {
     const surfaceConcepts: ClassifiedConcept[] = [];
     const deepConcepts: ClassifiedConcept[] = [];
     
-    // 並列処理で概念分類を高速化（バッチサイズ50）
-    const batchSize = 50;
+    // 動的バッチサイズ最適化（チャンク並列との競合考慮）
+    const optimalBatchSize = this.calculateOptimalBatchSize(rawConcepts.length, content);
     const batches = [];
     
-    for (let i = 0; i < rawConcepts.length; i += batchSize) {
-      const batch = rawConcepts.slice(i, i + batchSize);
+    for (let i = 0; i < rawConcepts.length; i += optimalBatchSize) {
+      const batch = rawConcepts.slice(i, i + optimalBatchSize);
       batches.push(batch);
     }
     
-    console.log(`⚡ 概念分類高速化: ${rawConcepts.length}概念を${batches.length}バッチで並列処理`);
+    console.log(`⚡ 最適化概念分類: ${rawConcepts.length}概念を${batches.length}バッチ(サイズ${optimalBatchSize})で処理`);
     
     for (const batch of batches) {
-      const batchPromises = batch.map(concept => this.classifySingleConcept(concept, content));
+      const batchPromises = batch.map(concept => this.conceptClassifier.classifySingleConcept(concept, content));
       const batchResults = await Promise.all(batchPromises);
       
       for (const classification of batchResults) {
@@ -1142,52 +1213,6 @@ export class IntelligentConceptExtractor {
   /**
    * 単一概念の分類
    */
-  private async classifySingleConcept(concept: string, content: string): Promise<ClassifiedConcept> {
-    const knownPattern = this.conceptPatterns.get(concept);
-    const matchedPatterns: string[] = [];
-    let confidence = 0.5;
-    let classification: 'surface' | 'deep' = 'surface';
-    let reasoning = '基本的な概念として分類';
-
-    // 学習済みパターンとのマッチング（優先度大幅向上）
-    if (knownPattern) {
-      classification = knownPattern.type as 'surface' | 'deep';
-      
-      // 既知概念の信頼度を大幅強化
-      if (knownPattern.type === 'deep') {
-        confidence = Math.min(0.95, 0.8 + (knownPattern.frequency * 0.05) + (knownPattern.innovationLevel * 0.01));
-      } else {
-        confidence = Math.min(0.8, 0.6 + (knownPattern.frequency * 0.05));
-      }
-      
-      reasoning = `学習データ(確定): ${knownPattern.frequency}回出現, 革新度${knownPattern.innovationLevel}`;
-      matchedPatterns.push(`learned_pattern_${knownPattern.type}_priority`);
-      
-      // 既知概念は追加分析をスキップ（確定扱い）
-      return {
-        term: concept,
-        classification,
-        confidence,
-        reasoning,
-        matchedPatterns
-      };
-    } else {
-      // 新規概念の分析（既知概念がない場合のみ）
-      const analysisResult = this.analyzeNewConcept(concept, content);
-      classification = analysisResult.classification;
-      confidence = analysisResult.confidence;
-      reasoning = `新規: ${analysisResult.reasoning}`;
-      matchedPatterns.push(...analysisResult.patterns);
-    }
-
-    return {
-      term: concept,
-      classification,
-      confidence,
-      reasoning,
-      matchedPatterns
-    };
-  }
 
   /**
    * 深層概念の品質バランス調整
@@ -1199,8 +1224,8 @@ export class IntelligentConceptExtractor {
     
     // 新規概念の品質強化：文脈重要度で再評価
     const enhancedNewConcepts = newConcepts.map(concept => {
-      const contextualScore = this.calculateContextualImportance(concept.term, content);
-      const semanticDepth = this.analyzeSemanticDepth(concept.term, content);
+      const contextualScore = this.conceptClassifier.calculateContextualImportance(concept.term, content);
+      const semanticDepth = this.conceptClassifier.analyzeSemanticDepth(concept.term, content);
       
       // 信頼度を文脈ベースで調整
       concept.confidence = Math.min(0.9, concept.confidence + contextualScore * 0.3 + semanticDepth * 0.2);
@@ -1221,246 +1246,34 @@ export class IntelligentConceptExtractor {
     return balancedConcepts.sort((a, b) => b.confidence - a.confidence);
   }
 
+
   /**
-   * 意味的深度の分析
+   * 最適並列度の動的計算（チャンク vs バッチ処理の競合解決）
    */
-  private analyzeSemanticDepth(concept: string, content: string): number {
-    let depthScore = 0;
+
+  /**
+   * 最適バッチサイズの動的計算
+   */
+  private calculateOptimalBatchSize(conceptCount: number, content: string): number {
+    const contentSize = Buffer.byteLength(content, 'utf8');
+    const isChunkedProcessing = contentSize > 100000; // 100KB threshold
     
-    // 抽象度指標
-    const abstractionIndicators = ['理論', 'モデル', 'システム', 'フレームワーク', 'パラダイム', '構造'];
-    if (abstractionIndicators.some(ind => concept.includes(ind))) {
-      depthScore += 0.3;
+    if (isChunkedProcessing) {
+      // チャンク並列処理中は、並列リソース競合を避けるため小バッチ
+      if (conceptCount <= 20) return conceptCount; // 小さければ全て一括
+      return Math.min(25, Math.ceil(conceptCount / 4)); // 並列度を制限
+    } else {
+      // 単一チャンクなら大バッチで並列フル活用
+      if (conceptCount <= 10) return conceptCount;
+      if (conceptCount <= 50) return Math.ceil(conceptCount / 2); // 2バッチ
+      return 50; // 大量なら50概念バッチ
     }
-    
-    // 関連性密度（周辺での言及頻度）
-    const contextMentions = content.split(concept).length - 1;
-    if (contextMentions >= 3) depthScore += 0.2;
-    
-    // 複合性（文字数・複雑さ）
-    if (concept.length > 8) depthScore += 0.15;
-    
-    // 新規性（既存パターンとの差異）
-    const isNovelCombination = this.detectNovelCombination(concept);
-    if (isNovelCombination) depthScore += 0.25;
-    
-    return Math.min(1.0, depthScore);
   }
 
   /**
    * 新規概念組み合わせの検出
    */
-  private detectNovelCombination(concept: string): boolean {
-    // 複合語の検出
-    const parts = concept.split(/[・、＋\s]+/);
-    if (parts.length >= 2) {
-      // 各部分が既知でも組み合わせが新規なら革新的
-      const hasKnownParts = parts.some(part => this.conceptPatterns.has(part));
-      const hasNovelParts = parts.some(part => !this.conceptPatterns.has(part));
-      return hasKnownParts && hasNovelParts;
-    }
-    
-    // 既知概念の拡張形
-    for (const [knownConcept] of this.conceptPatterns) {
-      if (concept.includes(knownConcept) && concept.length > knownConcept.length + 2) {
-        return true;
-      }
-    }
-    
-    return false;
-  }
 
-  /**
-   * 新規概念の分析
-   */
-  private analyzeNewConcept(concept: string, content: string): {
-    classification: 'surface' | 'deep';
-    confidence: number;
-    reasoning: string;
-    patterns: string[];
-  } {
-    const patterns: string[] = [];
-    let score = 0;
-    let reasoning = '';
-
-    // 革新指標との類似性
-    const isInnovationRelated = this.innovationIndicators.some(indicator => 
-      concept.includes(indicator) || indicator.includes(concept)
-    );
-    if (isInnovationRelated) {
-      score += 0.4;
-      patterns.push('innovation_similarity');
-      reasoning += '革新概念との類似性, ';
-    }
-
-    // 文脈分析
-    const contextScore = this.analyzeConceptContext(concept, content);
-    score += contextScore.score;
-    
-    // Phase 2: 文脈重要度算出による調整
-    const contextualImportance = this.calculateContextualImportance(concept, content);
-    score += contextualImportance * 0.3; // 文脈重要度の影響を追加
-    patterns.push(...contextScore.patterns);
-    reasoning += contextScore.reasoning;
-
-    // 複雑性分析
-    if (concept.length > 6 || concept.includes('理論') || concept.includes('システム') || concept.includes('手法') || concept.includes('構造')) {
-      score += 0.2;
-      patterns.push('complexity');
-      reasoning += '複雑性, ';
-    }
-
-    // 外部設定ファイルによるストップワード除外
-    const stopWords = this.configManager.getFlatStopWords();
-    const thresholds = this.configManager.getThresholds();
-    
-    if (stopWords.includes(concept) || concept.length <= thresholds.minConceptLength) {
-      score = thresholds.stopWordExclusionScore; // 設定から取得
-      patterns.push('stopword_excluded');
-      reasoning += 'ストップワード強制除外, ';
-    }
-    
-    // 設定ファイルからの概念指標取得
-    const revolutionaryIndicators = [
-      ...this.configManager.getRevolutionaryIndicators(),
-      ...this.configManager.getConfigStats().version ? this.configManager.getStructuralInnovativeTerms() : []
-    ];
-    
-    const commonTechTerms = this.configManager.getStopWordsByCategory('commonTechTerms');
-    const structuralBasicTerms = this.configManager.getStopWordsByCategory('dialogueBasic');
-    
-    const hasRevolutionary = revolutionaryIndicators.some(indicator => 
-      concept.includes(indicator) || content.includes(concept + indicator) || content.includes(indicator + concept)
-    );
-    
-    const isCommonTech = commonTechTerms.some(term => concept.includes(term));
-    const isStructuralBasic = structuralBasicTerms.some(term => concept.includes(term) || term.includes(concept));
-    
-    if (hasRevolutionary && !isCommonTech && !isStructuralBasic) {
-      score += 0.5; // 真の革新概念により高スコア
-      patterns.push('revolutionary_indicator');
-      reasoning += '革命的概念指標, ';
-    } else if (isCommonTech) {
-      score -= 0.2; // 一般技術用語はスコア減点
-      patterns.push('common_tech_penalty');
-      reasoning += '一般技術用語減点, ';
-    } else if (isStructuralBasic) {
-      score -= 0.1; // 構造的対話基本用語は軽減点
-      patterns.push('structural_basic_penalty');
-      reasoning += '構造基本用語, ';
-    }
-    
-    // 構造的対話特有の革新概念を評価
-    const structuralInnovativeTerms = [
-      '構造ハック', '構造突破', '構造革命', '構造発見', '構造創出', '構造生成',
-      'レイヤード・プロンプティング', 'セーブデータ理論', '構造的協働思考',
-      '概念共同生成', 'コンテキスト圧縮', '応答固定化'
-    ];
-    
-    const isStructuralInnovative = structuralInnovativeTerms.some(term => 
-      concept.includes(term) || term.includes(concept)
-    );
-    
-    if (isStructuralInnovative) {
-      score += 0.4; // 構造的対話の革新概念
-      patterns.push('structural_innovative');
-      reasoning += '構造対話革新概念, ';
-    }
-
-    // 教育・学習支援分野の革新概念
-    const educationalInnovativeTerms = [
-      '構造的抽出', '論理構造', '関係性抽出', '階層構造', '多角的分析',
-      '内省促進', '思考深化', 'メタ認知', '認知構造', '学習促進',
-      '知識構造化', '概念体系', '思考フレームワーク', '認知プロセス'
-    ];
-    
-    const isEducationalInnovative = educationalInnovativeTerms.some(term => 
-      concept.includes(term) || term.includes(concept)
-    );
-    
-    if (isEducationalInnovative) {
-      score += 0.3; // 教育革新概念
-      patterns.push('educational_innovative');
-      reasoning += '教育革新概念, ';
-    }
-
-    // 技術・開発分野の革新概念
-    const technicalInnovativeTerms = [
-      '再帰的対話', '文脈保持', '相互作用手法', '思考のパートナー', '文脈追跡',
-      '再現可能な知識創造', '対話履歴活用', '進化する目標', '知識創造',
-      'AI-人間協働', '共同アイデア発展', '対話型開発', 'コラボラティブ思考',
-      '文脈継承', '対話設計', 'インタラクティブシステム', '協働プラットフォーム',
-      // 生体エネルギー・ナノ技術革新概念（ログ8対応）
-      'バイオエナジーハーベスティング', '逆電気透析', 'RED', 'ナノ流体', 'E-Fluid',
-      '酵素バイオ燃料セル', 'EFC', '熱電発電', 'ピエゾ電圧素子', '人工血液',
-      'HBOC', 'エネルギー循環', '生体適合性', 'ナノボット液', 'Thirium', 
-      'ブルーブラッド', 'バイオコンポーネント', '合成臓器', 'サイバーライフ'
-    ];
-    
-    const isTechnicalInnovative = technicalInnovativeTerms.some(term => 
-      concept.includes(term) || term.includes(concept)
-    );
-    
-    if (isTechnicalInnovative) {
-      score += 0.35; // 技術革新概念
-      patterns.push('technical_innovative');
-      reasoning += '技術革新概念, ';
-    }
-
-    // フィクション・ゲーム関連の革新概念
-    const fictionInnovativeTerms = [
-      'Detroit', 'Become Human', 'アンドロイド', 'CyberLife', '2038年',
-      'Thirium', 'ブルーブラッド', 'バイオコンポーネント', '合成臓器',
-      'ポンプ', 'シャットダウン', 'マーカー', '識別', '摂取',
-      '紗季', 'クウコ', 'ユウト', 'Grok Vision'
-    ];
-    
-    const isFictionInnovative = fictionInnovativeTerms.some(term => 
-      concept.includes(term) || term.includes(concept)
-    );
-    
-    if (isFictionInnovative) {
-      score += 0.3; // フィクション革新概念
-      patterns.push('fiction_innovative');
-      reasoning += 'フィクション革新概念, ';
-    }
-
-    // 数学・科学分野の専門用語
-    const mathScienceTerms = ['予想', '定理', '証明', '解', '関数', '軌道', '収束', '発散', '吸収', '減衰', '統一', '変換', '写像', '群', '環', '体', '空間', '次元', '位相', '測度'];
-    if (mathScienceTerms.some(term => concept.includes(term) || term.includes(concept))) {
-      score += 0.3;
-      patterns.push('math_science_term');
-      reasoning += '数学・科学専門用語, ';
-    }
-
-    // 複合語（理論、システム、手法）は深層概念候補
-    if (concept.includes('理論') || concept.includes('システム') || concept.includes('手法') || concept.includes('アプローチ') || concept.includes('構造')) {
-      score += 0.35;
-      patterns.push('compound_deep_concept');
-      reasoning += '複合深層概念, ';
-    }
-
-    // 深層概念の調整された閾値：ドメイン別適応
-    let deepThreshold = 0.75; // デフォルト（厳格）
-    
-    // ドメイン別閾値調整
-    if (patterns.includes('compound_deep_concept') || patterns.includes('math_science_term')) {
-      deepThreshold = 0.65; // 学術・技術系は少し緩和
-    }
-    if (patterns.includes('innovation_similarity')) {
-      deepThreshold = 0.6; // 教育・思考支援系も緩和
-    }
-    
-    const classification = score > deepThreshold ? 'deep' : 'surface';
-    const confidence = Math.min(0.9, Math.max(0.2, score));
-
-    return {
-      classification,
-      confidence,
-      reasoning: reasoning.replace(/, $/, ''),
-      patterns
-    };
-  }
 
   /**
    * 概念の文脈分析（重複除去強化）
@@ -1506,176 +1319,18 @@ export class IntelligentConceptExtractor {
    * Phase 2: 文脈重要度算出システム
    * 頻度に依存しない概念の文脈的重要度を算出
    */
-  private calculateContextualImportance(concept: string, content: string): number {
-    let importance = 0;
-    
-    // 1. 構造的重要度（概念の文脈的位置）
-    const structuralImportance = this.calculateStructuralImportance(concept, content);
-    importance += structuralImportance * 0.4;
-    
-    // 2. セマンティック重要度（意味的関連性）
-    const semanticImportance = this.calculateSemanticImportance(concept, content);
-    importance += semanticImportance * 0.3;
-    
-    // 3. 革新性重要度（新規概念との関連）
-    const innovationImportance = this.calculateInnovationImportance(concept, content);
-    importance += innovationImportance * 0.3;
-    
-    return Math.min(1.0, importance);
-  }
 
   /**
    * 構造的重要度算出（文章内での位置・役割）
    */
-  private calculateStructuralImportance(concept: string, content: string): number {
-    let score = 0;
-    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    
-    // 文章の構造的要素での出現
-    const sentences = content.split(/[。！？\n]/);
-    const totalSentences = sentences.length;
-    
-    sentences.forEach((sentence, index) => {
-      if (sentence.includes(concept)) {
-        // 冒頭・結論部での出現（重要度高）
-        if (index < totalSentences * 0.1 || index > totalSentences * 0.9) {
-          score += 0.3;
-        }
-        
-        // 強調表現との共起
-        const emphasisPatterns = [
-          /重要|核心|本質|根本|基本|鍵|キー/,
-          /画期的|革命的|新しい|初めて|独自/,
-          /問題|課題|解決|突破|発見/
-        ];
-        
-        emphasisPatterns.forEach(pattern => {
-          if (pattern.test(sentence)) {
-            score += 0.2;
-          }
-        });
-        
-        // 因果関係文脈での出現
-        if (/なぜなら|理由|原因|結果|影響|効果/.test(sentence)) {
-          score += 0.15;
-        }
-      }
-    });
-    
-    return Math.min(1.0, score);
-  }
 
   /**
    * セマンティック重要度算出（他概念との意味的関連性）
    */
-  private calculateSemanticImportance(concept: string, content: string): number {
-    let score = 0;
-    
-    // 高価値概念領域との関連性
-    const valueSemanticFields = {
-      innovation: ['革新', '新規', '創造', '発明', '開発', '改革', '変革'],
-      knowledge: ['学習', '理解', '認識', '知識', '洞察', '発見', '気づき'],
-      system: ['システム', '構造', '枠組み', 'フレーム', 'アーキテクチャ'],
-      meta: ['メタ', '自己', '振り返り', '観察', '認知', '意識']
-    };
-    
-    Object.entries(valueSemanticFields).forEach(([field, keywords]) => {
-      keywords.forEach(keyword => {
-        // 概念と高価値キーワードの共起をチェック
-        try {
-          const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-          const cooccurrenceRegex = new RegExp(`(.{0,50})(${escapedConcept}|${escapedKeyword})(.{0,50})(${escapedKeyword}|${escapedConcept})(.{0,50})`, 'gi');
-          if (cooccurrenceRegex.test(content)) {
-            score += 0.2;
-          }
-        } catch (error) {
-          // 正規表現エラーをスキップ
-          console.warn(`正規表現エラー（スキップ）: ${concept} | ${keyword}`);
-        }
-      });
-    });
-    
-    // 複合概念の構成要素としての重要度
-    if (concept.length >= 3) {
-      try {
-        const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const compoundPatterns = [
-          new RegExp(`${escapedConcept}[的性化]`, 'g'),
-          new RegExp(`[的性化]${escapedConcept}`, 'g'),
-          new RegExp(`${escapedConcept}(理論|手法|システム|アプローチ)`, 'g')
-        ];
-        
-        compoundPatterns.forEach(pattern => {
-          if (pattern.test(content)) {
-            score += 0.1;
-          }
-        });
-      } catch (error) {
-        console.warn(`複合概念正規表現エラー（スキップ）: ${concept}`);
-      }
-    }
-    
-    return Math.min(1.0, score);
-  }
 
   /**
    * 革新性重要度算出（新規性・創発性）
    */
-  private calculateInnovationImportance(concept: string, content: string): number {
-    let score = 0;
-    
-    // 新規概念検出パターン
-    const noveltyPatterns = [
-      /初めて|新たに|独自に|革新的に/,
-      /発見|創造|開発|考案|提案/,
-      /従来にない|これまでの.*超え|パラダイム/
-    ];
-    
-    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    const conceptContextRegex = new RegExp(`(.{0,30})${escapedConcept}(.{0,30})`, 'gi');
-    const contexts = content.match(conceptContextRegex) || [];
-    
-    contexts.forEach(context => {
-      noveltyPatterns.forEach(pattern => {
-        if (pattern.test(context)) {
-          score += 0.3;
-        }
-      });
-    });
-    
-    // メタ概念パターンとの関連
-    const metaPatterns = [
-      /思考.*OS|OS.*思考/,
-      /自己.*観察|観察.*自己/,
-      /構造.*感染|感染.*構造/,
-      /静的.*感染|感染.*静的/,
-      /振る舞い.*変化|変化.*振る舞い/
-    ];
-    
-    metaPatterns.forEach(pattern => {
-      try {
-        if (pattern.test(content) && content.includes(concept)) {
-          score += 0.4;
-        }
-      } catch (error) {
-        console.warn(`メタ概念パターンエラー（スキップ）: ${pattern}`);
-      }
-    });
-    
-    // 既知概念データベースとの非一致度
-    const isKnownConcept = this.learningData?.analysisHistory && 
-      Object.values(this.learningData.analysisHistory).some(analysis => 
-        [...(analysis.surfaceConcepts || []), ...(analysis.deepConcepts || [])]
-          .some(knownConcept => knownConcept.includes(concept) || concept.includes(knownConcept))
-      );
-    
-    if (!isKnownConcept) {
-      score += 0.5; // 未知概念ボーナス
-    }
-    
-    return Math.min(1.0, score);
-  }
 
   /**
    * Phase 2: 動的学習システム
@@ -1727,7 +1382,7 @@ export class IntelligentConceptExtractor {
       const contextPattern = this.extractConceptContext(concept, logContent);
       if (contextPattern) {
         patterns.push(`missed_pattern_${concept.replace(/\s+/g, '_')}`);
-        conceptTypes.push(this.categorizeConceptType(concept, logContent));
+        conceptTypes.push(this.conceptClassifier.categorizeConceptType(concept, logContent));
       }
     });
     
@@ -1752,36 +1407,6 @@ export class IntelligentConceptExtractor {
   /**
    * 概念タイプの分類
    */
-  private categorizeConceptType(concept: string, content: string): string {
-    // メタ概念
-    const metaPatterns = [
-      /自己.*観察/, /振る舞い.*変化/, /思考.*OS/, /静的.*感染/, /構造.*感染/
-    ];
-    
-    for (const pattern of metaPatterns) {
-      if (pattern.test(concept)) {
-        return 'meta_concept';
-      }
-    }
-    
-    // 革新概念
-    const innovationPatterns = [
-      /革新/, /新規/, /画期的/, /突破/, /発見/, /創造/
-    ];
-    
-    for (const pattern of innovationPatterns) {
-      if (pattern.test(concept)) {
-        return 'innovation_concept';
-      }
-    }
-    
-    // 技術概念
-    if (/システム|理論|手法|アプローチ/.test(concept)) {
-      return 'technical_concept';
-    }
-    
-    return 'general_concept';
-  }
 
   /**
    * 革新度判定の重み調整
@@ -1791,7 +1416,7 @@ export class IntelligentConceptExtractor {
     
     // 手動分析との差異を分析
     const manualInnovation = manualAnalysis.manualInnovationLevel;
-    const currentPrediction = this.predictInnovationLevel([], [], logContent); // 簡易予測
+    const currentPrediction = this.predictiveExtractor.predictInnovationLevelFromConcepts([], [], logContent); // 簡易予測
     
     const difference = manualInnovation - currentPrediction;
     
@@ -1886,129 +1511,7 @@ export class IntelligentConceptExtractor {
    * Phase 2: 予測的概念抽出システム
    * 潜在概念の事前予測・概念進化パターンの検出
    */
-  private async performPredictiveExtraction(content: string, surfaceConcepts: ClassifiedConcept[], deepConcepts: ClassifiedConcept[]): Promise<PredictiveExtractionResult> {
-    const result: PredictiveExtractionResult = {
-      predictedConcepts: [],
-      emergentPatterns: [],
-      hiddenConnections: [],
-      conceptEvolutionPrediction: []
-    };
 
-    // 1. 潜在概念の予測（従来手法）
-    const predictedConcepts = this.predictLatentConcepts(content, [...surfaceConcepts, ...deepConcepts]);
-    result.predictedConcepts.push(...predictedConcepts);
-
-    // 1.5. セッション学習による概念予測（新機能）
-    try {
-      const currentConcepts = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
-      const sessionPredictions = await this.sessionLearningSystem.predictConcepts(content, currentConcepts);
-      
-      // セッション学習の予測を統合
-      for (const prediction of sessionPredictions) {
-        result.predictedConcepts.push({
-          term: prediction.concept,
-          probability: prediction.probability,
-          predictedClassification: 'surface',
-          reasoning: prediction.reasoning,
-          emergenceIndicators: ['session_learning'],
-          contextClues: [`頻度学習: ${prediction.reasoning}`]
-        });
-      }
-      
-      console.log(`📊 セッション学習予測: ${sessionPredictions.length}個の概念`);
-    } catch (error) {
-      console.warn('⚠️ セッション学習予測でエラー:', error);
-    }
-
-    // 2. 創発パターンの検出
-    const emergentPatterns = this.detectEmergentPatterns(content, deepConcepts);
-    result.emergentPatterns.push(...emergentPatterns);
-
-    // 3. 隠れた概念間接続の発見
-    const hiddenConnections = this.discoverHiddenConnections(content, deepConcepts);
-    result.hiddenConnections.push(...hiddenConnections);
-
-    // 4. 概念進化の予測
-    const evolutionPredictions = this.predictConceptEvolution(content, deepConcepts);
-    result.conceptEvolutionPrediction.push(...evolutionPredictions);
-
-    return result;
-  }
-
-  /**
-   * 潜在概念の予測
-   */
-  private predictLatentConcepts(content: string, existingConcepts: ClassifiedConcept[]): PredictiveConcept[] {
-    const predictedConcepts: PredictiveConcept[] = [];
-    
-    // 既存概念から類推される潜在概念パターン
-    const latentPatterns = [
-      // メタ認知関連の潜在概念
-      {
-        trigger: /自己.*観察|振る舞い.*変化/,
-        predictedConcepts: ['メタ認知レベル', '自己修正機能', '認知的柔軟性'],
-        contextClues: ['思考', '自己', '変化', '観察'],
-        probability: 0.8
-      },
-      // 構造感染関連の潜在概念
-      {
-        trigger: /静的.*感染|構造.*感染/,
-        predictedConcepts: ['認知構造転移', '思考パターン継承', '概念感染メカニズム'],
-        contextClues: ['構造', '感染', '継承', 'パターン'],
-        probability: 0.75
-      },
-      // AI進化関連の潜在概念
-      {
-        trigger: /AI.*進化|思考.*OS/,
-        predictedConcepts: ['AI認知アーキテクチャ', '思考システム更新', '知能進化プロセス'],
-        contextClues: ['AI', '進化', 'システム', '更新'],
-        probability: 0.7
-      },
-      // 対話システム関連の潜在概念
-      {
-        trigger: /構造.*対話|対話.*構造/,
-        predictedConcepts: ['対話設計理論', '構造化コミュニケーション', 'インタラクション最適化'],
-        contextClues: ['対話', '構造', '設計', '最適化'],
-        probability: 0.65
-      }
-    ];
-
-    latentPatterns.forEach(pattern => {
-      // パターンの健全性チェック
-      if (!pattern.predictedConcepts || !Array.isArray(pattern.predictedConcepts)) {
-        console.warn(`⚠️ 無効なパターンをスキップ:`, pattern);
-        return;
-      }
-      
-      if (pattern.trigger.test(content)) {
-        pattern.predictedConcepts.forEach(concept => {
-          // undefinedまたは空文字列をスキップ
-          if (!concept || typeof concept !== 'string' || concept.trim() === '') {
-            console.warn(`⚠️ 無効な予測概念をスキップ: ${concept}`);
-            return;
-          }
-          
-          // 既存概念と重複しないかチェック
-          if (!existingConcepts.some(existing => existing.term === concept)) {
-            const contextScore = this.calculatePredictionContextScore(concept, content, pattern.contextClues);
-            
-            if (contextScore > 0.3) {
-              predictedConcepts.push({
-                term: concept || '不明な概念', // undefinedガード追加
-                probability: pattern.probability * contextScore,
-                predictedClassification: 'deep',
-                reasoning: `パターン予測: ${pattern.trigger.source}`,
-                contextClues: pattern.contextClues,
-                emergenceIndicators: this.identifyEmergenceIndicators(concept, content)
-              });
-            }
-          }
-        });
-      }
-    });
-
-    return predictedConcepts;
-  }
 
   /**
    * 予測の文脈スコア算出
@@ -2423,104 +1926,7 @@ export class IntelligentConceptExtractor {
     return maturityScore;
   }
 
-  /**
-   * 時間革命マーカーの検出（重複除去・品質向上）
-   */
-  private detectTimeRevolutionMarkers(content: string): TimeRevolutionMarker[] {
-    const markers: TimeRevolutionMarker[] = [];
-    const uniqueMarkers = new Set<string>();
-
-    this.timePatterns.forEach((pattern, index) => {
-      let match;
-      pattern.lastIndex = 0; // 正規表現の状態リセット
-      while ((match = pattern.exec(content)) !== null) {
-        const timeExpression = match[1];
-        const context = match[0];
-        const efficiency = this.evaluateTimeEfficiency(timeExpression, context);
-        const position = match.index || 0;
-        
-        // 重複チェック（位置ベース）
-        const uniqueKey = `${timeExpression}_${Math.floor(position / 50)}`; // 50文字範囲で同一視
-        if (!uniqueMarkers.has(uniqueKey)) {
-          uniqueMarkers.add(uniqueKey);
-          
-          markers.push({
-            marker: match[0],
-            timeExpression,
-            efficiency,
-            context: this.extractTimeContext(content, position, 80),
-            position
-          });
-        }
-      }
-    });
-
-    // 学習データからの革命的時間パターン（厳選）
-    if (this.learningData) {
-      const revolutionaryTimePatterns = [
-        '30分で解決', '2-3時間で突破', '短時間で革新', '瞬時に発見', '一気に解決',
-        '従来の数十倍の効率', '劇的な時間短縮', '効率革命', '時間革命'
-      ];
-      
-      revolutionaryTimePatterns.forEach(pattern => {
-        const position = content.indexOf(pattern);
-        if (position !== -1) {
-          const uniqueKey = `revolutionary_${pattern}`;
-          if (!uniqueMarkers.has(uniqueKey)) {
-            uniqueMarkers.add(uniqueKey);
-            
-            markers.push({
-              marker: pattern,
-              timeExpression: pattern,
-              efficiency: 'revolutionary',
-              context: this.extractTimeContext(content, position, 80),
-              position
-            });
-          }
-        }
-      });
-    }
-
-    // 品質フィルタリング：意味のある時間革命マーカーのみ
-    return markers
-      .filter(marker => {
-        // 単純な数字のみは除外
-        if (/^[\d分時間秒]+$/.test(marker.timeExpression)) return false;
-        // 文脈が革新的でないものは除外
-        const context = marker.context.toLowerCase();
-        const innovativeKeywords = ['革新', '革命', '突破', '発見', '解決', '効率', '高速', '劇的', '画期的'];
-        return innovativeKeywords.some(keyword => context.includes(keyword));
-      })
-      .sort((a, b) => a.position - b.position)
-      .slice(0, 5); // 最大5個まで
-  }
-
-  /**
-   * 時間マーカー周辺の文脈を抽出
-   */
-  private extractTimeContext(content: string, position: number, length: number): string {
-    const start = Math.max(0, position - length / 2);
-    const end = Math.min(content.length, position + length / 2);
-    return content.substring(start, end);
-  }
-
-  /**
-   * 時間効率性の評価
-   */
-  private evaluateTimeEfficiency(timeExpression: string, context: string): 'moderate' | 'high' | 'revolutionary' {
-    // 「30分」「2-3時間」等の革命的パターン
-    if (timeExpression.includes('30分') || timeExpression.includes('2-3時間')) {
-      return 'revolutionary';
-    }
-
-    // 短時間での成果
-    if (timeExpression.includes('分') || timeExpression.includes('瞬時')) {
-      return 'high';
-    }
-
-    // その他
-    return 'moderate';
-  }
+  // 時間関連メソッドは TimeMarkerDetector に分離済み
 
   /**
    * 革新度の予測（ドメイン別現実的基準）
@@ -2616,21 +2022,21 @@ export class IntelligentConceptExtractor {
     // 段階別カウント（文脈重要度で重み付け）
     revolutionaryKeywords.forEach(keyword => {
       if (content.includes(keyword)) {
-        const importance = this.calculateContextualImportance(keyword, content);
+        const importance = this.conceptClassifier.calculateContextualImportance(keyword, content);
         score += 3 * (1 + importance); // 文脈重要度でボーナス
       }
     });
     
     innovativeKeywords.forEach(keyword => {
       if (content.includes(keyword)) {
-        const importance = this.calculateContextualImportance(keyword, content);
+        const importance = this.conceptClassifier.calculateContextualImportance(keyword, content);
         score += 2 * (1 + importance);
       }
     });
     
     progressiveKeywords.forEach(keyword => {
       if (content.includes(keyword)) {
-        const importance = this.calculateContextualImportance(keyword, content);
+        const importance = this.conceptClassifier.calculateContextualImportance(keyword, content);
         score += 1 * (1 + importance * 0.5);
       }
     });
@@ -2639,7 +2045,7 @@ export class IntelligentConceptExtractor {
     const commonTechTerms = ['システム', 'データ', '情報', '処理'];
     commonTechTerms.forEach(term => {
       if (content.includes(term)) {
-        const importance = this.calculateContextualImportance(term, content);
+        const importance = this.conceptClassifier.calculateContextualImportance(term, content);
         // 重要な文脈なら減点しない
         if (importance < 0.3) {
           score -= 0.1;
@@ -3246,58 +2652,9 @@ export class IntelligentConceptExtractor {
 
   // 🚀 Phase 4キャッシュ管理メソッド群
   
-  /**
-   * キャッシュキー生成
-   */
-  private generateCacheKey(logContent: string, manualAnalysis?: ManualAnalysisInput, options?: ProcessingOptions): string {
-    const contentHash = this.hashString(logContent.slice(0, 1000)); // 最初の1000文字でハッシュ
-    const manualHash = manualAnalysis ? this.hashString(JSON.stringify(manualAnalysis)) : 'none';
-    const optionsHash = options ? this.hashString(JSON.stringify(options)) : 'default';
-    
-    return `${contentHash}-${manualHash}-${optionsHash}`;
-  }
+  // generateCacheKey と hashString は CacheManager に分離済み
   
-  /**
-   * 簡単なハッシュ関数
-   */
-  private hashString(str: string): string {
-    let hash = 0;
-    for (let i = 0; i < str.length; i++) {
-      const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // 32bit整数に変換
-    }
-    return Math.abs(hash).toString(36);
-  }
-  
-  /**
-   * キャッシュアクセス更新（LRU管理）
-   */
-  private updateCacheAccess(key: string): void {
-    const index = this.cacheAccessOrder.indexOf(key);
-    if (index > -1) {
-      this.cacheAccessOrder.splice(index, 1);
-    }
-    this.cacheAccessOrder.unshift(key);
-  }
-  
-  /**
-   * キャッシュに追加（LRU制限付き）
-   */
-  private addToCache(key: string, result: IntelligentExtractionResult): void {
-    // LRU制限チェック
-    if (this.extractionCache.size >= this.MAX_CACHE_SIZE) {
-      const oldestKey = this.cacheAccessOrder.pop();
-      if (oldestKey) {
-        this.extractionCache.delete(oldestKey);
-      }
-    }
-    
-    this.extractionCache.set(key, result);
-    this.updateCacheAccess(key);
-    
-    console.log(`💾 概念抽出結果をキャッシュに保存 (${this.extractionCache.size}/${this.MAX_CACHE_SIZE})`);
-  }
+  // キャッシュ関連メソッドは CacheManager に分離済み
   
   /**
    * 専門用語精度評価
@@ -3512,6 +2869,8 @@ export class IntelligentConceptExtractor {
     const avgConfidence = allConcepts.reduce((sum, c) => sum + c.confidence, 0) / allConcepts.length || 0;
     return Math.round(avgConfidence * 100);
   }
+
+  // 分離された機能のため削除済み
 }
 
 // 内部型定義

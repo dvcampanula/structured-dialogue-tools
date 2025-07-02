@@ -102,8 +102,12 @@ class QualityAssessment {
     );
     const keywordMatchRate = matchedKeywords.length / Math.max(detectedConceptsCount, 1) * 100;
     
-    // 概念カバレッジの計算 (概念数と品質のバランス)
-    const conceptCoverage = Math.min(100, detectedConceptsCount * 15 + keywordMatchRate * 0.5);
+    // 概念カバレッジの計算 (概念数と品質のバランス) - 改良版
+    const conceptCoverage = Math.min(100, 
+      Math.max(30, detectedConceptsCount * 12) + // 基本スコアは30点保証
+      keywordMatchRate * 0.8 + // キーワードマッチを重視
+      (detectedConceptsCount >= 5 ? 15 : 0) // 5概念以上でボーナス
+    );
     
     // 概念間一貫性の評価 (議論範囲との関連性)
     const conceptCoherence = this.evaluateConceptCoherence(header.mainConcepts, header.discussionScope);
@@ -238,12 +242,26 @@ class QualityAssessment {
       structural.promptCompleteness * 0.15
     );
     
-    // 性能スコア (処理時間が短いほど高得点)
-    const performanceScore = Math.min(100, Math.max(0, 
-      100 - (performance.totalProcessingTime / 1000) * 2
-    ));
+    // 性能スコア (処理時間が短いほど高得点) - 改良版
+    const processingSeconds = performance.totalProcessingTime / 1000;
+    let performanceScore;
     
-    return conceptScore * 0.35 + structuralScore * 0.45 + performanceScore * 0.20;
+    // 現実的な処理時間を考慮した評価
+    if (processingSeconds <= 10) {
+      performanceScore = 100; // 10秒以内は最高評価
+    } else if (processingSeconds <= 30) {
+      performanceScore = 90 - (processingSeconds - 10) * 1.5; // 30秒までは緊々に減点
+    } else if (processingSeconds <= 60) {
+      performanceScore = 60 - (processingSeconds - 30) * 1; // 60秒までは緩やかに減点
+    } else {
+      performanceScore = Math.max(30, 60 - (processingSeconds - 60) * 0.5); // 60秒超過は最低30点保証
+    }
+    
+    // デバッグ情報追加
+    const finalScore = conceptScore * 0.35 + structuralScore * 0.45 + performanceScore * 0.20;
+    console.log(`📊 スコア内訳: 概念(${conceptScore.toFixed(1)}) 構造(${structuralScore.toFixed(1)}) 性能(${performanceScore.toFixed(1)}) → 総合(${finalScore.toFixed(1)})`);
+    
+    return finalScore;
   }
 
   /**
