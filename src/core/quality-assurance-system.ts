@@ -5,7 +5,7 @@
  * IntelligentConceptExtractor の品質を保証し、実用性を担保
  */
 
-import { IntelligentConceptExtractor, IntelligentExtractionResult } from './intelligent-concept-extractor';
+import { IntelligentConceptExtractor, IntelligentExtractionResult } from './intelligent-concept-extractor.js';
 
 export interface QualityAssuranceReport {
   isReliable: boolean;

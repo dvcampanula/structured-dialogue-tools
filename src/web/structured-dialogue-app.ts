@@ -13,14 +13,14 @@ import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-import { RawLogSplitter } from '../core/raw-log-splitter';
-import { NamingHelper } from '../core/naming-helper';
-import { LogFormatUnifier } from '../core/log-format-unifier';
-import { UnifiedLogProcessor } from '../core/unified-log-processor';
-import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor';
-import { SessionManagementSystem } from '../core/session-management-system';
-import { PredictiveQualityAssessment } from '../core/predictive-quality-assessment';
-import { AIIntegrationService } from '../core/ai-integration-service';
+import { RawLogSplitter } from '../core/raw-log-splitter.js';
+import { NamingHelper } from '../core/naming-helper.js';
+import { LogFormatUnifier } from '../core/log-format-unifier.js';
+import { UnifiedLogProcessor } from '../core/unified-log-processor.js';
+import { IntelligentConceptExtractor } from '../core/intelligent-concept-extractor.js';
+import { SessionManagementSystem } from '../core/session-management-system.js';
+import { PredictiveQualityAssessment } from '../core/predictive-quality-assessment.js';
+import { AIIntegrationService } from '../core/ai-integration-service.js';
 
 interface ProcessRequest {
   rawLog: string;

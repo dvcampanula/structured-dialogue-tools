@@ -316,6 +316,147 @@
         .tab-content.active {
             display: block;
         }
+        
+        /* 進化的パターン発見用スタイル */
+        .evolutionary-section {
+            margin-bottom: 24px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .evolutionary-header {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .evolutionary-title {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .evolutionary-score {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+        }
+        
+        .evolutionary-content {
+            padding: 20px;
+        }
+        
+        .anomaly-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .anomaly-item {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            border-radius: 6px;
+            padding: 12px;
+        }
+        
+        .anomaly-pair {
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 4px;
+        }
+        
+        .anomaly-score {
+            font-size: 0.875rem;
+            color: #78350f;
+        }
+        
+        .pattern-list {
+            margin-bottom: 20px;
+        }
+        
+        .pattern-item {
+            background: #ecfdf5;
+            border: 1px solid #10b981;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .pattern-type {
+            font-weight: 600;
+            color: #065f46;
+            margin-bottom: 8px;
+        }
+        
+        .pattern-description {
+            color: #047857;
+            margin-bottom: 8px;
+        }
+        
+        .pattern-concepts {
+            font-size: 0.875rem;
+            color: #059669;
+        }
+        
+        .rule-list {
+            margin-bottom: 20px;
+        }
+        
+        .rule-item {
+            background: #ede9fe;
+            border: 1px solid #8b5cf6;
+            border-radius: 6px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        
+        .rule-name {
+            font-weight: 600;
+            color: #5b21b6;
+            margin-bottom: 8px;
+        }
+        
+        .rule-indicators {
+            font-size: 0.875rem;
+            color: #7c3aed;
+            margin-bottom: 4px;
+        }
+        
+        .rule-confidence {
+            font-size: 0.875rem;
+            color: #6d28d9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+        
+        .stat-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            padding: 16px;
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 4px;
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: #64748b;
+        }
     </style>
 </head>
 <body>
@@ -432,6 +573,7 @@
                     <div class="tab" onclick="switchTab('unified')">✨ 統一書式</div>
                     <div class="tab" onclick="switchTab('concepts')">🚀 概念抽出</div>
                     <div class="tab" onclick="switchTab('predictions')">🔮 予測分析</div>
+                    <div class="tab" onclick="switchTab('evolutionary')">🧬 進化的発見</div>
                     <div class="tab" onclick="switchTab('ai-analysis')">🤖 AI統合分析</div>
                     <div class="tab" onclick="switchTab('learning')">📚 学習統計</div>
                     <div class="tab" onclick="switchTab('metrics')">📊 品質分析</div>
@@ -443,6 +585,7 @@
                 <div class="tab-content" id="unified-content"></div>
                 <div class="tab-content" id="concepts-content"></div>
                 <div class="tab-content" id="predictions-content"></div>
+                <div class="tab-content" id="evolutionary-content"></div>
                 <div class="tab-content" id="ai-analysis-content"></div>
                 <div class="tab-content" id="learning-content"></div>
                 <div class="tab-content" id="metrics-content"></div>
@@ -1068,6 +1211,11 @@
             if (extraction.predictiveExtraction) {
                 displayPredictiveAnalysis(extraction.predictiveExtraction, extraction);
             }
+            
+            // Phase 6.1+: 進化的パターン発見タブのコンテンツを更新
+            if (extraction.evolutionaryDiscovery) {
+                displayEvolutionaryPatterns(extraction.evolutionaryDiscovery);
+            }
 
             // 概念抽出タブをアクティブにして結果を表示
             document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
@@ -1460,6 +1608,206 @@
                 statusEl.style.color = '#dc2626';
                 console.error('新セッション開始エラー:', error);
             }
+        }
+
+        /**
+         * Phase 6.1+: 進化的パターン発見結果の表示
+         */
+        function displayEvolutionaryPatterns(evolutionaryDiscovery) {
+            const evolutionaryContent = document.getElementById('evolutionary-content');
+            
+            evolutionaryContent.innerHTML = `
+                <!-- 統計サマリー -->
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">🚀 進化的パターン発見システム v1.0</div>
+                        <div class="evolutionary-score">信頼度 ${(evolutionaryDiscovery.confidence * 100).toFixed(1)}%</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.anomalies.length}</div>
+                                <div class="stat-label">異常検知</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.newPatterns.length}</div>
+                                <div class="stat-label">新パターン</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.generatedRules.length}</div>
+                                <div class="stat-label">生成ルール</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.noveltyScore.toFixed(3)}</div>
+                                <div class="stat-label">新規性スコア</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 異常検知結果 -->
+                ${evolutionaryDiscovery.anomalies.length > 0 ? `
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">🔍 統計的異常検知 (${evolutionaryDiscovery.anomalies.length}個)</div>
+                        <div class="evolutionary-score">Top ${Math.min(10, evolutionaryDiscovery.anomalies.length)}</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        <div class="anomaly-grid">
+                            ${evolutionaryDiscovery.anomalies
+                                .sort((a, b) => b.anomalyScore - a.anomalyScore)
+                                .slice(0, 10)
+                                .map(anomaly => `
+                                <div class="anomaly-item">
+                                    <div class="anomaly-pair">${anomaly.conceptPair[0]} ⟷ ${anomaly.conceptPair[1]}</div>
+                                    <div class="anomaly-score">
+                                        異常度: ${anomaly.anomalyScore.toFixed(3)} | 
+                                        頻度: ${anomaly.frequency} / 期待: ${anomaly.expectedFrequency.toFixed(2)}
+                                    </div>
+                                    ${anomaly.context.length > 0 ? `
+                                        <div style="font-size: 0.8rem; color: #78350f; margin-top: 4px;">
+                                            文脈: ${anomaly.context.slice(0, 3).join(', ')}${anomaly.context.length > 3 ? '...' : ''}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 新パターン発見 -->
+                ${evolutionaryDiscovery.newPatterns.length > 0 ? `
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">🎯 新パターン発見 (${evolutionaryDiscovery.newPatterns.length}個)</div>
+                        <div class="evolutionary-score">重要度順</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        <div class="pattern-list">
+                            ${evolutionaryDiscovery.newPatterns
+                                .sort((a, b) => b.significance - a.significance)
+                                .map((pattern, index) => `
+                                <div class="pattern-item">
+                                    <div class="pattern-type">${index + 1}. ${pattern.patternType} (信頼度: ${(pattern.confidence * 100).toFixed(1)}%)</div>
+                                    <div class="pattern-description">${pattern.description}</div>
+                                    <div class="pattern-concepts">
+                                        <strong>関連概念:</strong> ${pattern.involvedConcepts.join(', ')}<br>
+                                        <strong>重要度:</strong> ${pattern.significance.toFixed(3)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 自動生成ルール -->
+                ${evolutionaryDiscovery.generatedRules.length > 0 ? `
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">🧠 自動生成検出ルール (${evolutionaryDiscovery.generatedRules.length}個)</div>
+                        <div class="evolutionary-score">信頼度順</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        <div class="rule-list">
+                            ${evolutionaryDiscovery.generatedRules
+                                .sort((a, b) => b.confidence - a.confidence)
+                                .map((rule, index) => `
+                                <div class="rule-item">
+                                    <div class="rule-name">${index + 1}. ${rule.name}</div>
+                                    <div class="rule-indicators">
+                                        <strong>指標語:</strong> ${rule.indicators.join(', ')}
+                                    </div>
+                                    <div class="rule-confidence">
+                                        信頼度: ${(rule.confidence * 100).toFixed(1)}% | 
+                                        証拠重み: ${rule.evidenceWeight.toFixed(2)} | 
+                                        最小指標数: ${rule.minIndicatorCount}
+                                    </div>
+                                    ${rule.source ? `
+                                        <div style="font-size: 0.8rem; color: #6d28d9; margin-top: 4px;">
+                                            ソース: ${rule.source} | 妥当性: ${rule.validationScore.toFixed(3)}
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 概念グラフ情報 -->
+                ${evolutionaryDiscovery.conceptGraph ? `
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">🔗 概念関係グラフ</div>
+                        <div class="evolutionary-score">${evolutionaryDiscovery.conceptGraph.nodes.length}ノード・${evolutionaryDiscovery.conceptGraph.edges.length}エッジ</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.conceptGraph.nodes.length}</div>
+                                <div class="stat-label">概念ノード</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.conceptGraph.edges.length}</div>
+                                <div class="stat-label">関係エッジ</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.conceptGraph.clusters.length}</div>
+                                <div class="stat-label">概念クラスター</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-value">${evolutionaryDiscovery.conceptGraph.centralityScores.size}</div>
+                                <div class="stat-label">中心性計算済み</div>
+                            </div>
+                        </div>
+                        
+                        ${evolutionaryDiscovery.conceptGraph.clusters.length > 0 ? `
+                        <div style="margin-top: 20px;">
+                            <h4 style="color: #374151; margin-bottom: 12px;">🎯 検出されたクラスター</h4>
+                            ${evolutionaryDiscovery.conceptGraph.clusters.map((cluster, index) => `
+                                <div style="background: #f3f4f6; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                                    <strong>クラスター ${index + 1}: ${cluster.theme}</strong>
+                                    <div style="font-size: 0.9rem; color: #6b7280; margin-top: 4px;">
+                                        概念: ${cluster.concepts.join(', ')}<br>
+                                        結束度: ${cluster.cohesion.toFixed(3)}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- システム改善提案 -->
+                ${evolutionaryDiscovery.recommendedActions && evolutionaryDiscovery.recommendedActions.length > 0 ? `
+                <div class="evolutionary-section">
+                    <div class="evolutionary-header">
+                        <div class="evolutionary-title">💡 システム改善提案</div>
+                        <div class="evolutionary-score">${evolutionaryDiscovery.recommendedActions.length}件</div>
+                    </div>
+                    <div class="evolutionary-content">
+                        ${evolutionaryDiscovery.recommendedActions.map((action, index) => `
+                            <div style="background: #f0f9ff; border: 1px solid #0ea5e9; border-radius: 6px; padding: 12px; margin-bottom: 8px;">
+                                <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 4px;">
+                                    <strong style="color: #0c4a6e;">${index + 1}. ${action.description}</strong>
+                                    <span style="background: #0ea5e9; color: white; padding: 2px 8px; border-radius: 12px; font-size: 0.8rem;">
+                                        ${action.priority}
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.9rem; color: #075985;">
+                                    カテゴリ: ${action.category} | 
+                                    推定効果: ${(action.estimatedImpact * 100).toFixed(1)}% | 
+                                    実装複雑度: ${action.implementationComplexity}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                ` : ''}
+            `;
         }
 
         /**

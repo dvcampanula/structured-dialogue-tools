@@ -13,6 +13,7 @@ import kuromoji from 'kuromoji';
 import { ConceptExtractionConfigManager } from './concept-extraction-config-manager.js';
 import { SessionLearningSystem } from './session-learning-system.js';
 import { PhenomenonDetector, type DetectedPhenomenon, type PhenomenonPattern } from './phenomenon-detector.js';
+import { EvolutionaryPatternDiscoverySystem, type EvolutionaryDiscoveryResult } from './evolutionary-pattern-discovery.js';
 import { DialoguePhaseAnalyzer, type DialoguePhaseResult, type DialoguePhase } from './dialogue-phase-analyzer.js';
 import { AcademicValueAssessor, type AcademicValueAssessment, type AcademicValue } from './academic-value-assessor.js';
 import { TimeMarkerDetector, type TimeRevolutionMarker } from './time-marker-detector.js';
@@ -98,6 +99,9 @@ export interface IntelligentExtractionResult {
   
   // 現象検出結果
   detectedPhenomena?: DetectedPhenomenon[];
+  
+  // Phase 6.1+: 進化的パターン発見結果
+  evolutionaryDiscovery?: EvolutionaryDiscoveryResult;
 }
 
 // ClassifiedConcept型はconcept-classifier.tsからインポート
@@ -173,6 +177,9 @@ export class IntelligentConceptExtractor {
   private conceptClassifier: ConceptClassifier;
   private predictiveExtractor: PredictiveExtractor;
   private chunkProcessor: ChunkProcessor;
+  
+  // Phase 6.1+: 進化的パターン発見システム
+  private evolutionaryDiscoverySystem: EvolutionaryPatternDiscoverySystem;
 
   constructor(
     private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json',
@@ -190,6 +197,9 @@ export class IntelligentConceptExtractor {
     this.conceptClassifier = new ConceptClassifier();
     this.predictiveExtractor = new PredictiveExtractor();
     this.chunkProcessor = new ChunkProcessor();
+    
+    // Phase 6.1+: 進化的パターン発見システム初期化
+    this.evolutionaryDiscoverySystem = new EvolutionaryPatternDiscoverySystem();
   }
 
   /**
@@ -332,8 +342,8 @@ export class IntelligentConceptExtractor {
     console.log(`🎯 検出された現象: ${detectedPhenomena.length}個`);
     
     // Step 3.6: Phase 6.1 動的パターン学習（AI以外のアプローチ）
-    const allConceptTerms = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
-    const emergentPatterns = this.phenomenonDetector.learnFromConcepts(allConceptTerms, logContent);
+    const conceptTermsForLearning = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
+    const emergentPatterns = this.phenomenonDetector.learnFromConcepts(conceptTermsForLearning, logContent);
     
     // 新発見パターンの統合（閾値以上の場合）
     if (emergentPatterns.length > 0) {
@@ -369,6 +379,11 @@ export class IntelligentConceptExtractor {
     const predictiveExtraction = await this.predictiveExtractor.performPredictiveExtraction(logContent, [...surfaceConcepts, ...deepConcepts].map(c => c.term));
     console.log(`🔮 予測的抽出: ${predictiveExtraction.predictedConcepts.length}個の潜在概念`);
     
+    // Phase 6.1+: Step 10: 進化的パターン発見システム
+    const conceptTermsForEvolution = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
+    const evolutionaryDiscovery = this.evolutionaryDiscoverySystem.discoverEvolutionaryPatterns(conceptTermsForEvolution, logContent);
+    console.log(`🚀 進化的発見: ${evolutionaryDiscovery.newPatterns.length}新パターン, ${evolutionaryDiscovery.anomalies.length}異常`);
+    
     const processingTime = Date.now() - startTime;
     
     const result: IntelligentExtractionResult = {
@@ -391,7 +406,9 @@ export class IntelligentConceptExtractor {
       // Phase 2: 予測的概念抽出結果
       predictiveExtraction,
       // 現象検出結果
-      detectedPhenomena
+      detectedPhenomena,
+      // Phase 6.1+: 進化的パターン発見結果
+      evolutionaryDiscovery
     };
     
     console.log(`✅ 抽出完了 (${processingTime}ms): 革新度${innovationPrediction}/10, 信頼度${result.confidence}%`);
@@ -494,6 +511,10 @@ export class IntelligentConceptExtractor {
     const predictiveExtraction = await this.predictiveExtractor.performPredictiveExtraction(logContent, [...surfaceConcepts, ...deepConcepts].map(c => c.term));
     console.log(`🔮 予測的抽出: ${predictiveExtraction.predictedConcepts.length}個の潜在概念`);
     
+    // Phase 6.1+: チャンク処理での進化的パターン発見
+    const evolutionaryDiscovery = this.evolutionaryDiscoverySystem.discoverEvolutionaryPatterns(allConceptTerms, logContent);
+    console.log(`🚀 チャンク進化的発見: ${evolutionaryDiscovery.newPatterns.length}新パターン, ${evolutionaryDiscovery.anomalies.length}異常`);
+    
     const processingTime = Date.now() - startTime;
     
     const result: IntelligentExtractionResult = {
@@ -513,7 +534,9 @@ export class IntelligentConceptExtractor {
       analysisGapAlert: this.generateAnalysisGapAlert(logContent, deepConcepts, innovationPrediction, newConceptDetection),
       predictiveExtraction,
       // チャンク処理でも現象検出結果を含める
-      detectedPhenomena
+      detectedPhenomena,
+      // Phase 6.1+: チャンク処理での進化的パターン発見結果
+      evolutionaryDiscovery
     };
     
     console.log(`⚡ チャンク処理完了 (${processingTime}ms, ${chunks.length}チャンク): 革新度${innovationPrediction}/10`);
