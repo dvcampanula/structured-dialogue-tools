@@ -119,13 +119,55 @@ export class ConceptClassifier {
    * 意味的分析の実行
    */
   public performSemanticAnalysis(concept: string, content: string): SemanticAnalysis {
-    return {
+    const baseAnalysis = {
       depth: this.analyzeSemanticDepth(concept, content),
       contextualImportance: this.calculateContextualImportance(concept, content),
       structuralImportance: this.calculateStructuralImportance(concept, content),
       semanticImportance: this.calculateSemanticImportance(concept, content),
       innovationImportance: this.calculateInnovationImportance(concept, content)
     };
+    
+    // 専門概念ボーナス
+    const specialtyBonus = this.calculateSpecialtyBonus(concept);
+    
+    return {
+      depth: Math.min(baseAnalysis.depth + specialtyBonus, 1.0),
+      contextualImportance: Math.min(baseAnalysis.contextualImportance + specialtyBonus, 1.0),
+      structuralImportance: Math.min(baseAnalysis.structuralImportance + specialtyBonus, 1.0),
+      semanticImportance: Math.min(baseAnalysis.semanticImportance + specialtyBonus, 1.0),
+      innovationImportance: Math.min(baseAnalysis.innovationImportance + specialtyBonus, 1.0)
+    };
+  }
+
+  /**
+   * 専門性ボーナス計算
+   */
+  private calculateSpecialtyBonus(concept: string): number {
+    // 数学・技術分野の専門概念
+    const mathTechConcepts = [
+      '素数', '証明', '公式', '定理', '関数', '方程式', '変数', '係数',
+      'アルゴリズム', 'データ', 'プログラム', 'コード', 'API', 'JSON',
+      '論文', '直感', '数学'
+    ];
+    
+    // 高専門性概念
+    const highSpecialtyConcepts = [
+      'レイヤード', 'プロンプティング', 'セーブポイント', '形態素解析',
+      'トークン', 'バッチ処理', 'チャンク', 'キャッシュ'
+    ];
+    
+    if (highSpecialtyConcepts.includes(concept)) return 0.3;
+    if (mathTechConcepts.includes(concept)) return 0.2;
+    
+    // パターンベースの専門性判定
+    const specialtyPatterns = [
+      /.*理論$/, /.*手法$/, /.*アルゴリズム$/, /.*システム$/,
+      /.*構造$/, /.*プロセス$/, /.*フレームワーク$/
+    ];
+    
+    if (specialtyPatterns.some(pattern => pattern.test(concept))) return 0.15;
+    
+    return 0.0;
   }
 
   /**
@@ -224,8 +266,33 @@ export class ConceptClassifier {
    * Deep概念の判定
    */
   private isDeepConcept(concept: string, content: string): boolean {
-    // 長さベースの判定
-    if (concept.length >= 4) return true;
+    // 一般的すぎる概念は長くても深層扱いしない
+    const commonConcepts = [
+      '編集', '検証', '結果', '可能', '必要', '作成', '確認', '実行', '処理', '対応', '設定', '修正',
+      '作業', '状況', '場合', '方法', '時間', '内容', '問題', '情報', '機能', 'システム'
+    ];
+    
+    if (commonConcepts.includes(concept)) return false;
+    
+    // 専門性の高い概念パターンをチェック
+    const specializedPatterns = [
+      /.*理論$/, /.*手法$/, /.*アプローチ$/, /.*システム$/, /.*構造$/,
+      /.*アルゴリズム$/, /.*プロセス$/, /.*フレームワーク$/,
+      /.*パターン$/, /.*モデル$/, /.*メソッド$/
+    ];
+    
+    if (specializedPatterns.some(pattern => pattern.test(concept))) return true;
+    
+    // 数学・技術分野の専門概念
+    const mathTechConcepts = [
+      '素数', '証明', '公式', '定理', '関数', '方程式', '変数', '係数',
+      'アルゴリズム', 'データ', 'プログラム', 'コード', 'API', 'JSON'
+    ];
+    
+    if (mathTechConcepts.includes(concept)) return true;
+    
+    // 長さベースの判定（より厳しく）
+    if (concept.length >= 6) return true;
     
     // パターンマッチング
     if (this.conceptPatterns.has(concept.toLowerCase())) {
