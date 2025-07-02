@@ -95,6 +95,9 @@ export interface IntelligentExtractionResult {
   
   // Phase 2: 予測的概念抽出結果
   predictiveExtraction?: PredictiveExtractionResult;
+  
+  // 現象検出結果
+  detectedPhenomena?: DetectedPhenomenon[];
 }
 
 // ClassifiedConcept型はconcept-classifier.tsからインポート
@@ -324,6 +327,27 @@ export class IntelligentConceptExtractor {
     const timeRevolutionMarkers = this.timeMarkerDetector.detectTimeRevolutionMarkers(logContent);
     console.log(`⚡ 時間革命マーカー: ${timeRevolutionMarkers.length}個`);
     
+    // Step 3.5: 現象検出（抽象概念検出）
+    const detectedPhenomena = this.phenomenonDetector.detectPhenomena(logContent);
+    console.log(`🎯 検出された現象: ${detectedPhenomena.length}個`);
+    
+    // Step 3.6: Phase 6.1 動的パターン学習（AI以外のアプローチ）
+    const allConceptTerms = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
+    const emergentPatterns = this.phenomenonDetector.learnFromConcepts(allConceptTerms, logContent);
+    
+    // 新発見パターンの統合（閾値以上の場合）
+    if (emergentPatterns.length > 0) {
+      const integratedCount = this.phenomenonDetector.integrateEmergentPatterns(emergentPatterns);
+      if (integratedCount > 0) {
+        console.log(`🧠 動的学習: ${integratedCount}個の新パターンを学習・統合`);
+        // 新パターンで再度現象検出を実行
+        const additionalPhenomena = this.phenomenonDetector.detectPhenomena(logContent);
+        detectedPhenomena.push(...additionalPhenomena.filter(p => 
+          !detectedPhenomena.some(existing => existing.name === p.name)
+        ));
+      }
+    }
+    
     // Step 4: 新概念検出とボーナス適用
     const newConceptDetection = this.detectNewConcepts(deepConcepts, logContent);
     
@@ -365,7 +389,9 @@ export class IntelligentConceptExtractor {
       // 手動分析差異アラート
       analysisGapAlert: this.generateAnalysisGapAlert(logContent, deepConcepts, innovationPrediction, newConceptDetection),
       // Phase 2: 予測的概念抽出結果
-      predictiveExtraction
+      predictiveExtraction,
+      // 現象検出結果
+      detectedPhenomena
     };
     
     console.log(`✅ 抽出完了 (${processingTime}ms): 革新度${innovationPrediction}/10, 信頼度${result.confidence}%`);
@@ -437,6 +463,26 @@ export class IntelligentConceptExtractor {
     
     // Step 4: 統合分析（全体コンテキストで実行）
     const newConceptDetection = this.detectNewConcepts(deepConcepts, logContent);
+    
+    // Step 4.5: 現象検出（チャンク処理でも統合）
+    const detectedPhenomena = this.phenomenonDetector.detectPhenomena(logContent);
+    console.log(`🎯 検出された現象: ${detectedPhenomena.length}個`);
+    
+    // Step 4.6: チャンク処理での動的パターン学習
+    const allConceptTerms = [...surfaceConcepts, ...deepConcepts].map(c => c.term);
+    const emergentPatterns = this.phenomenonDetector.learnFromConcepts(allConceptTerms, logContent);
+    
+    if (emergentPatterns.length > 0) {
+      const integratedCount = this.phenomenonDetector.integrateEmergentPatterns(emergentPatterns);
+      if (integratedCount > 0) {
+        console.log(`🧠 チャンク動的学習: ${integratedCount}個の新パターンを統合`);
+        const additionalPhenomena = this.phenomenonDetector.detectPhenomena(logContent);
+        detectedPhenomena.push(...additionalPhenomena.filter(p => 
+          !detectedPhenomena.some(existing => existing.name === p.name)
+        ));
+      }
+    }
+    
     const baseInnovationLevel = this.predictiveExtractor.predictInnovationLevelFromConcepts(deepConcepts, timeRevolutionMarkers, logContent);
     const innovationPrediction = this.applyNewConceptBonus(baseInnovationLevel, newConceptDetection, deepConcepts);
     const socialImpactPrediction = this.predictiveExtractor.predictSocialImpactFromConcepts(deepConcepts, innovationPrediction);
@@ -465,7 +511,9 @@ export class IntelligentConceptExtractor {
       appliedPatterns: Array.from(this.conceptPatterns.keys()).slice(0, 10),
       newConceptDetection,
       analysisGapAlert: this.generateAnalysisGapAlert(logContent, deepConcepts, innovationPrediction, newConceptDetection),
-      predictiveExtraction
+      predictiveExtraction,
+      // チャンク処理でも現象検出結果を含める
+      detectedPhenomena
     };
     
     console.log(`⚡ チャンク処理完了 (${processingTime}ms, ${chunks.length}チャンク): 革新度${innovationPrediction}/10`);
@@ -548,7 +596,8 @@ export class IntelligentConceptExtractor {
       if (this.tokenizer) {
         const tokens = this.tokenizer.tokenize(chunk);
         tokens.forEach((token: any) => {
-          if (token.part_of_speech.startsWith('名詞') && token.surface_form.length >= 2) {
+          // kuromoji tokenの正しいプロパティ名を使用
+          if (token.pos === '名詞' && token.surface_form && token.surface_form.length >= 2) {
             concepts.push(token.surface_form);
           }
         });
