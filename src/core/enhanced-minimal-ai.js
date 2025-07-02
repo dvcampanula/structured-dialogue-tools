@@ -359,4 +359,9 @@ export class EnhancedMinimalAI extends MinimalAICore {
             await this.learnFromFeedback(`${topAnomaly.conceptPair.join(' ')}の新しい関係性`, 'positive', '興味深い概念組み合わせを発見しました');
         }
     }
+
+    // ログ学習システム用: 概念DBへのアクセス
+    getConceptDB() {
+        return this.conceptDB;
+    }
 }

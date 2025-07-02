@@ -318,6 +318,7 @@
         <div class="mode-switch">
             <div class="mode-btn active" data-mode="simple">😊 シンプルモード</div>
             <div class="mode-btn" data-mode="analysis">🔬 分析モード</div>
+            <div class="mode-btn" data-mode="learning">🧠 ログ学習</div>
         </div>
         
         <div class="main-content">
@@ -424,6 +425,104 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="learning-section" style="display: none;">
+                <h3 style="margin-bottom: 24px; color: #4f46e5;">🧠 構造的対話ログ学習システム</h3>
+                
+                <div class="learning-stats-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-number" id="logProcessedCount">0</div>
+                        <div class="stat-label">処理済みログ</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="extractedConceptsCount">0</div>
+                        <div class="stat-label">抽出概念数</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="newConceptsCount">0</div>
+                        <div class="stat-label">新規概念</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="learningAccuracy">0%</div>
+                        <div class="stat-label">学習精度</div>
+                    </div>
+                </div>
+                
+                <div class="learning-tabs" style="display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;">
+                    <div class="learning-tab active" data-tab="upload" style="padding: 12px 24px; cursor: pointer; border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: 600;">📁 ファイルアップロード</div>
+                    <div class="learning-tab" data-tab="batch" style="padding: 12px 24px; cursor: pointer; color: #6b7280;">🗂️ バッチ学習</div>
+                    <div class="learning-tab" data-tab="results" style="padding: 12px 24px; cursor: pointer; color: #6b7280;">📊 学習結果</div>
+                </div>
+                
+                <div class="learning-tab-content">
+                    <!-- ファイルアップロードタブ -->
+                    <div class="tab-panel" id="upload-panel">
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px; border: 2px dashed #cbd5e1; text-align: center;">
+                            <h4 style="margin-bottom: 16px; color: #4f46e5;">🔄 対話ログファイルをアップロード</h4>
+                            <p style="color: #6b7280; margin-bottom: 20px;">ChatGPT、Claude、Geminiなどの構造的対話ログを学習できます</p>
+                            
+                            <input type="file" id="logFileInput" accept=".txt,.md,.log" style="margin-bottom: 16px;" />
+                            <br>
+                            <button class="btn btn-primary" onclick="uploadLogFile()" id="uploadBtn">📤 学習開始</button>
+                            
+                            <div id="uploadProgress" style="display: none; margin-top: 16px;">
+                                <div style="color: #4f46e5; font-weight: 600;">処理中...</div>
+                                <div style="background: #e2e8f0; height: 8px; border-radius: 4px; margin-top: 8px;">
+                                    <div id="uploadProgressBar" style="background: #4f46e5; height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="uploadResult" style="margin-top: 24px; display: none;">
+                            <h4 style="color: #059669; margin-bottom: 12px;">✅ 学習完了</h4>
+                            <div id="uploadResultContent"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- バッチ学習タブ -->
+                    <div class="tab-panel" id="batch-panel" style="display: none;">
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px;">
+                            <h4 style="margin-bottom: 16px; color: #4f46e5;">🗂️ test-logsディレクトリから一括学習</h4>
+                            
+                            <div id="directoryList" style="margin-bottom: 20px;">
+                                <div style="color: #6b7280;">利用可能なディレクトリを読み込み中...</div>
+                            </div>
+                            
+                            <button class="btn btn-primary" onclick="startBatchLearning()" id="batchBtn">🚀 バッチ学習開始</button>
+                            
+                            <div id="batchProgress" style="display: none; margin-top: 16px;">
+                                <div id="batchStatus" style="color: #4f46e5; font-weight: 600;">準備中...</div>
+                                <div id="batchProgressDetails" style="margin-top: 8px; font-size: 14px; color: #6b7280;"></div>
+                            </div>
+                        </div>
+                        
+                        <div id="batchResult" style="margin-top: 24px; display: none;">
+                            <h4 style="color: #059669; margin-bottom: 12px;">✅ バッチ学習完了</h4>
+                            <div id="batchResultContent"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 学習結果タブ -->
+                    <div class="tab-panel" id="results-panel" style="display: none;">
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px;">
+                            <h4 style="margin-bottom: 16px; color: #4f46e5;">📊 累積学習統計</h4>
+                            
+                            <div id="learningStatsDisplay">
+                                <div style="color: #6b7280;">学習統計を読み込み中...</div>
+                            </div>
+                            
+                            <button class="btn btn-secondary" onclick="refreshLearningStats()" style="margin-top: 16px;">🔄 統計更新</button>
+                        </div>
+                        
+                        <div style="margin-top: 24px;">
+                            <h4 style="margin-bottom: 16px; color: #4f46e5;">🆕 最近発見された概念</h4>
+                            <div id="recentConcepts" style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                                <div style="color: #6b7280;">概念データを読み込み中...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -442,12 +541,21 @@
                 currentMode = btn.dataset.mode;
                 
                 const analysisSection = document.querySelector('.analysis-section');
+                const learningSection = document.querySelector('.learning-section');
+                
                 if (currentMode === 'simple') {
                     analysisSection.style.display = 'none';
+                    learningSection.style.display = 'none';
                     document.querySelector('.chat-section').style.borderRight = 'none';
-                } else {
+                } else if (currentMode === 'analysis') {
                     analysisSection.style.display = 'block';
+                    learningSection.style.display = 'none';
                     document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                } else if (currentMode === 'learning') {
+                    analysisSection.style.display = 'none';
+                    learningSection.style.display = 'block';
+                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                    loadLearningDirectories();
                 }
             });
         });
@@ -901,11 +1009,307 @@
                 </div>
             `;
         }
+
+        // === ログ学習機能 ===
+        
+        // 学習タブ切り替え
+        document.querySelectorAll('.learning-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                // タブの見た目を更新
+                document.querySelectorAll('.learning-tab').forEach(t => {
+                    t.style.borderBottom = 'none';
+                    t.style.color = '#6b7280';
+                    t.style.fontWeight = 'normal';
+                });
+                tab.style.borderBottom = '2px solid #4f46e5';
+                tab.style.color = '#4f46e5';
+                tab.style.fontWeight = '600';
+                
+                // パネルの表示切り替え
+                const targetTab = tab.dataset.tab;
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                document.getElementById(targetTab + '-panel').style.display = 'block';
+                
+                // タブ別の初期化処理
+                if (targetTab === 'batch') {
+                    loadLearningDirectories();
+                } else if (targetTab === 'results') {
+                    refreshLearningStats();
+                }
+            });
+        });
+        
+        // ログファイルアップロード
+        async function uploadLogFile() {
+            const fileInput = document.getElementById('logFileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('ファイルを選択してください');
+                return;
+            }
+            
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadProgress = document.getElementById('uploadProgress');
+            const uploadResult = document.getElementById('uploadResult');
+            
+            uploadBtn.disabled = true;
+            uploadProgress.style.display = 'block';
+            uploadResult.style.display = 'none';
+            
+            const formData = new FormData();
+            formData.append('logfile', file);
+            
+            try {
+                const response = await fetch('/api/learn/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayUploadResult(result.data);
+                    updateLearningStats(result.data.learningStats);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('アップロードエラー:', error);
+                alert('アップロードに失敗しました: ' + error.message);
+            } finally {
+                uploadBtn.disabled = false;
+                uploadProgress.style.display = 'none';
+            }
+        }
+        
+        // アップロード結果表示
+        function displayUploadResult(data) {
+            const uploadResult = document.getElementById('uploadResult');
+            const uploadResultContent = document.getElementById('uploadResultContent');
+            
+            uploadResultContent.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #d1fae5;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <strong>📄 ファイル:</strong><br>
+                            <span style="color: #6b7280;">${data.filename}</span>
+                        </div>
+                        <div>
+                            <strong>🔍 フォーマット:</strong><br>
+                            <span style="color: #6b7280;">${data.format}</span>
+                        </div>
+                        <div>
+                            <strong>🧠 抽出概念:</strong><br>
+                            <span style="color: #059669; font-weight: 600;">${data.conceptsExtracted}個</span>
+                        </div>
+                        <div>
+                            <strong>✨ 新規概念:</strong><br>
+                            <span style="color: #dc2626; font-weight: 600;">${data.newConcepts}個</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-top: 12px;">
+                        <strong>📊 学習統計:</strong>
+                        概念DB総数: <strong>${data.learningStats.conceptDBSize.total}個</strong> | 
+                        処理済みログ: <strong>${data.learningStats.processedLogs}個</strong>
+                    </div>
+                </div>
+            `;
+            
+            uploadResult.style.display = 'block';
+        }
+        
+        // バッチ学習開始
+        async function startBatchLearning() {
+            const batchBtn = document.getElementById('batchBtn');
+            const batchProgress = document.getElementById('batchProgress');
+            const batchStatus = document.getElementById('batchStatus');
+            const batchResult = document.getElementById('batchResult');
+            
+            batchBtn.disabled = true;
+            batchProgress.style.display = 'block';
+            batchResult.style.display = 'none';
+            batchStatus.textContent = 'バッチ学習を開始しています...';
+            
+            try {
+                const response = await fetch('/api/learn/batch', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayBatchResult(result.data);
+                    updateLearningStats(result.data.learningStats);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('バッチ学習エラー:', error);
+                batchStatus.textContent = 'エラー: ' + error.message;
+                batchStatus.style.color = '#dc2626';
+            } finally {
+                batchBtn.disabled = false;
+                setTimeout(() => {
+                    batchProgress.style.display = 'none';
+                }, 2000);
+            }
+        }
+        
+        // バッチ学習結果表示
+        function displayBatchResult(data) {
+            const batchResult = document.getElementById('batchResult');
+            const batchResultContent = document.getElementById('batchResultContent');
+            
+            batchResultContent.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #d1fae5;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 16px;">
+                        <div>
+                            <strong>📁 処理ファイル:</strong><br>
+                            <span style="color: #059669; font-weight: 600;">${data.processedFiles}個</span>
+                        </div>
+                        <div>
+                            <strong>🧠 総抽出概念:</strong><br>
+                            <span style="color: #4f46e5; font-weight: 600;">${data.totalConcepts}個</span>
+                        </div>
+                        <div>
+                            <strong>✨ 新規概念:</strong><br>
+                            <span style="color: #dc2626; font-weight: 600;">${data.newConcepts}個</span>
+                        </div>
+                        <div>
+                            <strong>🔄 更新概念:</strong><br>
+                            <span style="color: #7c3aed; font-weight: 600;">${data.updatedConcepts}個</span>
+                        </div>
+                    </div>
+                    
+                    <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-top: 12px;">
+                        <strong>📊 学習統計:</strong>
+                        概念DB総数: <strong>${data.learningStats.conceptDBSize.total}個</strong> | 
+                        統合済み: <strong>${data.learningStats.integratedConcepts}個</strong>
+                    </div>
+                </div>
+            `;
+            
+            batchResult.style.display = 'block';
+            document.getElementById('batchStatus').textContent = '✅ バッチ学習完了';
+            document.getElementById('batchStatus').style.color = '#059669';
+        }
+        
+        // 学習ディレクトリ一覧の読み込み
+        async function loadLearningDirectories() {
+            try {
+                const response = await fetch('/api/learn/directories');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayDirectoryList(result.data.directories);
+                }
+            } catch (error) {
+                console.error('ディレクトリ読み込みエラー:', error);
+            }
+        }
+        
+        // ディレクトリ一覧表示
+        function displayDirectoryList(directories) {
+            const directoryList = document.getElementById('directoryList');
+            
+            if (directories.length === 0) {
+                directoryList.innerHTML = '<div style="color: #6b7280;">利用可能なログディレクトリがありません</div>';
+                return;
+            }
+            
+            directoryList.innerHTML = `
+                <div style="background: white; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    ${directories.slice(0, 5).map(dir => `
+                        <div style="padding: 12px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: between; align-items: center;">
+                            <div>
+                                <strong>${dir.path}</strong>
+                                <div style="font-size: 12px; color: #6b7280;">${dir.logCount}個のログファイル</div>
+                            </div>
+                            <div style="color: #4f46e5; font-size: 14px; font-weight: 600;">
+                                ${dir.logCount}個
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+        
+        // 学習統計の更新
+        function updateLearningStats(stats) {
+            document.getElementById('logProcessedCount').textContent = stats.processedLogs || 0;
+            document.getElementById('extractedConceptsCount').textContent = stats.extractedConcepts || 0;
+            document.getElementById('newConceptsCount').textContent = stats.integratedConcepts || 0;
+            
+            // 学習精度計算
+            const accuracy = stats.extractedConcepts > 0 ? 
+                ((stats.integratedConcepts / stats.extractedConcepts) * 100).toFixed(1) : 0;
+            document.getElementById('learningAccuracy').textContent = accuracy + '%';
+        }
+        
+        // 学習統計の再読み込み
+        async function refreshLearningStats() {
+            try {
+                const response = await fetch('/api/learn/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    updateLearningStats(result.data);
+                    displayLearningStatsDetail(result.data);
+                }
+            } catch (error) {
+                console.error('統計読み込みエラー:', error);
+            }
+        }
+        
+        // 詳細学習統計表示
+        function displayLearningStatsDetail(stats) {
+            const learningStatsDisplay = document.getElementById('learningStatsDisplay');
+            
+            learningStatsDisplay.innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+                        <div>
+                            <strong>📚 処理済みログ</strong><br>
+                            <span style="font-size: 24px; color: #4f46e5; font-weight: 600;">${stats.processedLogs}</span>
+                        </div>
+                        <div>
+                            <strong>🎯 抽出概念総数</strong><br>
+                            <span style="font-size: 24px; color: #059669; font-weight: 600;">${stats.extractedConcepts}</span>
+                        </div>
+                        <div>
+                            <strong>✅ 統合済み概念</strong><br>
+                            <span style="font-size: 24px; color: #dc2626; font-weight: 600;">${stats.integratedConcepts}</span>
+                        </div>
+                        <div>
+                            <strong>📊 概念DB総数</strong><br>
+                            <span style="font-size: 24px; color: #7c3aed; font-weight: 600;">${stats.conceptDBSize.total}</span>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding-top: 16px; border-top: 1px solid #e2e8f0;">
+                        <div style="color: #6b7280; font-size: 14px;">
+                            🔍 品質フィルタ除外: <strong>${stats.qualityFiltered}</strong> | 
+                            表面概念: <strong>${stats.conceptDBSize.surface}</strong> | 
+                            深層概念: <strong>${stats.conceptDBSize.deep}</strong>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
             // 初期状態でシンプルモード
             document.querySelector('.analysis-section').style.display = 'none';
+            document.querySelector('.learning-section').style.display = 'none';
             document.querySelector('.chat-section').style.borderRight = 'none';
             
             // 統計情報読み込み

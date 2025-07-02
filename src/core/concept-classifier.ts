@@ -155,8 +155,23 @@ export class ConceptClassifier {
       'レイヤード', 'プロンプティング', 'セーブポイント', '形態素解析',
       'トークン', 'バッチ処理', 'チャンク', 'キャッシュ'
     ];
+
+    // 創作・芸術専門概念
+    const creativeSpecialtyConcepts = [
+      '物語構造', 'プロット', 'キャラクター設定', '世界観', '文体', 
+      '修辞技法', '象徴', 'メタファー', '暗示', '寓意', '起承転結',
+      '創作技法', '表現手法', '美的感覚', '芸術性'
+    ];
+
+    // 感情・体験専門概念  
+    const emotionalSpecialtyConcepts = [
+      '共感性', '感情移入', '内面描写', '心理描写', '情感表現',
+      '感動体験', '美的体験', '審美眼', '感受性', '情緒'
+    ];
     
     if (highSpecialtyConcepts.includes(concept)) return 0.3;
+    if (creativeSpecialtyConcepts.includes(concept)) return 0.25;
+    if (emotionalSpecialtyConcepts.includes(concept)) return 0.2;
     if (mathTechConcepts.includes(concept)) return 0.2;
     
     // パターンベースの専門性判定
@@ -164,8 +179,15 @@ export class ConceptClassifier {
       /.*理論$/, /.*手法$/, /.*アルゴリズム$/, /.*システム$/,
       /.*構造$/, /.*プロセス$/, /.*フレームワーク$/
     ];
+
+    // 創作系パターンの専門性判定
+    const creativePatterns = [
+      /.*表現$/, /.*技法$/, /.*描写$/, /.*構成$/,
+      /.*設定$/, /.*世界観$/, /.*文体$/, /.*手法$/
+    ];
     
     if (specialtyPatterns.some(pattern => pattern.test(concept))) return 0.15;
+    if (creativePatterns.some(pattern => pattern.test(concept))) return 0.15;
     
     return 0.0;
   }
@@ -235,6 +257,22 @@ export class ConceptClassifier {
     // 抽象・哲学概念
     if (/概念|思考|認知|意識|存在|本質/.test(lowerConcept)) {
       return '抽象哲学概念';
+    }
+
+    // 創作・芸術概念
+    if (/創作|芸術|表現|美|物語|ストーリー|文学|詩|小説|作品/.test(lowerConcept) ||
+        /創作|芸術|表現|美|物語|文学/.test(lowerContent)) {
+      return '創作芸術概念';  
+    }
+
+    // 感情・共感概念
+    if (/感情|共感|感動|心|気持ち|体験|印象|感覚/.test(lowerConcept)) {
+      return '感情体験概念';
+    }
+
+    // 物語・構造概念
+    if (/構造|展開|プロット|設定|キャラクター|登場人物|世界観/.test(lowerConcept)) {
+      return '物語構造概念';
     }
 
     return '一般概念';

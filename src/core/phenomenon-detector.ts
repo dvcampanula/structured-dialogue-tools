@@ -153,6 +153,41 @@ export class PhenomenonDetector {
         contextClues: ['システム', 'API', 'インターフェース', '活用', '制御', '操作'],
         evidenceWeight: 0.9,
         minIndicatorCount: 1
+      },
+      {
+        name: '創作的発想',
+        indicators: ['創作', '想像', '創造', 'アイデア', 'インスピレーション', '発想', '着想', '創意'],
+        contextClues: ['物語', 'ストーリー', '小説', '詩', '作品', '表現', '芸術', '文学'],
+        evidenceWeight: 0.8,
+        minIndicatorCount: 1
+      },
+      {
+        name: '感情的共鳴',
+        indicators: ['共感', '感動', '心打', '涙', '感情', '情感', '心境', '気持ち'],
+        contextClues: ['心', '感じ', '気持ち', '思い', '感覚', '印象', '体験', '経験'],
+        evidenceWeight: 0.7,
+        minIndicatorCount: 1
+      },
+      {
+        name: '美的体験',
+        indicators: ['美しい', '美', '綺麗', '素敵', '魅力', '優雅', '洗練', '芸術的'],
+        contextClues: ['デザイン', '色彩', '形', '音楽', '絵画', '美術', '表現', '作品'],
+        evidenceWeight: 0.7,
+        minIndicatorCount: 1
+      },
+      {
+        name: '物語構造発見',
+        indicators: ['物語', 'ストーリー', 'プロット', '展開', '構成', '起承転結', 'ドラマ'],
+        contextClues: ['登場人物', 'キャラクター', '主人公', '場面', 'シーン', '設定', '世界観'],
+        evidenceWeight: 0.8,
+        minIndicatorCount: 1
+      },
+      {
+        name: '象徴的表現',
+        indicators: ['象徴', 'メタファー', '比喩', '暗示', '寓意', '隠喩', '表象'],
+        contextClues: ['意味', '深層', '解釈', '読み取り', '暗示', '含意', 'メッセージ'],
+        evidenceWeight: 0.8,
+        minIndicatorCount: 1
       }
     ];
   }

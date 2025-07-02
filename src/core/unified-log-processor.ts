@@ -233,12 +233,28 @@ class UnifiedLogProcessor {
       '継続学習', '品質向上', 'AIとの協働', '思考の仲間',
       '産業横断', '金銀財宝', 'ブレークスルー', '内部状態'
     ];
+
+    // 3. 創作系概念（中重み）
+    const creativeConcepts = [
+      '物語', 'ストーリー', '創作', '表現', '感動', '共感',
+      '美しさ', '芸術', '文学', '詩', '象徴', 'メタファー',
+      'キャラクター', '世界観', '展開', '構成', '描写'
+    ];
     
     relatedConcepts.forEach(concept => {
       const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
       const occurrences = (rawLog.match(new RegExp(escapedConcept, 'g')) || []).length;
       if (occurrences > 0) {
         conceptScores[concept] = occurrences * 3; // 重み強化
+      }
+    });
+
+    // 創作系概念の処理
+    creativeConcepts.forEach(concept => {
+      const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const occurrences = (rawLog.match(new RegExp(escapedConcept, 'g')) || []).length;
+      if (occurrences > 0) {
+        conceptScores[concept] = occurrences * 3; // 関連概念と同等の重み
       }
     });
     

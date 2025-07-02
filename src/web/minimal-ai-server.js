@@ -10,6 +10,9 @@ import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { EnhancedMinimalAI } from '../core/enhanced-minimal-ai.js';
+import { DialogueLogLearner } from '../core/dialogue-log-learner.js';
+import fs from 'fs';
+import multer from 'multer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,6 +27,13 @@ app.use(express.static(path.join(__dirname)));
 
 // ミニマムAI インスタンス
 let minimalAI;
+let logLearner;
+
+// ファイルアップロード設定
+const upload = multer({ 
+  dest: 'workspace/temp/',
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB制限
+});
 
 // 初期化フラグ
 let isInitialized = false;
@@ -36,8 +46,13 @@ async function initializeAI() {
     console.log('🌱 ミニマムAI初期化中...');
     minimalAI = new EnhancedMinimalAI();
     await minimalAI.initialize();
+    
+    // ログ学習システム初期化
+    const conceptDB = minimalAI.getConceptDB();
+    logLearner = new DialogueLogLearner(conceptDB, minimalAI);
+    
     isInitialized = true;
-    console.log('✅ ミニマムAI初期化完了');
+    console.log('✅ ミニマムAI+ログ学習システム初期化完了');
   } catch (error) {
     console.error('❌ ミニマムAI初期化エラー:', error);
     throw error;
@@ -294,6 +309,157 @@ app.use((req, res) => {
     error: 'エンドポイントが見つかりません',
     path: req.path
   });
+});
+
+// === ログ学習API エンドポイント ===
+
+// API: ログファイルをアップロード・学習
+app.post('/api/learn/upload', upload.single('logfile'), async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        error: 'ログファイルが指定されていません'
+      });
+    }
+    
+    console.log(`📄 ログファイル学習開始: ${req.file.originalname}`);
+    
+    const result = await logLearner.processLogFile(req.file.path);
+    
+    // 一時ファイル削除
+    fs.unlinkSync(req.file.path);
+    
+    res.json({
+      success: true,
+      data: {
+        filename: req.file.originalname,
+        format: result.format,
+        conceptsExtracted: result.concepts.length,
+        newConcepts: result.integrationResults.new.length,
+        updatedConcepts: result.integrationResults.updated.length,
+        metrics: result.metrics,
+        learningStats: logLearner.getLearningStats()
+      }
+    });
+  } catch (error) {
+    console.error('ログ学習エラー:', error);
+    // 一時ファイル削除（エラー時も）
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: test-logsディレクトリから自動学習
+app.post('/api/learn/batch', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { directory } = req.body;
+    const targetPath = directory || path.join(__dirname, '../../test-logs/benchmarks/quality/technical');
+    
+    console.log(`📁 バッチ学習開始: ${targetPath}`);
+    
+    const results = await logLearner.processLogDirectory(targetPath);
+    
+    res.json({
+      success: true,
+      data: {
+        directory: targetPath,
+        processedFiles: results.processedFiles,
+        totalConcepts: results.totalConcepts,
+        newConcepts: results.integrationResults.new.length,
+        updatedConcepts: results.integrationResults.updated.length,
+        learningStats: logLearner.getLearningStats()
+      }
+    });
+  } catch (error) {
+    console.error('バッチ学習エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 学習統計取得
+app.get('/api/learn/stats', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const stats = logLearner.getLearningStats();
+    
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 利用可能なログディレクトリ一覧
+app.get('/api/learn/directories', async (req, res) => {
+  try {
+    const testLogsPath = path.join(__dirname, '../../test-logs');
+    const directories = [];
+    
+    function scanDirectory(dirPath, relativePath = '') {
+      const items = fs.readdirSync(dirPath);
+      
+      for (const item of items) {
+        const itemPath = path.join(dirPath, item);
+        const itemRelativePath = path.join(relativePath, item);
+        
+        if (fs.statSync(itemPath).isDirectory()) {
+          const txtFiles = fs.readdirSync(itemPath).filter(file => file.endsWith('.txt'));
+          if (txtFiles.length > 0) {
+            directories.push({
+              path: itemRelativePath,
+              fullPath: itemPath,
+              logCount: txtFiles.length,
+              files: txtFiles
+            });
+          }
+          // 再帰的にサブディレクトリを探索
+          scanDirectory(itemPath, itemRelativePath);
+        }
+      }
+    }
+    
+    if (fs.existsSync(testLogsPath)) {
+      scanDirectory(testLogsPath);
+    }
+    
+    res.json({
+      success: true,
+      data: {
+        baseDirectory: testLogsPath,
+        directories: directories.sort((a, b) => b.logCount - a.logCount)
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
 });
 
 // サーバー起動
