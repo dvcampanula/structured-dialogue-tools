@@ -101,4 +101,4 @@ output-*.json
 temp-output.*
 
 # 一時作業領域
-workspace/
+workspace/docs/archive/
