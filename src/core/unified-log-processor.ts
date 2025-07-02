@@ -220,7 +220,8 @@ class UnifiedLogProcessor {
     ];
     
     coreConcepts.forEach(concept => {
-      const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
+      const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const occurrences = (rawLog.match(new RegExp(escapedConcept, 'g')) || []).length;
       if (occurrences > 0) {
         conceptScores[concept] = occurrences * 5; // 重み強化
       }
@@ -234,7 +235,8 @@ class UnifiedLogProcessor {
     ];
     
     relatedConcepts.forEach(concept => {
-      const occurrences = (rawLog.match(new RegExp(concept, 'g')) || []).length;
+      const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const occurrences = (rawLog.match(new RegExp(escapedConcept, 'g')) || []).length;
       if (occurrences > 0) {
         conceptScores[concept] = occurrences * 3; // 重み強化
       }

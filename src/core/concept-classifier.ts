@@ -273,7 +273,8 @@ export class ConceptClassifier {
     }
     
     // 文脈での重要性
-    const contextOccurrences = (content.match(new RegExp(concept, 'g')) || []).length;
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const contextOccurrences = (content.match(new RegExp(escapedConcept, 'g')) || []).length;
     if (contextOccurrences >= 3) {
       depth += 0.15;
     }
@@ -288,7 +289,8 @@ export class ConceptClassifier {
     let importance = 0;
     
     // 出現頻度
-    const occurrences = (content.match(new RegExp(concept, 'gi')) || []).length;
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const occurrences = (content.match(new RegExp(escapedConcept, 'gi')) || []).length;
     importance += Math.min(occurrences * 0.1, 0.3);
     
     // 位置的重要性（文頭・文末での出現）
@@ -302,7 +304,7 @@ export class ConceptClassifier {
     // 強調表現との共起
     const emphasisPatterns = ['重要', '核心', '本質', '中心', 'キー'];
     const emphasisCount = emphasisPatterns.filter(pattern => 
-      new RegExp(`${pattern}.*${concept}|${concept}.*${pattern}`).test(content)
+      new RegExp(`${pattern}.*${escapedConcept}|${escapedConcept}.*${pattern}`).test(content)
     ).length;
     importance += emphasisCount * 0.15;
 
@@ -314,6 +316,7 @@ export class ConceptClassifier {
    */
   private calculateStructuralImportance(concept: string, content: string): number {
     let importance = 0;
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
     // 階層的表現での使用
     const hierarchicalPatterns = [
@@ -323,14 +326,14 @@ export class ConceptClassifier {
     ];
     
     hierarchicalPatterns.forEach(pattern => {
-      const matches = content.match(new RegExp(pattern.source.replace('${concept}', concept), 'gm'));
+      const matches = content.match(new RegExp(pattern.source.replace('${concept}', escapedConcept), 'gm'));
       if (matches) importance += matches.length * 0.1;
     });
     
     // タイトル・見出しでの使用
     const headingPatterns = [
-      new RegExp(`^#{1,6}\\s.*${concept}`, 'gm'),
-      new RegExp(`^.*${concept}.*:$`, 'gm')
+      new RegExp(`^#{1,6}\\s.*${escapedConcept}`, 'gm'),
+      new RegExp(`^.*${escapedConcept}.*:$`, 'gm')
     ];
     
     headingPatterns.forEach(pattern => {
@@ -371,6 +374,7 @@ export class ConceptClassifier {
    */
   private calculateInnovationImportance(concept: string, content: string): number {
     let importance = 0;
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
     // 革新的文脈での使用
     const innovationContext = [
@@ -379,7 +383,7 @@ export class ConceptClassifier {
     ];
     
     innovationContext.forEach(context => {
-      if (new RegExp(`${context}.*${concept}|${concept}.*${context}`).test(content)) {
+      if (new RegExp(`${context}.*${escapedConcept}|${escapedConcept}.*${context}`).test(content)) {
         importance += 0.2;
       }
     });
