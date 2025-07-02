@@ -431,6 +431,8 @@
         // ミニマムAI WebUI JavaScript
         let currentMode = 'simple';
         let learningCount = 0;
+        let lastAnalysisResult = null;
+        let sessionStartTime = Date.now();
         
         // モード切替
         document.querySelectorAll('.mode-btn').forEach(btn => {
@@ -547,6 +549,8 @@
         
         // 分析表示更新
         function updateAnalysisDisplay(analysis) {
+            // 分析結果を記録（エクスポート用）
+            lastAnalysisResult = analysis;
             // 概念リスト更新
             const conceptList = document.getElementById('conceptList');
             conceptList.innerHTML = analysis.conceptGraph.nodes.map(node => 
@@ -573,6 +577,9 @@
                 document.getElementById('anomalyCount').textContent = '0';
             }
             
+            // グラフ可視化更新
+            updateConceptGraph(analysis.conceptGraph);
+            
             // グラフ洞察更新
             const graphInsights = document.getElementById('graphInsights');
             graphInsights.innerHTML = analysis.graphInsights.map(insight => 
@@ -587,6 +594,145 @@
             document.getElementById('progressFill').style.width = progress + '%';
         }
         
+        // 概念グラフ可視化（Chart.js使用）
+        let conceptGraphChart = null;
+        
+        function updateConceptGraph(conceptGraph) {
+            const ctx = document.getElementById('graphChart').getContext('2d');
+            
+            // 既存のチャートがあれば破棄
+            if (conceptGraphChart) {
+                conceptGraphChart.destroy();
+            }
+            
+            if (!conceptGraph.nodes || conceptGraph.nodes.length === 0) {
+                // 空のチャート表示
+                conceptGraphChart = new Chart(ctx, {
+                    type: 'scatter',
+                    data: {
+                        datasets: [{
+                            label: '概念なし',
+                            data: [],
+                            backgroundColor: '#e5e7eb'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: '概念グラフ（概念が検出されませんでした）'
+                            }
+                        }
+                    }
+                });
+                return;
+            }
+            
+            // ノードデータ準備（概念の位置をランダムに配置）
+            const nodeData = conceptGraph.nodes.map((node, index) => ({
+                x: Math.cos(index * 2 * Math.PI / conceptGraph.nodes.length) * 50 + 50,
+                y: Math.sin(index * 2 * Math.PI / conceptGraph.nodes.length) * 50 + 50,
+                label: node.label,
+                weight: node.weight || 1
+            }));
+            
+            // エッジデータ準備（線として描画用）
+            const edgeData = conceptGraph.edges.map(edge => {
+                const sourceNode = nodeData.find(n => n.label === edge.source);
+                const targetNode = nodeData.find(n => n.label === edge.target);
+                return {
+                    source: sourceNode,
+                    target: targetNode,
+                    weight: edge.weight || 1
+                };
+            });
+            
+            conceptGraphChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    datasets: [
+                        // ノードデータセット
+                        {
+                            label: '概念ノード',
+                            data: nodeData,
+                            backgroundColor: '#3b82f6',
+                            borderColor: '#1d4ed8',
+                            borderWidth: 2,
+                            pointRadius: node => 6 + (node.weight * 3),
+                            pointHoverRadius: node => 8 + (node.weight * 3)
+                        },
+                        // エッジデータセット（線の描画は制限があるため、関係性は別途表示）
+                        {
+                            label: '関係性',
+                            data: edgeData.flatMap(edge => [
+                                { x: edge.source.x, y: edge.source.y },
+                                { x: edge.target.x, y: edge.target.y }
+                            ]),
+                            backgroundColor: '#10b981',
+                            borderColor: '#059669',
+                            borderWidth: 1,
+                            pointRadius: 2,
+                            showLine: true,
+                            tension: 0
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: `概念関係グラフ (${conceptGraph.nodes.length}概念, ${conceptGraph.edges.length}関係)`
+                        },
+                        tooltip: {
+                            callbacks: {
+                                title: function(context) {
+                                    if (context[0].datasetIndex === 0) {
+                                        return context[0].raw.label;
+                                    }
+                                    return '関係性';
+                                },
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return `重み: ${context.raw.weight}`;
+                                    }
+                                    return `位置: (${context.raw.x.toFixed(1)}, ${context.raw.y.toFixed(1)})`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            type: 'linear',
+                            position: 'bottom',
+                            min: -10,
+                            max: 110,
+                            title: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            min: -10,
+                            max: 110,
+                            title: {
+                                display: false
+                            }
+                        }
+                    },
+                    onClick: (event, elements) => {
+                        if (elements.length > 0) {
+                            const element = elements[0];
+                            if (element.datasetIndex === 0) {
+                                const node = nodeData[element.index];
+                                alert(`概念: ${node.label}\n重み: ${node.weight}`);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
         // チャットクリア
         function clearChat() {
             document.querySelector('.chat-input').value = '';
@@ -597,21 +743,135 @@
             `;
         }
         
-        // エクスポート
-        function exportChat() {
-            const data = {
-                timestamp: new Date().toISOString(),
-                learningCount: learningCount,
-                lastResponse: document.getElementById('responseContent').textContent
-            };
+        // エクスポート強化版
+        async function exportChat() {
+            try {
+                // サーバーから詳細統計を取得
+                const statsResponse = await fetch('/api/stats');
+                const stats = await statsResponse.json();
+                
+                // 学習履歴を取得（利用可能な場合）
+                let learningHistory = null;
+                try {
+                    const learningResponse = await fetch('/api/learning-history');
+                    learningHistory = await learningResponse.json();
+                } catch (e) {
+                    // 学習履歴APIがない場合はスキップ
+                }
+                
+                // 包括的エクスポートデータ作成
+                const exportData = {
+                    // メタデータ
+                    metadata: {
+                        exportTime: new Date().toISOString(),
+                        version: "ミニマムAI v2.0",
+                        mode: currentMode,
+                        sessionDuration: Date.now() - sessionStartTime,
+                        userAgent: navigator.userAgent
+                    },
+                    
+                    // システム統計
+                    systemStats: stats.success ? stats.data : null,
+                    
+                    // セッション情報
+                    session: {
+                        learningCount: learningCount,
+                        interactionCount: sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 60000) : 0,
+                        mode: currentMode,
+                        lastActivity: new Date().toISOString()
+                    },
+                    
+                    // UI状態
+                    uiState: {
+                        currentResponse: document.getElementById('responseContent').innerHTML,
+                        lastInput: document.querySelector('.chat-input').value,
+                        activeTab: document.querySelector('.tab-btn.active')?.dataset?.tab || 'concepts',
+                        analysisMode: currentMode === 'analysis'
+                    },
+                    
+                    // 分析履歴（直近の分析結果）
+                    analysisHistory: lastAnalysisResult || null,
+                    
+                    // 学習データ
+                    learningData: learningHistory ? learningHistory.data : null,
+                    
+                    // システム情報
+                    systemInfo: {
+                        userAgent: navigator.userAgent,
+                        language: navigator.language,
+                        platform: navigator.platform,
+                        cookieEnabled: navigator.cookieEnabled,
+                        screenResolution: {
+                            width: screen.width,
+                            height: screen.height
+                        }
+                    }
+                };
+                
+                // ファイル名生成（日時とモードを含む）
+                const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+                const filename = `minimal-ai-export-${currentMode}-${timestamp}.json`;
+                
+                // ダウンロード実行
+                const blob = new Blob([JSON.stringify(exportData, null, 2)], {type: 'application/json'});
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                // 成功メッセージ表示
+                showNotification(`📥 エクスポート完了: ${filename}`, 'success');
+                
+            } catch (error) {
+                console.error('エクスポートエラー:', error);
+                showNotification('❌ エクスポートに失敗しました', 'error');
+            }
+        }
+        
+        // 通知表示機能
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 20px;
+                border-radius: 8px;
+                color: white;
+                font-weight: 500;
+                z-index: 1000;
+                animation: slideIn 0.3s ease;
+                ${type === 'success' ? 'background: #10b981;' : ''}
+                ${type === 'error' ? 'background: #ef4444;' : ''}
+                ${type === 'info' ? 'background: #3b82f6;' : ''}
+            `;
+            notification.textContent = message;
             
-            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `minimal-ai-export-${new Date().toISOString().slice(0,10)}.json`;
-            a.click();
-            URL.revokeObjectURL(url);
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+        
+        // アニメーション用CSS（動的追加）
+        if (!document.querySelector('#notificationStyles')) {
+            const style = document.createElement('style');
+            style.id = 'notificationStyles';
+            style.textContent = `
+                @keyframes slideIn {
+                    from { transform: translateX(100%); opacity: 0; }
+                    to { transform: translateX(0); opacity: 1; }
+                }
+                @keyframes slideOut {
+                    from { transform: translateX(0); opacity: 1; }
+                    to { transform: translateX(100%); opacity: 0; }
+                }
+            `;
+            document.head.appendChild(style);
         }
         
         // 統計情報を取得
