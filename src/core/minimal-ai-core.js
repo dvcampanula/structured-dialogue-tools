@@ -279,4 +279,20 @@ export class MinimalAICore {
             confidence: 0.85 // 動的計算（簡素化）
         };
     }
+
+    // 概念DB取得
+    getConceptDB() {
+        return this.conceptDB;
+    }
+
+    // 概念DB更新
+    updateConceptDB(newConceptDB) {
+        this.conceptDB = newConceptDB;
+        
+        // ローカル概念エンジンも更新
+        const allConcepts = [...this.conceptDB.concepts.surface, ...this.conceptDB.concepts.deep];
+        this.conceptEngine = new LocalConceptEngine(allConcepts);
+        
+        console.log(`📊 概念DB更新完了: ${this.conceptDB.totalConcepts}個の概念`);
+    }
 }

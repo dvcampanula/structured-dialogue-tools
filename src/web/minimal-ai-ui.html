@@ -306,6 +306,28 @@
             background: linear-gradient(90deg, #4f46e5, #7c3aed);
             transition: width 0.3s;
         }
+        
+        .progress-step {
+            padding: 8px 12px;
+            margin: 4px 0;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #6b7280;
+            border-left: 3px solid #e2e8f0;
+            transition: all 0.3s;
+        }
+        
+        .progress-step.active {
+            background: #eff6ff;
+            color: #4f46e5;
+            border-left-color: #4f46e5;
+        }
+        
+        .progress-step.completed {
+            background: #f0fdf4;
+            color: #059669;
+            border-left-color: #059669;
+        }
     </style>
 </head>
 <body>
@@ -451,6 +473,7 @@
                 <div class="learning-tabs" style="display: flex; border-bottom: 2px solid #e2e8f0; margin-bottom: 24px;">
                     <div class="learning-tab active" data-tab="upload" style="padding: 12px 24px; cursor: pointer; border-bottom: 2px solid #4f46e5; color: #4f46e5; font-weight: 600;">📁 ファイルアップロード</div>
                     <div class="learning-tab" data-tab="batch" style="padding: 12px 24px; cursor: pointer; color: #6b7280;">🗂️ バッチ学習</div>
+                    <div class="learning-tab" data-tab="quality" style="padding: 12px 24px; cursor: pointer; color: #6b7280;">🧹 品質改善</div>
                     <div class="learning-tab" data-tab="results" style="padding: 12px 24px; cursor: pointer; color: #6b7280;">📊 学習結果</div>
                 </div>
                 
@@ -466,9 +489,19 @@
                             <button class="btn btn-primary" onclick="uploadLogFile()" id="uploadBtn">📤 学習開始</button>
                             
                             <div id="uploadProgress" style="display: none; margin-top: 16px;">
-                                <div style="color: #4f46e5; font-weight: 600;">処理中...</div>
+                                <div id="uploadProgressText" style="color: #4f46e5; font-weight: 600;">処理中...</div>
                                 <div style="background: #e2e8f0; height: 8px; border-radius: 4px; margin-top: 8px;">
                                     <div id="uploadProgressBar" style="background: #4f46e5; height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                                <div id="uploadProgressDetails" style="margin-top: 8px; font-size: 14px; color: #6b7280;">
+                                    ファイル準備中...
+                                </div>
+                                <div id="uploadProgressSteps" style="margin-top: 12px; font-size: 13px;">
+                                    <div class="progress-step" data-step="upload">📤 ファイルアップロード</div>
+                                    <div class="progress-step" data-step="analyze">🔍 形態素解析</div>
+                                    <div class="progress-step" data-step="extract">🧠 概念抽出</div>
+                                    <div class="progress-step" data-step="integrate">🔄 統合処理</div>
+                                    <div class="progress-step" data-step="complete">✅ 完了</div>
                                 </div>
                             </div>
                         </div>
@@ -499,6 +532,36 @@
                         <div id="batchResult" style="margin-top: 24px; display: none;">
                             <h4 style="color: #059669; margin-bottom: 12px;">✅ バッチ学習完了</h4>
                             <div id="batchResultContent"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- 品質改善タブ -->
+                    <div class="tab-panel" id="quality-panel" style="display: none;">
+                        <div style="background: #f8fafc; padding: 24px; border-radius: 12px;">
+                            <h4 style="margin-bottom: 16px; color: #4f46e5;">🧹 概念DB品質改善・重複統合</h4>
+                            <p style="color: #6b7280; margin-bottom: 20px;">重複概念の自動統合・品質フィルタリング・カテゴリ最適化を実行します</p>
+                            
+                            <!-- 品質統計表示 -->
+                            <div id="qualityStatsDisplay" style="margin-bottom: 20px;">
+                                <div style="color: #6b7280;">品質統計を読み込み中...</div>
+                            </div>
+                            
+                            <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+                                <button class="btn btn-primary" onclick="runQualityImprovement()" id="qualityBtn">🚀 品質改善実行</button>
+                                <button class="btn btn-secondary" onclick="refreshQualityStats()">📊 統計更新</button>
+                            </div>
+                            
+                            <div id="qualityProgress" style="display: none; margin-top: 16px;">
+                                <div style="color: #4f46e5; font-weight: 600;">品質改善処理中...</div>
+                                <div style="background: #e2e8f0; height: 8px; border-radius: 4px; margin-top: 8px;">
+                                    <div id="qualityProgressBar" style="background: #4f46e5; height: 100%; border-radius: 4px; width: 0%; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="qualityResult" style="margin-top: 24px; display: none;">
+                            <h4 style="color: #059669; margin-bottom: 12px;">✅ 品質改善完了</h4>
+                            <div id="qualityResultContent"></div>
                         </div>
                     </div>
                     
@@ -1037,9 +1100,73 @@
                     loadLearningDirectories();
                 } else if (targetTab === 'results') {
                     refreshLearningStats();
+                } else if (targetTab === 'quality') {
+                    refreshQualityStats();
                 }
             });
         });
+
+        // === 詳細プログレス表示機能 ===
+        
+        function updateProgressStep(stepName, isActive = false, isCompleted = false) {
+            const step = document.querySelector(`[data-step="${stepName}"]`);
+            if (step) {
+                step.classList.remove('active', 'completed');
+                if (isCompleted) {
+                    step.classList.add('completed');
+                } else if (isActive) {
+                    step.classList.add('active');
+                }
+            }
+        }
+        
+        function updateProgressBar(percentage, text, details) {
+            const progressBar = document.getElementById('uploadProgressBar');
+            const progressText = document.getElementById('uploadProgressText');
+            const progressDetails = document.getElementById('uploadProgressDetails');
+            
+            if (progressBar) progressBar.style.width = percentage + '%';
+            if (progressText) progressText.textContent = text;
+            if (progressDetails) progressDetails.textContent = details;
+        }
+        
+        function showErrorMessage(elementId, message, details = '') {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.innerHTML = `
+                    <div style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px; color: #dc2626;">
+                        <div style="font-weight: 600; margin-bottom: 8px;">❌ エラーが発生しました</div>
+                        <div style="margin-bottom: 8px;">${message}</div>
+                        ${details ? `<div style="font-size: 14px; color: #991b1b; margin-top: 8px;">${details}</div>` : ''}
+                        <div style="margin-top: 12px; font-size: 13px; color: #6b7280;">
+                            💡 対処方法：
+                            <ul style="margin: 4px 0 0 16px; padding: 0;">
+                                <li>ファイル形式が正しいか確認してください（.txt, .md, .log）</li>
+                                <li>ファイルサイズが10MB以下か確認してください</li>
+                                <li>サーバーが起動していることを確認してください</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                element.style.display = 'block';
+            }
+        }
+        
+        function validateFile(file) {
+            const maxSize = 10 * 1024 * 1024; // 10MB
+            const validTypes = ['.txt', '.md', '.log'];
+            
+            if (file.size > maxSize) {
+                return { valid: false, error: 'ファイルサイズが10MBを超えています' };
+            }
+            
+            const fileExt = file.name.toLowerCase().substring(file.name.lastIndexOf('.'));
+            if (!validTypes.includes(fileExt)) {
+                return { valid: false, error: `対応していないファイル形式です（対応形式: ${validTypes.join(', ')}）` };
+            }
+            
+            return { valid: true };
+        }
         
         // ログファイルアップロード
         async function uploadLogFile() {
@@ -1047,7 +1174,14 @@
             const file = fileInput.files[0];
             
             if (!file) {
-                alert('ファイルを選択してください');
+                showErrorMessage('uploadResult', 'ファイルが選択されていません', 'ファイルを選択してから学習開始ボタンを押してください');
+                return;
+            }
+            
+            // ファイル検証
+            const validation = validateFile(file);
+            if (!validation.valid) {
+                showErrorMessage('uploadResult', validation.error);
                 return;
             }
             
@@ -1059,29 +1193,76 @@
             uploadProgress.style.display = 'block';
             uploadResult.style.display = 'none';
             
-            const formData = new FormData();
-            formData.append('logfile', file);
+            // プログレス初期化
+            document.querySelectorAll('.progress-step').forEach(step => {
+                step.classList.remove('active', 'completed');
+            });
             
             try {
+                // ステップ1: ファイルアップロード準備
+                updateProgressStep('upload', true);
+                updateProgressBar(10, 'ファイルアップロード準備中', `ファイル: ${file.name} (${(file.size / 1024).toFixed(1)}KB)`);
+                
+                const formData = new FormData();
+                formData.append('logfile', file);
+                
+                // ステップ2: アップロード実行
+                updateProgressStep('upload', false, true);
+                updateProgressStep('analyze', true);
+                updateProgressBar(30, 'ファイルをサーバーに送信中', 'フォーマット自動検出・形態素解析準備');
+                
                 const response = await fetch('/api/learn/upload', {
                     method: 'POST',
                     body: formData
                 });
                 
+                // ステップ3: 概念抽出
+                updateProgressStep('analyze', false, true);
+                updateProgressStep('extract', true);
+                updateProgressBar(60, '概念抽出処理中', 'kuromoji形態素解析・技術用語認識');
+                
                 const result = await response.json();
                 
                 if (result.success) {
+                    // ステップ4: 統合処理
+                    updateProgressStep('extract', false, true);
+                    updateProgressStep('integrate', true);
+                    updateProgressBar(85, '概念統合・品質フィルタ', `${result.data.conceptsExtracted}個の概念を処理中`);
+                    
+                    // 少し待ってから完了表示
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    
+                    // ステップ5: 完了
+                    updateProgressStep('integrate', false, true);
+                    updateProgressStep('complete', true);
+                    updateProgressBar(100, '学習完了', `新規概念: ${result.data.newConcepts}個追加`);
+                    
+                    // 結果表示
                     displayUploadResult(result.data);
                     updateLearningStats(result.data.learningStats);
+                    
+                    showNotification(`学習完了: ${result.data.newConcepts}個の新規概念を発見`, 'success');
                 } else {
                     throw new Error(result.error);
                 }
             } catch (error) {
                 console.error('アップロードエラー:', error);
-                alert('アップロードに失敗しました: ' + error.message);
+                
+                // エラー時のプログレス表示
+                updateProgressBar(0, 'エラーが発生しました', error.message);
+                document.querySelectorAll('.progress-step').forEach(step => {
+                    step.classList.remove('active', 'completed');
+                });
+                
+                showErrorMessage('uploadResult', 'アップロード処理中にエラーが発生しました', error.message);
+                showNotification('アップロードに失敗しました', 'error');
             } finally {
                 uploadBtn.disabled = false;
-                uploadProgress.style.display = 'none';
+                
+                // 5秒後にプログレス非表示
+                setTimeout(() => {
+                    uploadProgress.style.display = 'none';
+                }, 5000);
             }
         }
         
@@ -1303,6 +1484,172 @@
                     </div>
                 </div>
             `;
+        }
+
+        // === 品質改善機能 ===
+        
+        // 品質統計を読み込み
+        async function refreshQualityStats() {
+            try {
+                const response = await fetch('/api/quality/stats');
+                const result = await response.json();
+                
+                if (result.success) {
+                    displayQualityStats(result.data);
+                } else {
+                    throw new Error(result.error);
+                }
+            } catch (error) {
+                console.error('品質統計取得エラー:', error);
+                document.getElementById('qualityStatsDisplay').innerHTML = `
+                    <div style="color: #dc2626;">❌ 品質統計の取得に失敗しました</div>
+                `;
+            }
+        }
+        
+        // 品質統計表示
+        function displayQualityStats(stats) {
+            document.getElementById('qualityStatsDisplay').innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #e2e8f0;">
+                    <h5 style="margin-bottom: 16px; color: #4f46e5;">📊 現在の品質状況</h5>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 600; color: #4f46e5;">${stats.totalConcepts}</div>
+                            <div style="font-size: 14px; color: #6b7280;">総概念数</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 600; color: #059669;">${stats.qualityDistribution.excellent}</div>
+                            <div style="font-size: 14px; color: #6b7280;">高品質</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 24px; font-weight: 600; color: #dc2626;">${stats.duplicatesPotential}</div>
+                            <div style="font-size: 14px; color: #6b7280;">重複可能性</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <strong>📈 品質分布:</strong><br>
+                        <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">
+                            優秀: ${stats.qualityDistribution.excellent} | 
+                            良好: ${stats.qualityDistribution.good} | 
+                            許容: ${stats.qualityDistribution.acceptable} | 
+                            低品質: ${stats.qualityDistribution.poor}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>🏷️ カテゴリ分布:</strong><br>
+                        <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">
+                            ${Object.entries(stats.categoryDistribution)
+                                .map(([cat, count]) => `${cat}: ${count}`)
+                                .join(' | ')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // 品質改善実行
+        async function runQualityImprovement() {
+            const btn = document.getElementById('qualityBtn');
+            const progress = document.getElementById('qualityProgress');
+            const progressBar = document.getElementById('qualityProgressBar');
+            const result = document.getElementById('qualityResult');
+            
+            try {
+                // UI更新
+                btn.disabled = true;
+                btn.textContent = '処理中...';
+                progress.style.display = 'block';
+                result.style.display = 'none';
+                
+                // プログレスアニメーション
+                progressBar.style.width = '30%';
+                
+                const response = await fetch('/api/quality/improve', {
+                    method: 'POST'
+                });
+                
+                progressBar.style.width = '70%';
+                
+                const data = await response.json();
+                
+                progressBar.style.width = '100%';
+                
+                if (data.success) {
+                    // 成功時の表示
+                    displayQualityResult(data.data);
+                    
+                    // 統計更新
+                    await refreshQualityStats();
+                    
+                    showNotification('品質改善が完了しました', 'success');
+                } else {
+                    throw new Error(data.error);
+                }
+                
+            } catch (error) {
+                console.error('品質改善エラー:', error);
+                document.getElementById('qualityResultContent').innerHTML = `
+                    <div style="color: #dc2626;">❌ 品質改善処理中にエラーが発生しました: ${error.message}</div>
+                `;
+                result.style.display = 'block';
+                showNotification('品質改善に失敗しました', 'error');
+            } finally {
+                // UI復元
+                btn.disabled = false;
+                btn.textContent = '🚀 品質改善実行';
+                progress.style.display = 'none';
+                progressBar.style.width = '0%';
+            }
+        }
+        
+        // 品質改善結果表示
+        function displayQualityResult(data) {
+            const report = data.report;
+            const improvements = data.improvements;
+            
+            document.getElementById('qualityResultContent').innerHTML = `
+                <div style="background: white; padding: 20px; border-radius: 12px; border: 1px solid #d1fae5;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #059669;">${improvements.improvementRatio}%</div>
+                            <div style="font-size: 14px; color: #6b7280;">効率化達成</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #4f46e5;">${improvements.mergedGroups}</div>
+                            <div style="font-size: 14px; color: #6b7280;">重複グループ統合</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #dc2626;">${improvements.removedConcepts}</div>
+                            <div style="font-size: 14px; color: #6b7280;">低品質概念除去</div>
+                        </div>
+                        <div style="text-align: center;">
+                            <div style="font-size: 18px; font-weight: 600; color: #7c3aed;">${improvements.finalCount}</div>
+                            <div style="font-size: 14px; color: #6b7280;">最終概念数</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 16px;">
+                        <strong>📊 改善前後比較:</strong><br>
+                        <div style="font-size: 14px; color: #6b7280; margin-top: 4px;">
+                            ${report.original.totalConcepts}個 → ${report.improved.totalConcepts}個
+                            (表面: ${report.original.surfaceConcepts} → ${report.improved.surfaceConcepts}、
+                            深層: ${report.original.deepConcepts} → ${report.improved.deepConcepts})
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <strong>💡 推奨事項:</strong>
+                        <ul style="margin-top: 8px; margin-bottom: 0; color: #6b7280; font-size: 14px;">
+                            ${report.recommendations.map(rec => `<li>${rec}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('qualityResult').style.display = 'block';
         }
         
         // 初期化

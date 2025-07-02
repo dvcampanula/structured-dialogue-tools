@@ -292,25 +292,6 @@ app.get('/api/export', async (req, res) => {
   }
 });
 
-// エラーハンドラー
-app.use((error, req, res, next) => {
-  console.error('サーバーエラー:', error);
-  res.status(500).json({
-    success: false,
-    error: 'サーバー内部エラー',
-    message: error.message
-  });
-});
-
-// 404ハンドラー
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    error: 'エンドポイントが見つかりません',
-    path: req.path
-  });
-});
-
 // === ログ学習API エンドポイント ===
 
 // API: ログファイルをアップロード・学習
@@ -460,6 +441,303 @@ app.get('/api/learn/directories', async (req, res) => {
       error: error.message
     });
   }
+});
+
+// API: 品質改善実行
+app.post('/api/quality/improve', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    console.log('🧹 品質改善開始...');
+    
+    // 現在の概念DBを取得
+    const currentDB = minimalAI.getConceptDB();
+    
+    // 品質管理システムのインスタンス作成
+    const { ConceptQualityManager } = await import('../core/concept-quality-manager.js');
+    const qualityManager = new ConceptQualityManager();
+    
+    // 品質改善実行
+    const improvedDB = qualityManager.improveConceptDB(currentDB);
+    
+    // 改善されたDBをシステムに適用
+    minimalAI.updateConceptDB(improvedDB);
+    
+    // 品質レポート生成
+    const qualityReport = qualityManager.generateQualityReport(currentDB, improvedDB);
+    
+    console.log(`✅ 品質改善完了: ${qualityReport.improvements.improvementRatio}%改善`);
+    
+    res.json({
+      success: true,
+      data: {
+        report: qualityReport,
+        improvements: improvedDB.qualityStats,
+        message: `品質改善完了 - ${improvedDB.qualityStats.improvementRatio}%の効率化を達成`
+      }
+    });
+    
+  } catch (error) {
+    console.error('品質改善エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 品質統計取得
+app.get('/api/quality/stats', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const conceptDB = minimalAI.getConceptDB();
+    const { ConceptQualityManager } = await import('../core/concept-quality-manager.js');
+    const qualityManager = new ConceptQualityManager();
+    
+    const allConcepts = [
+      ...(conceptDB.concepts?.surface || []),
+      ...(conceptDB.concepts?.deep || [])
+    ];
+    
+    // 品質分析
+    const qualityStats = {
+      totalConcepts: allConcepts.length,
+      surfaceConcepts: conceptDB.concepts?.surface?.length || 0,
+      deepConcepts: conceptDB.concepts?.deep?.length || 0,
+      qualityDistribution: {
+        excellent: 0,
+        good: 0,
+        acceptable: 0,
+        poor: 0
+      },
+      categoryDistribution: {},
+      duplicatesPotential: 0
+    };
+    
+    // 品質分布計算
+    for (const concept of allConcepts) {
+      const quality = qualityManager.calculateQualityScore(concept);
+      
+      if (quality >= qualityManager.qualityThresholds.excellent) {
+        qualityStats.qualityDistribution.excellent++;
+      } else if (quality >= qualityManager.qualityThresholds.good) {
+        qualityStats.qualityDistribution.good++;
+      } else if (quality >= qualityManager.qualityThresholds.acceptable) {
+        qualityStats.qualityDistribution.acceptable++;
+      } else {
+        qualityStats.qualityDistribution.poor++;
+      }
+      
+      // カテゴリ分布
+      const category = concept.category || 'general';
+      qualityStats.categoryDistribution[category] = (qualityStats.categoryDistribution[category] || 0) + 1;
+    }
+    
+    // 重複可能性の簡易チェック
+    const duplicateGroups = qualityManager.findDuplicateGroups(allConcepts);
+    qualityStats.duplicatesPotential = duplicateGroups.length;
+    
+    res.json({
+      success: true,
+      data: qualityStats
+    });
+    
+  } catch (error) {
+    console.error('品質統計取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: バックアップ作成
+app.get('/api/backup/create', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const backupData = {
+      timestamp,
+      conceptDB: minimalAI.getConceptDB(),
+      learningStats: logLearner.getLearningStats(),
+      version: '1.0.0'
+    };
+    
+    const backupDir = path.join(__dirname, '../../data/backups');
+    if (!fs.existsSync(backupDir)) {
+      fs.mkdirSync(backupDir, { recursive: true });
+    }
+    
+    const backupFile = path.join(backupDir, `concept-db-backup-${timestamp}.json`);
+    fs.writeFileSync(backupFile, JSON.stringify(backupData, null, 2));
+    
+    console.log(`📦 バックアップ作成: ${backupFile}`);
+    
+    res.json({
+      success: true,
+      data: {
+        filename: `concept-db-backup-${timestamp}.json`,
+        size: fs.statSync(backupFile).size,
+        conceptCount: (backupData.conceptDB.concepts?.surface?.length || 0) + (backupData.conceptDB.concepts?.deep?.length || 0),
+        timestamp
+      }
+    });
+    
+  } catch (error) {
+    console.error('バックアップ作成エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: バックアップ一覧取得
+app.get('/api/backup/list', async (req, res) => {
+  try {
+    const backupDir = path.join(__dirname, '../../data/backups');
+    
+    if (!fs.existsSync(backupDir)) {
+      return res.json({
+        success: true,
+        data: { backups: [] }
+      });
+    }
+    
+    const files = fs.readdirSync(backupDir)
+      .filter(file => file.startsWith('concept-db-backup-') && file.endsWith('.json'))
+      .map(file => {
+        const filePath = path.join(backupDir, file);
+        const stats = fs.statSync(filePath);
+        
+        try {
+          const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+          return {
+            filename: file,
+            size: stats.size,
+            created: stats.mtime,
+            conceptCount: (data.conceptDB?.concepts?.surface?.length || 0) + (data.conceptDB?.concepts?.deep?.length || 0),
+            version: data.version || 'unknown'
+          };
+        } catch (parseError) {
+          return {
+            filename: file,
+            size: stats.size,
+            created: stats.mtime,
+            conceptCount: 0,
+            version: 'corrupted'
+          };
+        }
+      })
+      .sort((a, b) => new Date(b.created) - new Date(a.created));
+    
+    res.json({
+      success: true,
+      data: { backups: files }
+    });
+    
+  } catch (error) {
+    console.error('バックアップ一覧取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: システム設定取得
+app.get('/api/settings', async (req, res) => {
+  try {
+    const defaultSettings = {
+      qualityThresholds: {
+        excellent: 0.8,
+        good: 0.6,
+        acceptable: 0.4
+      },
+      learningSettings: {
+        autoBackup: true,
+        backupInterval: 24, // hours
+        maxBackups: 10
+      },
+      performanceSettings: {
+        chunkSize: 50,
+        parallelProcessing: true,
+        memoryOptimization: true
+      }
+    };
+    
+    res.json({
+      success: true,
+      data: defaultSettings
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: システム情報取得
+app.get('/api/system/info', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const systemInfo = {
+      uptime: process.uptime(),
+      memory: process.memoryUsage(),
+      version: '1.0.0',
+      nodeVersion: process.version,
+      platform: process.platform,
+      conceptDBSize: {
+        surface: minimalAI.getConceptDB().concepts?.surface?.length || 0,
+        deep: minimalAI.getConceptDB().concepts?.deep?.length || 0
+      },
+      learningStats: logLearner.getLearningStats(),
+      lastBackup: null // TODO: implement
+    };
+    
+    res.json({
+      success: true,
+      data: systemInfo
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// エラーハンドラー
+app.use((error, req, res, next) => {
+  console.error('サーバーエラー:', error);
+  res.status(500).json({
+    success: false,
+    error: 'サーバー内部エラー',
+    message: error.message
+  });
+});
+
+// 404ハンドラー
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    error: 'エンドポイントが見つかりません',
+    path: req.path
+  });
 });
 
 // サーバー起動
