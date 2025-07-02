@@ -390,7 +390,7 @@ export class ConceptClassifier {
     
     // 比較表現での使用
     const comparisonPatterns = [
-      `従来の.*${concept}`, `新たな${concept}`, `改良された${concept}`
+      `従来の.*${escapedConcept}`, `新たな${escapedConcept}`, `改良された${escapedConcept}`
     ];
     
     comparisonPatterns.forEach(pattern => {

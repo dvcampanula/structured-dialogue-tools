@@ -1646,7 +1646,9 @@ export class IntelligentConceptExtractor {
         const concept2 = deepConcepts[j].term;
         
         // 概念ペアの共起パターン
-        const combinationRegex = new RegExp(`(.{0,30})(${concept1}|${concept2})(.{0,50})(${concept2}|${concept1})(.{0,30})`, 'gi');
+        const escapedConcept1 = concept1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const escapedConcept2 = concept2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const combinationRegex = new RegExp(`(.{0,30})(${escapedConcept1}|${escapedConcept2})(.{0,50})(${escapedConcept2}|${escapedConcept1})(.{0,30})`, 'gi');
         if (combinationRegex.test(content)) {
           patterns.push(`${concept1}⇔${concept2}の相互作用`);
         }
@@ -1908,7 +1910,8 @@ export class IntelligentConceptExtractor {
     const patterns: string[] = [];
     
     timeIndicators.forEach(indicator => {
-      const regex = new RegExp(`${indicator}.*?(${concepts.join('|')})`, 'gi');
+      const escapedConcepts = concepts.map(c => c.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+      const regex = new RegExp(`${indicator}.*?(${escapedConcepts.join('|')})`, 'gi');
       const matches = content.match(regex);
       if (matches && matches.length > 0) {
         patterns.push(`時系列パターン: ${indicator} → 概念発展の段階性`);
@@ -1965,12 +1968,13 @@ export class IntelligentConceptExtractor {
    */
   private assessConceptMaturity(concept: string, content: string): number {
     let maturityScore = 0;
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
     // 定義の明確性
     const definitionPatterns = [
-      new RegExp(`${concept}とは`, 'gi'),
-      new RegExp(`${concept}の定義`, 'gi'),
-      new RegExp(`${concept}を.*定義`, 'gi')
+      new RegExp(`${escapedConcept}とは`, 'gi'),
+      new RegExp(`${escapedConcept}の定義`, 'gi'),
+      new RegExp(`${escapedConcept}を.*定義`, 'gi')
     ];
     
     if (definitionPatterns.some(pattern => pattern.test(content))) {
@@ -1978,19 +1982,19 @@ export class IntelligentConceptExtractor {
     }
     
     // 応用例の存在
-    const applicationPattern = new RegExp(`${concept}.*応用|${concept}.*活用|${concept}.*使用`, 'gi');
+    const applicationPattern = new RegExp(`${escapedConcept}.*応用|${escapedConcept}.*活用|${escapedConcept}.*使用`, 'gi');
     if (applicationPattern.test(content)) {
       maturityScore += 0.3;
     }
     
     // 比較・対比の存在
-    const comparisonPattern = new RegExp(`${concept}.*比較|${concept}.*対比|${concept}.*違い`, 'gi');
+    const comparisonPattern = new RegExp(`${escapedConcept}.*比較|${escapedConcept}.*対比|${escapedConcept}.*違い`, 'gi');
     if (comparisonPattern.test(content)) {
       maturityScore += 0.2;
     }
     
     // 批判・課題の言及
-    const criticalPattern = new RegExp(`${concept}.*問題|${concept}.*課題|${concept}.*限界`, 'gi');
+    const criticalPattern = new RegExp(`${escapedConcept}.*問題|${escapedConcept}.*課題|${escapedConcept}.*限界`, 'gi');
     if (criticalPattern.test(content)) {
       maturityScore += 0.2;
     }

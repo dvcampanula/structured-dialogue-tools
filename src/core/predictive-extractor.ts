@@ -485,7 +485,9 @@ export class PredictiveExtractor {
     ];
     
     for (const {pattern, type} of relationshipPatterns) {
-      const conceptContext = content.match(new RegExp(`(.{0,50})${concept1}(.{0,50})${concept2}(.{0,50})`, 'i'));
+      const escapedConcept1 = concept1.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedConcept2 = concept2.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const conceptContext = content.match(new RegExp(`(.{0,50})${escapedConcept1}(.{0,50})${escapedConcept2}(.{0,50})`, 'i'));
       if (conceptContext && pattern.test(conceptContext[0])) {
         return type;
       }
@@ -613,7 +615,8 @@ export class PredictiveExtractor {
       { pattern: /応用|実装|実践/, direction: '実用化進化' }
     ];
     
-    const conceptContext = content.match(new RegExp(`(.{0,50})${concept}(.{0,50})`, 'gi'));
+    const escapedConcept = concept.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const conceptContext = content.match(new RegExp(`(.{0,50})${escapedConcept}(.{0,50})`, 'gi'));
     if (!conceptContext) return null;
     
     for (const {pattern, direction} of evolutionPatterns) {
