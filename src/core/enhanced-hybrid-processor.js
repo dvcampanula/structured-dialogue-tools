@@ -6,6 +6,8 @@
 
 import kuromoji from 'kuromoji';
 import { createRequire } from 'module';
+import { EnhancedSemanticEngineV2 } from './enhanced-semantic-engine-v2.js';
+import { ConceptRelationshipOptimizer } from './concept-relationship-optimizer.js';
 
 const require = createRequire(import.meta.url);
 const mecab = require('@enjoyjs/node-mecab');
@@ -15,6 +17,8 @@ export class EnhancedHybridLanguageProcessor {
         this.kuromoji = null;
         this.mecab = mecab;
         this.semanticSimilarity = new SemanticSimilarityEngine();
+        this.semanticEngineV2 = new EnhancedSemanticEngineV2();
+        this.relationshipOptimizer = new ConceptRelationshipOptimizer();
         this.isInitialized = false;
         
         // 技術パターン（拡張版）
@@ -85,6 +89,7 @@ export class EnhancedHybridLanguageProcessor {
             enableSimilarity = true,
             enableSemanticSimilarity = true,
             enableGrouping = true,
+            enableRelationshipOptimization = true,
             similarityThreshold = 0.3,
             semanticThreshold = 0.7,
             qualityThreshold = 0.7
@@ -117,7 +122,15 @@ export class EnhancedHybridLanguageProcessor {
             const relationships = enableSimilarity ? 
                 this.analyzeTermRelationships(text, qualityFilteredTerms.map(t => t.term)) : [];
 
-            // 6. 統合結果生成
+            // 6. 概念関係性最適化（Phase 3）
+            const relationshipOptimization = enableRelationshipOptimization ?
+                this.relationshipOptimizer.optimizeConceptRelationships(
+                    qualityFilteredTerms.map(t => t.term),
+                    conceptGroups,
+                    relationships
+                ) : null;
+
+            // 7. 統合結果生成
             return {
                 originalText: text,
                 kuromojiAnalysis: kuromojiResult,
@@ -125,14 +138,19 @@ export class EnhancedHybridLanguageProcessor {
                 enhancedTerms: qualityFilteredTerms,
                 conceptGroups,
                 relationships,
+                relationshipOptimization,
                 statistics: {
                     totalTokens: kuromojiResult.tokens.length,
                     mecabTokens: mecabResult?.tokens.length || 0,
                     enhancedTermCount: qualityFilteredTerms.length,
                     conceptGroupCount: Object.keys(conceptGroups).length,
                     relationshipCount: relationships.length,
+                    hierarchicalStructures: relationshipOptimization ? Object.keys(relationshipOptimization.hierarchicalStructure).length : 0,
+                    dependencyCount: relationshipOptimization ? relationshipOptimization.dependencyMap.dependencies.length : 0,
+                    optimizationCount: relationshipOptimization ? relationshipOptimization.optimizations.length : 0,
+                    relationshipQuality: relationshipOptimization ? relationshipOptimization.qualityMetrics.overallQuality : 0,
                     processingTime: Date.now() - startTime,
-                    qualityScore: this.calculateOverallQuality(qualityFilteredTerms)
+                    qualityScore: this.calculateOverallQuality(qualityFilteredTerms, conceptGroups, relationships, relationshipOptimization)
                 }
             };
         } catch (error) {
@@ -350,22 +368,19 @@ export class EnhancedHybridLanguageProcessor {
      * 概念グループ化（意味的類似度強化版）
      */
     async groupSimilarConceptsEnhanced(terms, stringThreshold = 0.3, enableSemantic = true, semanticThreshold = 0.7) {
+        // v2.0エンジンを使用した強化されたグループ化
+        if (enableSemantic) {
+            return this.semanticEngineV2.enhancedGroupSimilarConcepts(terms, stringThreshold, semanticThreshold);
+        }
+        
+        // フォールバック: 従来の文字列ベースグループ化
         const groups = {};
         
         for (const term of terms) {
             let grouped = false;
             
             for (const [groupKey, groupMembers] of Object.entries(groups)) {
-                let similarity = this.calculateStringSimilarity(term, groupKey);
-                
-                // 意味的類似度による強化
-                if (enableSemantic) {
-                    const semanticSim = this.semanticSimilarity.similarity(term, groupKey);
-                    // 意味類似度が高い場合は文字列類似度を補強
-                    if (semanticSim > semanticThreshold) {
-                        similarity = Math.max(similarity, semanticSim);
-                    }
-                }
+                const similarity = this.calculateStringSimilarity(term, groupKey);
                 
                 if (similarity > stringThreshold) {
                     groupMembers.push(term);
@@ -486,16 +501,154 @@ export class EnhancedHybridLanguageProcessor {
     }
 
     /**
-     * 総合品質スコア計算
+     * 総合品質スコア計算（関係性最適化統合版）
      */
-    calculateOverallQuality(terms) {
+    calculateOverallQuality(terms, conceptGroups = {}, relationships = [], relationshipOptimization = null) {
         if (terms.length === 0) return 0;
         
+        // 基本スコア計算
         const avgConfidence = terms.reduce((sum, term) => sum + term.confidence, 0) / terms.length;
         const mecabRatio = terms.filter(term => term.sources.includes('MeCab')).length / terms.length;
         const diversityScore = new Set(terms.map(term => term.category)).size / 5; // 最大5カテゴリを想定
         
-        return parseFloat((avgConfidence * 0.5 + mecabRatio * 0.3 + diversityScore * 0.2).toFixed(3));
+        // 意味類似度統合スコア計算
+        const semanticScore = this.calculateSemanticIntegrationScore(terms, conceptGroups, relationships);
+        
+        // 関係性最適化スコア計算（Phase 3追加）
+        const relationshipScore = relationshipOptimization ? 
+            this.calculateRelationshipOptimizationScore(relationshipOptimization) : 0;
+        
+        // 拡張品質スコア（関係性最適化統合）
+        const baseScore = avgConfidence * 0.25 + mecabRatio * 0.15 + diversityScore * 0.1;
+        const semanticEnhancement = semanticScore * 0.3;
+        const relationshipEnhancement = relationshipScore * 0.2;
+        
+        const enhancedScore = baseScore + semanticEnhancement + relationshipEnhancement;
+        
+        return parseFloat(Math.min(1.0, enhancedScore).toFixed(3));
+    }
+    
+    /**
+     * 関係性最適化スコア計算
+     */
+    calculateRelationshipOptimizationScore(relationshipOptimization) {
+        if (!relationshipOptimization) return 0;
+        
+        const qualityMetrics = relationshipOptimization.qualityMetrics;
+        const hierarchyCount = Object.keys(relationshipOptimization.hierarchicalStructure).length;
+        const dependencyCount = relationshipOptimization.dependencyMap.dependencies.length;
+        const optimizationCount = relationshipOptimization.optimizations.length;
+        
+        // 構造理解度スコア
+        const structureScore = Math.min(1.0, (hierarchyCount + dependencyCount) / 20);
+        
+        // 最適化効果スコア
+        const optimizationScore = qualityMetrics.optimizationPotential;
+        
+        // ネットワーク品質スコア
+        const networkScore = qualityMetrics.overallQuality;
+        
+        // 統合関係性スコア
+        return structureScore * 0.4 + optimizationScore * 0.35 + networkScore * 0.25;
+    }
+    
+    /**
+     * 意味類似度統合スコア計算
+     */
+    calculateSemanticIntegrationScore(terms, conceptGroups, relationships) {
+        let semanticScore = 0;
+        
+        // 1. 意味グループ効果スコア
+        const groupEffectScore = this.calculateGroupEffectScore(terms, conceptGroups);
+        
+        // 2. 関係性密度スコア
+        const relationshipDensityScore = this.calculateRelationshipDensityScore(terms, relationships);
+        
+        // 3. 概念結合性スコア
+        const cohesionScore = this.calculateConceptCohesionScore(conceptGroups);
+        
+        // 統合スコア（各要素の重み付き平均）
+        semanticScore = (groupEffectScore * 0.4 + relationshipDensityScore * 0.35 + cohesionScore * 0.25);
+        
+        // デバッグ出力（開発時のみ）
+        if (process.env.DEBUG_SEMANTIC) {
+            console.log(`🔍 意味類似度統合スコア詳細:`);
+            console.log(`  グループ効果: ${groupEffectScore.toFixed(3)} (グループ数: ${Object.keys(conceptGroups).length})`);
+            console.log(`  関係性密度: ${relationshipDensityScore.toFixed(3)} (関係数: ${relationships.length})`);
+            console.log(`  概念結合性: ${cohesionScore.toFixed(3)}`);
+            console.log(`  統合スコア: ${semanticScore.toFixed(3)}`);
+        }
+        
+        return Math.min(1.0, semanticScore);
+    }
+    
+    /**
+     * 意味グループ効果スコア計算
+     */
+    calculateGroupEffectScore(terms, conceptGroups) {
+        if (Object.keys(conceptGroups).length === 0) return 0;
+        
+        const totalTerms = terms.length;
+        const totalGroups = Object.keys(conceptGroups).length;
+        const groupSizes = Object.values(conceptGroups).map(group => group.length);
+        
+        // 意味的凝縮度: 少ないグループ数で多くの用語をまとめるほど高い意味理解を示す
+        const groupedTerms = groupSizes.reduce((sum, size) => sum + size, 0);
+        const compressionRatio = totalTerms > 0 ? (totalTerms - totalGroups) / totalTerms : 0;
+        
+        // 意味的まとまりボーナス: 2個以上のメンバーを持つグループの比率
+        const meaningfulGroups = groupSizes.filter(size => size >= 2).length;
+        const meaningfulRatio = meaningfulGroups / Math.max(totalGroups, 1);
+        
+        // 大きなグループの存在ボーナス（関連性の強さを示す）
+        const largeGroups = groupSizes.filter(size => size >= 3).length;
+        const largeGroupBonus = Math.min(0.6, largeGroups / Math.max(totalGroups, 1));
+        
+        // 最適グループサイズボーナス（3-6個が理想的）
+        const optimalGroups = groupSizes.filter(size => size >= 3 && size <= 6).length;
+        const optimalRatio = optimalGroups / Math.max(totalGroups, 1);
+        
+        return compressionRatio * 0.35 + meaningfulRatio * 0.25 + largeGroupBonus * 0.25 + optimalRatio * 0.15;
+    }
+    
+    /**
+     * 関係性密度スコア計算
+     */
+    calculateRelationshipDensityScore(terms, relationships) {
+        if (relationships.length === 0) return 0;
+        
+        const maxPossibleRelationships = (terms.length * (terms.length - 1)) / 2;
+        const relationshipRatio = relationships.length / Math.max(maxPossibleRelationships, 1);
+        
+        // 強い関係性の比率
+        const strongRelationships = relationships.filter(rel => rel.strength > 0.7).length;
+        const strongRatio = strongRelationships / Math.max(relationships.length, 1);
+        
+        // 密度スコア計算
+        const densityScore = relationshipRatio * 0.5 + strongRatio * 0.5;
+        
+        return Math.min(1.0, densityScore);
+    }
+    
+    /**
+     * 概念結合性スコア計算
+     */
+    calculateConceptCohesionScore(conceptGroups) {
+        if (Object.keys(conceptGroups).length === 0) return 0;
+        
+        const groupSizes = Object.values(conceptGroups).map(group => group.length);
+        const totalGroups = groupSizes.length;
+        
+        // 理想的なグループサイズ範囲（3-8個）での結合性評価
+        const idealGroups = groupSizes.filter(size => size >= 3 && size <= 8).length;
+        const cohesionRatio = idealGroups / Math.max(totalGroups, 1);
+        
+        // グループ間バランス（均等に分散されているほど高スコア）
+        const avgSize = groupSizes.reduce((sum, size) => sum + size, 0) / totalGroups;
+        const variance = groupSizes.reduce((sum, size) => sum + Math.pow(size - avgSize, 2), 0) / totalGroups;
+        const balanceScore = Math.max(0, 1 - variance / 10); // 分散が小さいほど高スコア
+        
+        return cohesionRatio * 0.6 + balanceScore * 0.4;
     }
 
     /**
@@ -503,22 +656,31 @@ export class EnhancedHybridLanguageProcessor {
      */
     getStatistics() {
         return {
-            version: '7.2.0',
+            version: '7.4.0',
             isInitialized: this.isInitialized,
-            engines: ['kuromoji', 'MeCab', 'SemanticSimilarity'],
+            engines: ['kuromoji', 'MeCab', 'SemanticSimilarity', 'SemanticEngineV2', 'RelationshipOptimizer'],
             capabilities: [
                 'kuromoji形態素解析',
                 'MeCab詳細品詞解析',
                 '拡張技術用語抽出',
                 '品質評価・フィルタリング',
-                '意味的類似度概念グループ化',
+                '意味的類似度概念グループ化v2.0',
                 '関係性分析',
                 '複合語検出',
-                '対話型AI品質最適化'
+                '対話型AI品質最適化',
+                'ドメイン特化類似度計算',
+                '動的閾値調整',
+                '階層構造分析',
+                '依存関係マッピング',
+                '概念ネットワーク構築',
+                '関係性最適化推奨',
+                '重要度・中心性計算'
             ],
             technicalPatternCount: this.technicalPatterns.length,
             mecabFilterCount: this.mecabTechnicalFilters.length,
-            semanticGroupCount: this.semanticSimilarity.getGroupCount()
+            semanticGroupCount: this.semanticSimilarity.getGroupCount(),
+            semanticV2Stats: this.semanticEngineV2.getStats(),
+            relationshipOptimizerStats: this.relationshipOptimizer.getStatistics()
         };
     }
 }
