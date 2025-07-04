@@ -1,0 +1,79 @@
+{
+  "contextContinuity": {
+    "semanticSimilarity": {
+      "excellent": 0.25,
+      "good": 0.20,
+      "fair": 0.15,
+      "basic": 0.10,
+      "minimal": 0.05
+    },
+    "referenceChain": {
+      "multiple": 3,
+      "good": 2,
+      "basic": 1
+    },
+    "contextDepth": {
+      "perfectRatio": 1.0,
+      "goodRatio": 0.8,
+      "fairRatio": 0.6
+    },
+    "intentBonus": {
+      "learningContinuity": 0.05,
+      "technicalRequest": 0.05,
+      "skillLevel": 0.05,
+      "technicalDomain": 0.03,
+      "maxBonus": 0.15
+    }
+  },
+  "creativity": {
+    "responseLength": {
+      "excellent": 200,
+      "good": 100,
+      "basic": 50,
+      "minimal": 10
+    },
+    "scores": {
+      "excellent": 0.3,
+      "good": 0.25,
+      "basic": 0.2,
+      "minimal": 0.15
+    },
+    "elements": {
+      "contentBase": 0.1,
+      "knowledgeBase": 0.1,
+      "reasoningBase": 0.1,
+      "detailBonus": 0.05,
+      "maxPerCategory": 0.25
+    },
+    "innovation": {
+      "threshold": 0.6,
+      "bonus": 0.1
+    }
+  },
+  "metacognition": {
+    "selfReflection": 0.3,
+    "qualityMonitoring": 0.3,
+    "learningOptimization": 0.2,
+    "systemEvolution": 0.1,
+    "prediction": 0.1
+  },
+  "personalization": {
+    "personalAdaptations": 0.3,
+    "domainAdaptations": 0.2,
+    "styleAdaptations": 0.2,
+    "preferenceAlignment": 0.3
+  },
+  "weights": {
+    "dialogueQuality": 0.25,
+    "creativityLevel": 0.25,
+    "metacognitionEffectiveness": 0.2,
+    "contextContinuity": 0.15,
+    "personalizationLevel": 0.15
+  },
+  "qualityTargets": {
+    "excellent": 0.95,
+    "good": 0.90,
+    "acceptable": 0.80,
+    "minimum": 0.70
+  }
+}

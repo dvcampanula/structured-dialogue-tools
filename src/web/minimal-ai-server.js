@@ -12,6 +12,9 @@ import { fileURLToPath } from 'url';
 import { EnhancedMinimalAI } from '../core/enhanced-minimal-ai.js';
 import { DialogueLogLearner } from '../core/dialogue-log-learner.js';
 import { QualityAutoAdjustmentSystem } from '../core/quality-auto-adjustment-system.js';
+import { PersonalDialogueAnalyzer } from '../core/personal-dialogue-analyzer.js';
+import { DomainKnowledgeBuilder } from '../core/domain-knowledge-builder.js';
+import { PersonalResponseAdapter } from '../core/personal-response-adapter.js';
 import fs from 'fs';
 import multer from 'multer';
 
@@ -30,6 +33,11 @@ app.use(express.static(path.join(__dirname)));
 let minimalAI;
 let logLearner;
 let qualityAdjuster;
+
+// Phase 6H.2 個人特化学習エンジン
+let personalAnalyzer;
+let domainBuilder;
+let responseAdapter;
 
 // ファイルアップロード設定
 const upload = multer({ 
@@ -56,8 +64,15 @@ async function initializeAI() {
     // 品質自動調整システム初期化
     qualityAdjuster = new QualityAutoAdjustmentSystem();
     
+    // Phase 6H.2 個人特化学習エンジン初期化
+    console.log('🧠 Phase 6H.2個人特化学習エンジン初期化中...');
+    personalAnalyzer = new PersonalDialogueAnalyzer(conceptDB, minimalAI);
+    domainBuilder = new DomainKnowledgeBuilder(conceptDB, null);
+    responseAdapter = new PersonalResponseAdapter(personalAnalyzer, domainBuilder, conceptDB);
+    console.log('✅ Phase 6H.2個人特化学習エンジン初期化完了');
+    
     isInitialized = true;
-    console.log('✅ ミニマムAI+ログ学習+ハイブリッド処理+品質自動調整システム初期化完了');
+    console.log('✅ ミニマムAI+ログ学習+ハイブリッド処理+品質自動調整+Phase6H.2個人特化学習システム初期化完了');
   } catch (error) {
     console.error('❌ ミニマムAI初期化エラー:', error);
     throw error;
@@ -290,6 +305,258 @@ app.get('/api/export', async (req, res) => {
     
   } catch (error) {
     console.error('エクスポートエラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// ======================================
+// Phase 6H.2 個人特化学習エンジン API
+// ======================================
+
+// API: 個人特化対話（Phase 6H.2メイン機能）
+app.post('/api/chat/personal', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { message, context = {} } = req.body;
+    
+    if (!message || typeof message !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'メッセージが必要です'
+      });
+    }
+    
+    console.log(`🎯 個人特化対話: "${message.slice(0, 50)}..."`);
+    
+    // 個人特化応答生成
+    const personalizedResult = await responseAdapter.adaptToPersonality(message, context);
+    
+    res.json({
+      success: true,
+      data: {
+        response: personalizedResult.response,
+        adaptationInfo: personalizedResult.adaptationInfo,
+        personalityMatch: personalizedResult.adaptationInfo?.personalityMatch || 0,
+        domainAlignment: personalizedResult.adaptationInfo?.domainAlignment || 0,
+        appliedAdaptations: personalizedResult.adaptationInfo?.appliedAdaptations || [],
+        responseMetrics: personalizedResult.adaptationInfo?.responseMetrics || {},
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('個人特化対話エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 個人プロファイル取得
+app.get('/api/personal/profile', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    console.log('📊 個人プロファイル取得');
+    
+    const personalProfile = personalAnalyzer.generatePersonalProfile();
+    const domainProfile = domainBuilder.generateExpertiseProfile();
+    const learningProfile = await responseAdapter.generatePersonalizedLearningProfile();
+    
+    res.json({
+      success: true,
+      data: {
+        personalProfile: personalProfile,
+        domainProfile: domainProfile,
+        learningProfile: learningProfile,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+  } catch (error) {
+    console.error('個人プロファイル取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: 個人学習データ追加
+app.post('/api/personal/learn', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { dialogueLogs } = req.body;
+    
+    if (!dialogueLogs || !Array.isArray(dialogueLogs)) {
+      return res.status(400).json({
+        success: false,
+        error: '対話ログ配列が必要です'
+      });
+    }
+    
+    console.log(`🧠 個人学習データ追加: ${dialogueLogs.length}ログ`);
+    
+    // 個人対話パターン分析
+    const speechPatterns = await personalAnalyzer.analyzePersonalSpeechPatterns(dialogueLogs);
+    
+    // ドメイン知識構築
+    const technicalLogs = dialogueLogs.filter(log => 
+      JSON.stringify(log).match(/JavaScript|React|データベース|プログラム|開発|技術/)
+    );
+    const businessLogs = dialogueLogs.filter(log => 
+      JSON.stringify(log).match(/プロジェクト|管理|チーム|ビジネス|スケジュール/)
+    );
+    const casualLogs = dialogueLogs.filter(log => 
+      JSON.stringify(log).match(/学習|勉強|教えて|わからない|困っ/)
+    );
+    
+    const results = {
+      speechPatterns: speechPatterns,
+      domainAnalysis: {}
+    };
+    
+    if (technicalLogs.length > 0) {
+      results.domainAnalysis.technical = await domainBuilder.buildTechnicalKnowledge(technicalLogs);
+    }
+    if (businessLogs.length > 0) {
+      results.domainAnalysis.business = await domainBuilder.buildBusinessKnowledge(businessLogs);
+    }
+    if (casualLogs.length > 0) {
+      results.domainAnalysis.casual = await domainBuilder.buildCasualKnowledge(casualLogs);
+    }
+    
+    res.json({
+      success: true,
+      message: '個人学習データ追加完了',
+      data: results,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('個人学習データ追加エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: フィードバック学習（Phase 6H.2拡張）
+app.post('/api/personal/feedback', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { interaction, feedback } = req.body;
+    
+    if (!interaction || !feedback) {
+      return res.status(400).json({
+        success: false,
+        error: 'インタラクションとフィードバックが必要です'
+      });
+    }
+    
+    console.log(`📚 個人特化フィードバック学習: ${feedback.rating || 'N/A'}点`);
+    
+    const learningResult = await responseAdapter.learnFromFeedback(interaction, feedback);
+    
+    res.json({
+      success: true,
+      message: '個人特化フィードバック学習完了',
+      data: learningResult,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('個人特化フィードバック学習エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: リアルタイム応答調整
+app.post('/api/personal/adjust', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { currentResponse, adjustmentRequest } = req.body;
+    
+    if (!currentResponse || !adjustmentRequest) {
+      return res.status(400).json({
+        success: false,
+        error: '現在の応答と調整リクエストが必要です'
+      });
+    }
+    
+    console.log(`🔄 リアルタイム応答調整: ${adjustmentRequest.type}`);
+    
+    const adjustedResponse = await responseAdapter.adjustResponseStyle(currentResponse, adjustmentRequest);
+    
+    res.json({
+      success: true,
+      data: {
+        originalResponse: currentResponse,
+        adjustedResponse: adjustedResponse,
+        adjustmentType: adjustmentRequest.type
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('リアルタイム応答調整エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: Phase 6H.2統計情報
+app.get('/api/personal/stats', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const personalStats = personalAnalyzer.analysisStats;
+    const domainStats = domainBuilder.buildingStats;
+    const adaptationStats = responseAdapter.adaptationStats;
+    
+    res.json({
+      success: true,
+      data: {
+        personalAnalysis: personalStats,
+        domainBuilding: domainStats,
+        responseAdaptation: adaptationStats,
+        systemStatus: {
+          personalAnalyzerReady: !!personalAnalyzer,
+          domainBuilderReady: !!domainBuilder,
+          responseAdapterReady: !!responseAdapter
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Phase 6H.2統計情報エラー:', error);
     res.status(500).json({
       success: false,
       error: error.message
