@@ -1,0 +1,11 @@
+{
+  "minCoOccurrence": 2,
+  "strengthThreshold": 0.3,
+  "maxRelationsPerTerm": 10,
+  "decayFactor": 0.95,
+  "learningRate": 0.1,
+  "forgettingThreshold": 0.1,
+  "maxMemorySize": 1000,
+  "batchSaveInterval": 5,
+  "qualityThreshold": 0.6
+}

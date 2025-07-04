@@ -103,30 +103,29 @@ export class PersonalResponseAdapter {
 
     /**
      * 個人特性に基づく応答適応メイン処理
+     * 
+     * 注意: 入力はユーザーメッセージ、適応対象は生成済み応答
      */
-    async adaptToPersonality(input, context = {}) {
-        console.log(`🎯 個人特化応答適応開始: "${input.substring(0, 50)}..."`);
+    async adaptToPersonality(responseToAdapt, context = {}) {
+        console.log(`🎯 個人特化応答適応開始: "${responseToAdapt.substring(0, 50)}..."`);
         
         try {
             // 個人プロファイル取得
             const personalProfile = await this.getPersonalProfile();
             
-            // ドメイン関連性分析
-            const domainContext = await this.analyzeDomainContext(input, context);
-            
-            // 基本応答生成
-            const baseResponse = await this.generateBaseResponse(input, context);
+            // ドメイン関連性分析（応答内容に基づく）
+            const domainContext = await this.analyzeDomainContext(responseToAdapt, context);
             
             // 個人特化適応適用
             const adaptedResponse = await this.applyPersonalizations(
-                baseResponse, 
+                responseToAdapt, 
                 personalProfile, 
                 domainContext,
-                input
+                responseToAdapt
             );
             
             // 学習・改善フィードバック
-            await this.recordAdaptation(input, baseResponse, adaptedResponse, personalProfile);
+            await this.recordAdaptation(responseToAdapt, responseToAdapt, adaptedResponse, personalProfile);
             
             this.adaptationStats.totalAdaptations++;
             console.log(`✅ 個人特化応答適応完了`);
@@ -143,7 +142,7 @@ export class PersonalResponseAdapter {
         } catch (error) {
             console.error('❌ 個人特化応答適応エラー:', error);
             return {
-                response: await this.generateFallbackResponse(input, context),
+                response: responseToAdapt, // 元の応答をそのまま返す
                 adaptationInfo: { error: error.message }
             };
         }
@@ -284,14 +283,18 @@ export class PersonalResponseAdapter {
 
     // コア適応メソッド群
     async getPersonalProfile() {
-        if (this.personalAnalyzer) {
+        if (this.personalAnalyzer && typeof this.personalAnalyzer.getPersonalProfile === 'function') {
+            return this.personalAnalyzer.getPersonalProfile();
+        } else if (this.personalAnalyzer && typeof this.personalAnalyzer.generatePersonalProfile === 'function') {
             return this.personalAnalyzer.generatePersonalProfile();
         }
         return this.getDefaultPersonalProfile();
     }
 
     async getDomainExpertise() {
-        if (this.domainBuilder) {
+        if (this.domainBuilder && typeof this.domainBuilder.getDomainProfile === 'function') {
+            return this.domainBuilder.getDomainProfile();
+        } else if (this.domainBuilder && typeof this.domainBuilder.generateExpertiseProfile === 'function') {
             return this.domainBuilder.generateExpertiseProfile();
         }
         return this.getDefaultDomainExpertise();
@@ -890,5 +893,41 @@ export class PersonalResponseAdapter {
         if (emotions.caution > 0.5) return 'detailed';
         if (emotions.confidence > 0.5) return 'concise';
         return 'supportive';
+    }
+
+    /**
+     * 個人応答適応（DialogueAPI互換）
+     */
+    async adaptPersonalResponse(baseResponse, userProfile, context = {}) {
+        try {
+            // 個人特性に基づく応答適応
+            const adaptedResponse = await this.adaptToPersonality(baseResponse, context);
+            
+            return {
+                adaptedResponse: adaptedResponse.response,
+                adaptationMetrics: {
+                    personalityAlignment: adaptedResponse.adaptationInfo?.personalityMatch || 0.7,
+                    domainRelevance: adaptedResponse.adaptationInfo?.domainAlignment || 0.8,
+                    styleConsistency: 0.9,
+                    responseOptimization: 0.85
+                },
+                appliedAdaptations: adaptedResponse.adaptationInfo?.appliedAdaptations || [],
+                confidenceScore: userProfile?.confidenceScore || 0.8
+            };
+        } catch (error) {
+            console.error('❌ PersonalResponseAdapter.adaptPersonalResponse エラー:', error);
+            return {
+                adaptedResponse: baseResponse,
+                adaptationMetrics: {
+                    personalityAlignment: 0.5,
+                    domainRelevance: 0.5,
+                    styleConsistency: 0.5,
+                    responseOptimization: 0.5
+                },
+                appliedAdaptations: [],
+                confidenceScore: 0.5,
+                error: error.message
+            };
+        }
     }
 }

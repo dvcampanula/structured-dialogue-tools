@@ -464,21 +464,37 @@ export class IntentRecognitionEngine {
 
     // ヘルパーメソッド群
     detectAdditionalBasicPatterns(inputLower, basicIntents) {
+        // 技術学習パターン（最優先）
+        if ((inputLower.includes('react') || inputLower.includes('javascript') || 
+             inputLower.includes('フック') || inputLower.includes('usestate') ||
+             inputLower.includes('プログラミング') || inputLower.includes('開発')) &&
+            (inputLower.includes('教えて') || inputLower.includes('について') || 
+             inputLower.includes('詳しく') || inputLower.includes('説明'))) {
+            basicIntents.learning += 0.9; // 技術学習は最高優先度
+        }
+
         // 質問パターン
         if (inputLower.includes('？') || inputLower.includes('?') || 
             inputLower.includes('どう') || inputLower.includes('なぜ')) {
             basicIntents.question += 0.4;
         }
 
-        // 学習パターン
+        // 一般学習パターン
         if (inputLower.includes('学習') || inputLower.includes('理解') || 
             inputLower.includes('覚え') || inputLower.includes('教えて')) {
             basicIntents.learning += 0.5;
         }
 
-        // 要求パターン
-        if (inputLower.includes('してください') || inputLower.includes('お願い') || 
-            inputLower.includes('作って') || inputLower.includes('実装')) {
+        // 技術実装要求パターン
+        if ((inputLower.includes('コード') || inputLower.includes('実装') || 
+             inputLower.includes('例') || inputLower.includes('サンプル')) &&
+            (inputLower.includes('見せて') || inputLower.includes('してください'))) {
+            basicIntents.request += 0.8; // 技術実装要求
+        }
+
+        // 一般要求パターン
+        else if (inputLower.includes('してください') || inputLower.includes('お願い') || 
+                 inputLower.includes('作って')) {
             basicIntents.request += 0.6;
         }
     }
