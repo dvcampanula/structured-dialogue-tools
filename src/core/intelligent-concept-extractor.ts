@@ -21,6 +21,7 @@ import { ConceptExtractionCacheManager } from './cache-manager.js';
 import { ConceptClassifier, type ClassifiedConcept as ImportedClassifiedConcept } from './concept-classifier.js';
 import { PredictiveExtractor, type PredictiveExtractionResult, type PredictiveConcept } from './predictive-extractor.js';
 import { ChunkProcessor, type ProcessingOptions } from './chunk-processor.js';
+import { persistentLearningDB } from './persistent-learning-db.js';
 
 // 学習データベースの型定義
 interface AnalysisResultsDB {
@@ -550,6 +551,19 @@ export class IntelligentConceptExtractor {
     
     // メモリ最適化: 大きな一時データをクリア
     this.cacheManager.performMemoryCleanup();
+    
+    // 概念抽出結果の永続化
+    try {
+      const allConcepts = [...surfaceConcepts, ...deepConcepts];
+      await this.saveConceptExtractionResults(allConcepts, {
+        processingTime,
+        innovationLevel: innovationPrediction,
+        timeMarkers: timeRevolutionMarkers,
+        predictiveResults: predictiveExtraction
+      });
+    } catch (error) {
+      console.warn('⚠️ 概念データ永続化スキップ:', error.message);
+    }
     
     return result;
   }
@@ -3112,6 +3126,34 @@ export class IntelligentConceptExtractor {
       }
     } catch (error) {
       console.warn('❌ 学習データベース保存エラー:', error);
+    }
+  }
+
+  /**
+   * 抽出した概念データを永続化
+   */
+  async saveConceptExtractionResults(concepts: ClassifiedConcept[], metadata: any = {}): Promise<void> {
+    try {
+      const conceptData = new Map();
+      
+      // 概念データを構造化
+      concepts.forEach((concept, index) => {
+        const key = `concept_${Date.now()}_${index}`;
+        conceptData.set(key, {
+          concept: concept,
+          metadata: metadata,
+          timestamp: Date.now(),
+          extractionMethod: 'IntelligentConceptExtractor'
+        });
+      });
+      
+      // 永続化DBに保存
+      await persistentLearningDB.saveConceptLearning(conceptData);
+      
+      console.log(`🧠 概念データ永続化完了: ${concepts.length}件`);
+      
+    } catch (error) {
+      console.error('❌ 概念データ永続化エラー:', error);
     }
   }
 }

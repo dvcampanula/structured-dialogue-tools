@@ -552,4 +552,65 @@ export class PersonalDialogueAnalyzer {
         // 簡略実装 - 実際の文脈参照検出ロジック
         return false;
     }
+
+    /**
+     * 個人プロファイル取得（DialogueAPI互換）
+     */
+    getPersonalProfile() {
+        return {
+            speechPatterns: this.speechPatterns || {},
+            responsePreferences: this.responsePreferences || {},
+            emotionalTendency: this.emotionalTendency || {},
+            personalityTraits: this.personalityTraits || {},
+            communicationStyle: this.communicationStyle || {},
+            technicalLevel: 'intermediate',
+            confidenceScore: 0.8
+        };
+    }
+
+    /**
+     * 対話相互作用分析（DialogueAPI互換）
+     */
+    analyzeDialogueInteraction(userMessage, aiResponse) {
+        // 簡易実装 - 実際は詳細な相互作用分析
+        return {
+            interaction: {
+                userMessageLength: userMessage.length,
+                aiResponseLength: aiResponse.length,
+                technicalTermsUsed: this.extractTechnicalTerms(userMessage).length,
+                questionType: this.classifyQuestionType(userMessage)
+            },
+            analysis: {
+                userEngagement: 0.8,
+                responseRelevance: 0.9,
+                conversationFlow: 0.7
+            },
+            timestamp: Date.now()
+        };
+    }
+
+    extractTechnicalTerms(text) {
+        const techTerms = [];
+        const techKeywords = ['React', 'useState', 'JavaScript', 'プログラミング', '開発', '実装'];
+        
+        for (const keyword of techKeywords) {
+            if (text.includes(keyword)) {
+                techTerms.push(keyword);
+            }
+        }
+        
+        return techTerms;
+    }
+
+    classifyQuestionType(text) {
+        if (text.includes('？') || text.includes('?')) {
+            if (text.includes('どう') || text.includes('なぜ')) {
+                return 'explanatory';
+            } else if (text.includes('何') || text.includes('いつ')) {
+                return 'factual';
+            }
+            return 'general';
+        }
+        return 'statement';
+    }
 }

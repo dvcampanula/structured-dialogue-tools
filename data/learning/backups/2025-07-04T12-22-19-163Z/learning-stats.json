@@ -1,0 +1,169 @@
+{
+  "totalConversations": 8,
+  "totalRelationsLearned": 0,
+  "totalConceptsLearned": 0,
+  "lastLearningDate": 1751631250632,
+  "qualityScore": 0.5,
+  "learningEvents": [
+    {
+      "timestamp": 1751631250663,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631250663
+        }
+      }
+    },
+    {
+      "timestamp": 1751631284299,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631284299
+        }
+      }
+    },
+    {
+      "timestamp": 1751631284301,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631284301
+        }
+      }
+    },
+    {
+      "timestamp": 1751631488196,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631488196
+        }
+      }
+    },
+    {
+      "timestamp": 1751631512132,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631512132
+        }
+      }
+    },
+    {
+      "timestamp": 1751631512135,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631512135
+        }
+      }
+    },
+    {
+      "timestamp": 1751631739160,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631739160
+        }
+      }
+    },
+    {
+      "timestamp": 1751631739162,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631739162
+        }
+      }
+    }
+  ]
+}

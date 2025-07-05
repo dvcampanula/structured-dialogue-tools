@@ -1,0 +1,30 @@
+[
+  {
+    "timestamp": 1751686805178,
+    "userId": "quality-test-user",
+    "sessionId": "session_1751686805175_53ad7su0q",
+    "userMessage": "TypeScript の interface と type の違いを詳しく教えて",
+    "aiResponse": "そうですね、undefinedについて学習されるのですね。\n\n技術分野での学習として、以下のステップをお勧めします：\n1. 基本概念の理解\n2. 実践的な演習\n3. 応用事例の確認\n\n先ほどの内容との関連性も考慮して、段階的に進めていきましょう。\n\n例えば、料理を作る時のレシピのようなものです。ということですね。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
+    "dialogueAnalysis": {
+      "contextDepth": 0,
+      "intentType": "learning",
+      "intentConfidence": 0.5,
+      "semanticContinuity": 1,
+      "strategy": "educational"
+    }
+  },
+  {
+    "timestamp": 1751686822369,
+    "userId": "quality-test-user",
+    "sessionId": "session_1751686805175_53ad7su0q",
+    "userMessage": "Reactのカスタムフックのベストプラクティス",
+    "aiResponse": "そうですね、申し訳ございませんが、ご質問の内容をもう少し詳しく教えていただけますでしょうか？\n\n詳しく説明すると、この点についてはさらに考慮すべき要素があります。具体的な例や実装方法についても検討してみましょう。\n\n例えば、料理を作る時のレシピのようなものです。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
+    "dialogueAnalysis": {
+      "contextDepth": 1,
+      "intentType": "affirmation",
+      "intentConfidence": 0,
+      "semanticContinuity": 0,
+      "strategy": "exploratory"
+    }
+  }
+]

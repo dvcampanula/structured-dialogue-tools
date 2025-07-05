@@ -576,6 +576,12 @@ export class ContextTrackingSystem {
         const text1 = turn1.content || turn1.message || turn1;
         const text2 = turn2.content || turn2.message || turn2;
         
+        // 文字列チェック
+        if (typeof text1 !== 'string' || typeof text2 !== 'string') {
+            console.warn('❌ hasTopicalContinuity: テキストが文字列ではありません', { text1: typeof text1, text2: typeof text2 });
+            return false;
+        }
+        
         const topics1 = this.extractTopics(text1);
         const topics2 = this.extractTopics(text2);
         
@@ -585,6 +591,12 @@ export class ContextTrackingSystem {
     hasProgression(turn1, turn2) {
         const text1 = turn1.content || turn1.message || turn1;
         const text2 = turn2.content || turn2.message || turn2;
+        
+        // 文字列チェック
+        if (typeof text1 !== 'string' || typeof text2 !== 'string') {
+            console.warn('❌ hasProgression: テキストが文字列ではありません', { text1: typeof text1, text2: typeof text2 });
+            return false;
+        }
         
         // 簡単な進行判定（技術用語の増加など）
         const tech1 = this.entityTypes.technical.filter(term => text1.toLowerCase().includes(term)).length;

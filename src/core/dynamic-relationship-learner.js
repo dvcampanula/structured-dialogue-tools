@@ -10,6 +10,7 @@
 import fs from 'fs';
 import path from 'path';
 import { configLoader } from './config-loader.js';
+import { persistentLearningDB } from './persistent-learning-db.js';
 
 export class DynamicRelationshipLearner {
     constructor(userId = 'default') {
@@ -32,8 +33,8 @@ export class DynamicRelationshipLearner {
 
     async initializeLearner() {
         try {
-            // 既存の学習データ読み込み
-            this.userRelations = await configLoader.loadUserRelations(this.userId);
+            // 永続化DBから既存の学習データ読み込み
+            this.userRelations = persistentLearningDB.getUserSpecificRelations(this.userId);
             
             // 学習設定読み込み
             const config = await configLoader.loadConfig('learningConfig');
@@ -43,6 +44,13 @@ export class DynamicRelationshipLearner {
             
             console.log(`✅ DynamicRelationshipLearner初期化完了 (ユーザー: ${this.userId})`);
             console.log(`📊 既存関係数: ${Object.keys(this.userRelations).length}件`);
+            
+            // 定期保存タイマー（5分間隔）
+            this.autoSaveInterval = setInterval(() => {
+                this.saveUserData().catch(err => 
+                    console.warn('⚠️ 定期保存エラー:', err.message)
+                );
+            }, 5 * 60 * 1000);
             
         } catch (error) {
             console.warn('⚠️ 学習データ読み込み失敗、新規作成:', error.message);
@@ -75,6 +83,9 @@ export class DynamicRelationshipLearner {
             
             // 学習データ更新
             await this.updateRelationships();
+            
+            // 自動保存 - 学習後は必ず保存
+            await this.saveUserData();
             
             console.log(`📚 学習完了: ${inputKeywords.length}+${responseKeywords.length}キーワード分析`);
             
@@ -279,17 +290,30 @@ export class DynamicRelationshipLearner {
      */
     async saveUserData() {
         try {
-            await configLoader.saveUserRelations(this.userId, {
+            const dataToSave = {
                 userRelations: this.userRelations,
                 coOccurrenceData: this.coOccurrenceData,
                 learningConfig: this.learningConfig,
                 lastSaved: Date.now()
-            });
+            };
             
-            console.log(`💾 学習データ保存完了: ${Object.keys(this.userRelations).length}語の関係性`);
+            // 永続化DBに保存
+            await persistentLearningDB.saveUserSpecificRelations(this.userId, dataToSave);
+            
+            console.log(`💾 学習データ永続化完了: ${Object.keys(this.userRelations).length}語の関係性`);
             
         } catch (error) {
             console.error('❌ 学習データ保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * クリーンアップ（定期保存タイマー停止）
+     */
+    cleanup() {
+        if (this.autoSaveInterval) {
+            clearInterval(this.autoSaveInterval);
+            console.log('🔄 定期保存タイマー停止');
         }
     }
 

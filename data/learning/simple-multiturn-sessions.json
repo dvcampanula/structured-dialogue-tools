@@ -1,0 +1,70 @@
+[
+  {
+    "sessionId": "21841818-1b99-4729-bc5c-51cdc79f91e4",
+    "userId": "test-user",
+    "startTime": "2025-07-05T12:27:22.617Z",
+    "endTime": "2025-07-05T12:27:22.621Z",
+    "duration": 4,
+    "totalTurns": 4,
+    "turns": [
+      {
+        "turnNumber": 1,
+        "userInput": "こんにちは、Phase 7H.2をテストします",
+        "intent": "greeting",
+        "timestamp": "2025-07-05T12:27:22.618Z"
+      },
+      {
+        "turnNumber": 2,
+        "userInput": "動的応答生成の仕組みについて教えてください",
+        "intent": "general_inquiry",
+        "timestamp": "2025-07-05T12:27:22.619Z"
+      },
+      {
+        "turnNumber": 3,
+        "userInput": "ありがとうございます、とても参考になりました",
+        "intent": "gratitude",
+        "timestamp": "2025-07-05T12:27:22.620Z"
+      },
+      {
+        "turnNumber": 4,
+        "userInput": "少し困っているのですが、どうすればよいでしょうか？",
+        "intent": "question",
+        "timestamp": "2025-07-05T12:27:22.620Z"
+      }
+    ]
+  },
+  {
+    "sessionId": "552cd7be-b522-4b7d-b7a6-e7b3eed6e241",
+    "userId": "test-user",
+    "startTime": "2025-07-05T12:28:10.706Z",
+    "endTime": "2025-07-05T12:28:10.710Z",
+    "duration": 4,
+    "totalTurns": 4,
+    "turns": [
+      {
+        "turnNumber": 1,
+        "userInput": "こんにちは、Phase 7H.2をテストします",
+        "intent": "greeting",
+        "timestamp": "2025-07-05T12:28:10.706Z"
+      },
+      {
+        "turnNumber": 2,
+        "userInput": "動的応答生成の仕組みについて教えてください",
+        "intent": "general_inquiry",
+        "timestamp": "2025-07-05T12:28:10.708Z"
+      },
+      {
+        "turnNumber": 3,
+        "userInput": "ありがとうございます、とても参考になりました",
+        "intent": "gratitude",
+        "timestamp": "2025-07-05T12:28:10.708Z"
+      },
+      {
+        "turnNumber": 4,
+        "userInput": "少し困っているのですが、どうすればよいでしょうか？",
+        "intent": "question",
+        "timestamp": "2025-07-05T12:28:10.709Z"
+      }
+    ]
+  }
+]

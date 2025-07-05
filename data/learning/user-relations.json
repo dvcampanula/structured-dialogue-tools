@@ -1,0 +1,929 @@
+{
+  "user_persistence-test-user": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        }
+      ],
+      "非同期処理": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751673384066,
+          "lastUpdated": 1751673384066
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|実装": {
+        "term1": "javascript",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|説明": {
+        "term1": "javascript",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|考慮": {
+        "term1": "javascript",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|要素": {
+        "term1": "javascript",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|具体的": {
+        "term1": "javascript",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|実装方法": {
+        "term1": "javascript",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|検討": {
+        "term1": "javascript",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|料理": {
+        "term1": "javascript",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "考慮|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "要素|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装方法|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751673384066
+  },
+  "user_learning-test-user": {
+    "userRelations": {
+      "react": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        }
+      ],
+      "学習": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        }
+      ],
+      "個人的": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        }
+      ],
+      "説明": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "考慮",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "要素",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "検討",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        },
+        {
+          "term": "料理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751686738605,
+          "lastUpdated": 1751686738605
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "react|実装": {
+        "term1": "react",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|考慮": {
+        "term1": "react",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|要素": {
+        "term1": "react",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|具体的": {
+        "term1": "react",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|実装方法": {
+        "term1": "react",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|検討": {
+        "term1": "react",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|料理": {
+        "term1": "react",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実装": {
+        "term1": "学習",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|説明": {
+        "term1": "学習",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|考慮": {
+        "term1": "学習",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|要素": {
+        "term1": "学習",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|学習": {
+        "term1": "学習",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実装方法": {
+        "term1": "学習",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|検討": {
+        "term1": "学習",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|料理": {
+        "term1": "学習",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|実装": {
+        "term1": "個人的",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|説明": {
+        "term1": "個人的",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|考慮": {
+        "term1": "個人的",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|要素": {
+        "term1": "個人的",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|具体的": {
+        "term1": "個人的",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|実装方法": {
+        "term1": "個人的",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|検討": {
+        "term1": "個人的",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "個人的|料理": {
+        "term1": "個人的",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|説明": {
+        "term1": "説明",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "考慮|説明": {
+        "term1": "説明",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "要素|説明": {
+        "term1": "説明",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|説明": {
+        "term1": "説明",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装方法|説明": {
+        "term1": "説明",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|説明": {
+        "term1": "説明",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|説明": {
+        "term1": "説明",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751687885162
+  },
+  "user_quality-test-user": {
+    "userRelations": {
+      "react": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "学習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "内容",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751686822369,
+          "lastUpdated": 1751686822369
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "react|実装": {
+        "term1": "react",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|学習": {
+        "term1": "react",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|質問": {
+        "term1": "react",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|内容": {
+        "term1": "react",
+        "term2": "内容",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|考慮": {
+        "term1": "react",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|要素": {
+        "term1": "react",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|具体的": {
+        "term1": "react",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|実装方法": {
+        "term1": "react",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|検討": {
+        "term1": "react",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751687952658
+  },
+  "user_default": {
+    "userRelations": {
+      "userRelations": {
+        "userRelations": {
+          "userRelations": {},
+          "coOccurrenceData": {},
+          "learningConfig": {
+            "minCoOccurrence": 2,
+            "strengthThreshold": 0.3,
+            "maxRelationsPerTerm": 10,
+            "decayFactor": 0.95,
+            "learningRate": 0.1,
+            "forgettingThreshold": 0.1,
+            "maxMemorySize": 1000,
+            "batchSaveInterval": 5,
+            "qualityThreshold": 0.6
+          },
+          "lastSaved": 1751687832899
+        },
+        "coOccurrenceData": {},
+        "learningConfig": {
+          "minCoOccurrence": 2,
+          "strengthThreshold": 0.3,
+          "maxRelationsPerTerm": 10,
+          "decayFactor": 0.95,
+          "learningRate": 0.1,
+          "forgettingThreshold": 0.1,
+          "maxMemorySize": 1000,
+          "batchSaveInterval": 5,
+          "qualityThreshold": 0.6
+        },
+        "lastSaved": 1751688638509
+      },
+      "coOccurrenceData": {},
+      "learningConfig": {
+        "minCoOccurrence": 2,
+        "strengthThreshold": 0.3,
+        "maxRelationsPerTerm": 10,
+        "decayFactor": 0.95,
+        "learningRate": 0.1,
+        "forgettingThreshold": 0.1,
+        "maxMemorySize": 1000,
+        "batchSaveInterval": 5,
+        "qualityThreshold": 0.6
+      },
+      "lastSaved": 1751689991027
+    },
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751718596493
+  }
+}

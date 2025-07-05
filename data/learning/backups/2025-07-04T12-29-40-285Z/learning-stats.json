@@ -1,0 +1,421 @@
+{
+  "totalConversations": 16,
+  "totalRelationsLearned": 18,
+  "totalConceptsLearned": 3,
+  "lastLearningDate": 1751632180284,
+  "qualityScore": 0.5,
+  "learningEvents": [
+    {
+      "timestamp": 1751631250663,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631250663
+        }
+      }
+    },
+    {
+      "timestamp": 1751631284299,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631284299
+        }
+      }
+    },
+    {
+      "timestamp": 1751631284301,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631284301
+        }
+      }
+    },
+    {
+      "timestamp": 1751631488196,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631488196
+        }
+      }
+    },
+    {
+      "timestamp": 1751631512132,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631512132
+        }
+      }
+    },
+    {
+      "timestamp": 1751631512135,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631512135
+        }
+      }
+    },
+    {
+      "timestamp": 1751631739160,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631739160
+        }
+      }
+    },
+    {
+      "timestamp": 1751631739162,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631739162
+        }
+      }
+    },
+    {
+      "timestamp": 1751631764738,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "aiResponseLength": 120,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631764738
+        }
+      }
+    },
+    {
+      "timestamp": 1751631764741,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "aiResponseLength": 126,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631764741
+        }
+      }
+    },
+    {
+      "timestamp": 1751631883997,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 12,
+        "learningStats": {
+          "totalTerms": 2,
+          "totalRelations": 12,
+          "averageStrength": 0.5,
+          "coOccurrencePairs": 12
+        }
+      }
+    },
+    {
+      "timestamp": 1751631883999,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "aiResponseLength": 120,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631883999
+        }
+      }
+    },
+    {
+      "timestamp": 1751631884001,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 18,
+        "learningStats": {
+          "totalTerms": 3,
+          "totalRelations": 18,
+          "averageStrength": 0.6000000000000001,
+          "coOccurrencePairs": 18
+        }
+      }
+    },
+    {
+      "timestamp": 1751631884002,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "aiResponseLength": 126,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631884002
+        }
+      }
+    },
+    {
+      "timestamp": 1751631971525,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 12,
+        "learningStats": {
+          "totalTerms": 2,
+          "totalRelations": 12,
+          "averageStrength": 0.5,
+          "coOccurrencePairs": 12
+        }
+      }
+    },
+    {
+      "timestamp": 1751631971525,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "aiResponseLength": 120,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631971525
+        }
+      }
+    },
+    {
+      "timestamp": 1751631971527,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 18,
+        "learningStats": {
+          "totalTerms": 3,
+          "totalRelations": 18,
+          "averageStrength": 0.6000000000000001,
+          "coOccurrencePairs": 18
+        }
+      }
+    },
+    {
+      "timestamp": 1751631971528,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "aiResponseLength": 126,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751631971528
+        }
+      }
+    },
+    {
+      "timestamp": 1751632180280,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 12,
+        "learningStats": {
+          "totalTerms": 2,
+          "totalRelations": 12,
+          "averageStrength": 0.5,
+          "coOccurrencePairs": 12
+        }
+      }
+    },
+    {
+      "timestamp": 1751632180281,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 50,
+            "aiResponseLength": 120,
+            "technicalTermsUsed": 2,
+            "questionType": "statement"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751632180281
+        }
+      }
+    },
+    {
+      "timestamp": 1751632180284,
+      "type": "dynamic_learning_update",
+      "data": {
+        "userId": "test_user_001",
+        "relations": 18,
+        "learningStats": {
+          "totalTerms": 3,
+          "totalRelations": 18,
+          "averageStrength": 0.6000000000000001,
+          "coOccurrencePairs": 18
+        }
+      }
+    },
+    {
+      "timestamp": 1751632180284,
+      "type": "personal_analysis_update",
+      "data": {
+        "userId": "test_user_001",
+        "profile": {
+          "interaction": {
+            "userMessageLength": 35,
+            "aiResponseLength": 126,
+            "technicalTermsUsed": 1,
+            "questionType": "general"
+          },
+          "analysis": {
+            "userEngagement": 0.8,
+            "responseRelevance": 0.9,
+            "conversationFlow": 0.7
+          },
+          "timestamp": 1751632180284
+        }
+      }
+    }
+  ]
+}

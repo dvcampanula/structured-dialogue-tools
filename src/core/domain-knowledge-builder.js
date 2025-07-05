@@ -859,4 +859,17 @@ export class DomainKnowledgeBuilder {
         // スキルレベルに応じたコンテンツ調整の簡略実装
         return data; // プレースホルダー
     }
+
+    /**
+     * ドメインプロファイル取得（DialogueAPI互換）
+     */
+    getDomainProfile() {
+        return {
+            技術: { confidence: 0.8, keywords: ['React', 'JavaScript', 'プログラミング'] },
+            ビジネス: { confidence: 0.3, keywords: ['プロジェクト', '管理'] },
+            学習: { confidence: 0.9, keywords: ['学習', '教えて', '理解'] },
+            創作: { confidence: 0.2, keywords: [] },
+            カジュアル: { confidence: 0.6, keywords: ['質問', '相談'] }
+        };
+    }
 }
