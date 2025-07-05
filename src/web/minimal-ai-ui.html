@@ -1030,58 +1030,7 @@
         let lastAnalysisResult = null;
         let sessionStartTime = Date.now();
         
-        // モード切替
-        document.querySelectorAll('.mode-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                currentMode = btn.dataset.mode;
-                
-                const analysisSection = document.querySelector('.analysis-section');
-                const learningSection = document.querySelector('.learning-section');
-                const hybridSection = document.querySelector('.hybrid-section');
-                
-                if (currentMode === 'analysis') {
-                    analysisSection.style.display = 'block';
-                    learningSection.style.display = 'none';
-                    hybridSection.style.display = 'none';
-                    document.querySelector('.unified-section').style.display = 'none';
-                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
-                } else if (currentMode === 'learning') {
-                    analysisSection.style.display = 'none';
-                    learningSection.style.display = 'block';
-                    hybridSection.style.display = 'none';
-                    document.querySelector('.unified-section').style.display = 'none';
-                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
-                    loadLearningDirectories();
-                } else if (currentMode === 'hybrid') {
-                    analysisSection.style.display = 'none';
-                    learningSection.style.display = 'none';
-                    hybridSection.style.display = 'block';
-                    document.querySelector('.unified-section').style.display = 'none';
-                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
-                    initializeHybridMode();
-                } else if (currentMode === 'unified') {
-                    analysisSection.style.display = 'none';
-                    learningSection.style.display = 'none';
-                    hybridSection.style.display = 'none';
-                    document.querySelector('.unified-section').style.display = 'block';
-                    document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
-                    loadUnifiedLearningStatus();
-                }
-            });
-        });
-        
-        // タブ切替
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                
-                document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.add('hidden'));
-                document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
-            });
-        });
+        // DOM読み込み完了後にイベントリスナーを設定
         
         // メッセージ送信
         async function sendMessage() {
@@ -3297,6 +3246,102 @@
             
             // 統計情報読み込み
             loadStats();
+            
+            // モード切替イベントリスナー設定
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentMode = btn.dataset.mode;
+                    
+                    const analysisSection = document.querySelector('.analysis-section');
+                    const learningSection = document.querySelector('.learning-section');
+                    const hybridSection = document.querySelector('.hybrid-section');
+                    
+                    if (currentMode === 'analysis') {
+                        analysisSection.style.display = 'block';
+                        learningSection.style.display = 'none';
+                        hybridSection.style.display = 'none';
+                        document.querySelector('.unified-section').style.display = 'none';
+                        document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                    } else if (currentMode === 'learning') {
+                        analysisSection.style.display = 'none';
+                        learningSection.style.display = 'block';
+                        hybridSection.style.display = 'none';
+                        document.querySelector('.unified-section').style.display = 'none';
+                        document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                        loadLearningDirectories();
+                    } else if (currentMode === 'hybrid') {
+                        analysisSection.style.display = 'none';
+                        learningSection.style.display = 'none';
+                        hybridSection.style.display = 'block';
+                        document.querySelector('.unified-section').style.display = 'none';
+                        document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                        initializeHybridMode();
+                    } else if (currentMode === 'unified') {
+                        analysisSection.style.display = 'none';
+                        learningSection.style.display = 'none';
+                        hybridSection.style.display = 'none';
+                        document.querySelector('.unified-section').style.display = 'block';
+                        document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
+                        loadUnifiedLearningStatus();
+                    }
+                });
+            });
+            
+            // タブ切替イベントリスナー設定
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    
+                    document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.add('hidden'));
+                    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+                });
+            });
+            
+            // ハイブリッドタブ切替イベントリスナー設定
+            document.querySelectorAll('.hybrid-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.hybrid-tab').forEach(t => {
+                        t.style.borderBottom = 'none';
+                        t.style.color = '#6b7280';
+                        t.style.fontWeight = 'normal';
+                    });
+                    tab.style.borderBottom = '2px solid #4f46e5';
+                    tab.style.color = '#4f46e5';
+                    tab.style.fontWeight = '600';
+                    
+                    const tabName = tab.dataset.tab;
+                    document.querySelectorAll('.hybrid-panel').forEach(panel => {
+                        panel.style.display = 'none';
+                    });
+                    document.getElementById(`${tabName}-panel`).style.display = 'block';
+                });
+            });
+            
+            // 学習タブ切替イベントリスナー設定
+            document.querySelectorAll('.learning-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    document.querySelectorAll('.learning-tab').forEach(t => {
+                        t.style.borderBottom = 'none';
+                        t.style.color = '#6b7280';
+                        t.style.fontWeight = 'normal';
+                    });
+                    tab.style.borderBottom = '2px solid #4f46e5';
+                    tab.style.color = '#4f46e5';
+                    tab.style.fontWeight = '600';
+                    
+                    const tabName = tab.dataset.tab;
+                    document.querySelectorAll('.tab-panel').forEach(panel => {
+                        panel.style.display = 'none';
+                    });
+                    document.getElementById(`${tabName}-panel`).style.display = 'block';
+                });
+            });
+            
+            // Chart.js初期化
+            setTimeout(initializeCharts, 2000);
             
             // Enterキーで送信
             document.querySelector('.chat-input').addEventListener('keydown', (e) => {
