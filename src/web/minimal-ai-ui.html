@@ -1514,11 +1514,7 @@
             }, 30000);
         }
         
-        // DOMContentLoaded時にチャート初期化
-        document.addEventListener('DOMContentLoaded', () => {
-            // 少し遅延してからチャート初期化（サーバー起動を待つため）
-            setTimeout(initializeCharts, 2000);
-        });
+        // Chart.js初期化はメインのDOMContentLoadedで実行されます
         
         // チャットクリア
         function clearChat() {
@@ -1826,18 +1822,7 @@
             }, 10000); // 10秒間隔で更新
         }
         
-        // エンターキーでメッセージ送信
-        document.addEventListener('DOMContentLoaded', () => {
-            const multiTurnInput = document.getElementById('multiTurnInput');
-            if (multiTurnInput) {
-                multiTurnInput.addEventListener('keypress', (event) => {
-                    if (event.key === 'Enter' && !event.shiftKey) {
-                        event.preventDefault();
-                        sendMultiTurnMessage();
-                    }
-                });
-            }
-        });
+        // マルチターン入力のエンターキーはメインのDOMContentLoadedで設定されます
         
         // エクスポート強化版
         async function exportChat() {
@@ -2092,36 +2077,7 @@
 
         // === ログ学習機能 ===
         
-        // 学習タブ切り替え
-        document.querySelectorAll('.learning-tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // タブの見た目を更新
-                document.querySelectorAll('.learning-tab').forEach(t => {
-                    t.style.borderBottom = 'none';
-                    t.style.color = '#6b7280';
-                    t.style.fontWeight = 'normal';
-                });
-                tab.style.borderBottom = '2px solid #4f46e5';
-                tab.style.color = '#4f46e5';
-                tab.style.fontWeight = '600';
-                
-                // パネルの表示切り替え
-                const targetTab = tab.dataset.tab;
-                document.querySelectorAll('.tab-panel').forEach(panel => {
-                    panel.style.display = 'none';
-                });
-                document.getElementById(targetTab + '-panel').style.display = 'block';
-                
-                // タブ別の初期化処理
-                if (targetTab === 'batch') {
-                    loadLearningDirectories();
-                } else if (targetTab === 'results') {
-                    refreshLearningStats();
-                } else if (targetTab === 'quality') {
-                    refreshQualityStats();
-                }
-            });
-        });
+        // 学習タブ切り替えはDOMContentLoaded内で設定されます
 
         // === 詳細プログレス表示機能 ===
         
@@ -3323,6 +3279,7 @@
             // 学習タブ切替イベントリスナー設定
             document.querySelectorAll('.learning-tab').forEach(tab => {
                 tab.addEventListener('click', () => {
+                    // タブの見た目を更新
                     document.querySelectorAll('.learning-tab').forEach(t => {
                         t.style.borderBottom = 'none';
                         t.style.color = '#6b7280';
@@ -3332,8 +3289,40 @@
                     tab.style.color = '#4f46e5';
                     tab.style.fontWeight = '600';
                     
-                    const tabName = tab.dataset.tab;
+                    // パネルの表示切り替え
+                    const targetTab = tab.dataset.tab;
                     document.querySelectorAll('.tab-panel').forEach(panel => {
+                        panel.style.display = 'none';
+                    });
+                    document.getElementById(targetTab + '-panel').style.display = 'block';
+                    
+                    // タブ別の初期化処理
+                    if (targetTab === 'batch') {
+                        loadLearningDirectories();
+                    } else if (targetTab === 'results') {
+                        refreshLearningStats();
+                    } else if (targetTab === 'quality') {
+                        refreshQualityStats();
+                    }
+                });
+            });
+            
+            // 統合学習タブ切替イベントリスナー設定
+            document.querySelectorAll('.unified-tab').forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // タブのアクティブ状態更新
+                    document.querySelectorAll('.unified-tab').forEach(t => {
+                        t.style.borderBottom = 'none';
+                        t.style.color = '#6b7280';
+                        t.style.fontWeight = 'normal';
+                    });
+                    tab.style.borderBottom = '2px solid #4f46e5';
+                    tab.style.color = '#4f46e5';
+                    tab.style.fontWeight = '600';
+                    
+                    // パネル表示切替
+                    const tabName = tab.dataset.tab;
+                    document.querySelectorAll('.unified-panel').forEach(panel => {
                         panel.style.display = 'none';
                     });
                     document.getElementById(`${tabName}-panel`).style.display = 'block';
@@ -3349,6 +3338,17 @@
                     sendMessage();
                 }
             });
+            
+            // マルチターン入力のエンターキー設定
+            const multiTurnInput = document.getElementById('multiTurnInput');
+            if (multiTurnInput) {
+                multiTurnInput.addEventListener('keypress', (event) => {
+                    if (event.key === 'Enter' && !event.shiftKey) {
+                        event.preventDefault();
+                        sendMultiTurnMessage();
+                    }
+                });
+            }
         });
     </script>
 
@@ -3465,30 +3465,6 @@
         </div>
     </div>
 
-    <script>
-        // 統合学習タブ切替
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.unified-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    // タブのアクティブ状態更新
-                    document.querySelectorAll('.unified-tab').forEach(t => {
-                        t.style.borderBottom = 'none';
-                        t.style.color = '#6b7280';
-                        t.style.fontWeight = 'normal';
-                    });
-                    tab.style.borderBottom = '2px solid #4f46e5';
-                    tab.style.color = '#4f46e5';
-                    tab.style.fontWeight = '600';
-                    
-                    // パネル表示切替
-                    const tabName = tab.dataset.tab;
-                    document.querySelectorAll('.unified-panel').forEach(panel => {
-                        panel.style.display = 'none';
-                    });
-                    document.getElementById(`${tabName}-panel`).style.display = 'block';
-                });
-            });
-        });
-    </script>
+    <!-- 統合学習タブのイベントリスナーはメインのDOMContentLoadedで設定済み -->
 </body>
 </html>
