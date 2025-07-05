@@ -9,9 +9,10 @@
 import fs from 'fs';
 
 export class ResponseGenerationEngine {
-    constructor(multiTurnManager = null, personalAnalyzer = null) {
+    constructor(multiTurnManager = null, personalAnalyzer = null, advancedEmotionAnalyzer = null) {
         this.multiTurnManager = multiTurnManager;
         this.personalAnalyzer = personalAnalyzer;
+        this.advancedEmotionAnalyzer = advancedEmotionAnalyzer;
         
         // 応答生成統計
         this.generationStats = {
@@ -68,7 +69,17 @@ export class ResponseGenerationEngine {
             
             // 2. 意図・感情分析
             const intentAnalysis = this.analyzeIntent(userInput);
-            const emotionAnalysis = this.analyzeEmotion(userInput, sessionContext);
+            let emotionAnalysis;
+            
+            // 高度感情分析が利用可能な場合は使用
+            if (this.advancedEmotionAnalyzer) {
+                const advancedAnalysis = await this.advancedEmotionAnalyzer.analyzeAdvancedEmotion(
+                    userInput, sessionId, sessionContext
+                );
+                emotionAnalysis = this.convertAdvancedToBasicEmotion(advancedAnalysis.emotionProfile);
+            } else {
+                emotionAnalysis = this.analyzeEmotion(userInput, sessionContext);
+            }
             
             // 3. 個人特化分析
             const personalContext = await this.analyzePersonalContext(sessionId, sessionContext);
@@ -412,6 +423,49 @@ export class ResponseGenerationEngine {
         }
         
         return Math.min(qualityScore, 1.0);
+    }
+    
+    /**
+     * 高度感情分析結果を基本感情分析形式に変換
+     */
+    convertAdvancedToBasicEmotion(emotionProfile) {
+        // 複雑感情を基本感情にマッピング
+        let dominantEmotion = emotionProfile.basicEmotion || 'neutral';
+        
+        // 複雑感情の場合は適切な基本感情にマッピング
+        if (emotionProfile.dominantEmotion.startsWith('complex_')) {
+            const complexType = emotionProfile.dominantEmotion.split('_')[1];
+            switch (complexType) {
+                case 'mixed_positive':
+                    dominantEmotion = 'positive';
+                    break;
+                case 'frustrated_hope':
+                    dominantEmotion = 'uncertain';
+                    break;
+                case 'grateful_concern':
+                    dominantEmotion = 'positive';
+                    break;
+                case 'excited_nervous':
+                    dominantEmotion = 'positive';
+                    break;
+                default:
+                    dominantEmotion = 'neutral';
+            }
+        }
+        
+        return {
+            dominantEmotion,
+            emotionScore: emotionProfile.intensity > 0.6 ? 1 : (emotionProfile.intensity > 0.4 ? 0 : -1),
+            confidence: emotionProfile.confidence,
+            complexity: emotionProfile.complexity,
+            intensity: emotionProfile.intensity,
+            details: {
+                isAdvancedAnalysis: true,
+                hasComplexEmotion: emotionProfile.emotionFactors.hasComplexEmotion,
+                hasTransition: emotionProfile.emotionFactors.hasTransition,
+                intensityLevel: emotionProfile.emotionFactors.intensityLevel
+            }
+        };
     }
     
     /**

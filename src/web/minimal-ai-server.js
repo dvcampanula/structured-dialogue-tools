@@ -19,6 +19,7 @@ import { dialogueAPI } from '../core/dialogue-api.js';
 import { UnifiedLearningEngine } from '../core/unified-learning-engine.js';
 import { SimpleMultiTurnManager } from '../core/simple-multiturn-manager.js';
 import { ResponseGenerationEngine } from '../core/response-generation-engine.js';
+import { AdvancedEmotionAnalyzer } from '../core/advanced-emotion-analyzer.js';
 import fs from 'fs';
 import multer from 'multer';
 
@@ -51,6 +52,9 @@ let multiTurnManager;
 
 // Phase 7H.2 応答生成エンジン
 let responseEngine;
+
+// Phase 7H.2.2 高度感情認識システム
+let advancedEmotionAnalyzer;
 
 // ファイルアップロード設定
 const upload = multer({ 
@@ -95,13 +99,18 @@ async function initializeAI() {
     multiTurnManager = new SimpleMultiTurnManager();
     console.log('✅ Phase 7H.1 簡略版マルチターン対話マネージャー初期化完了');
     
-    // Phase 7H.2 応答生成エンジン初期化
+    // Phase 7H.2.2 高度感情認識システム初期化
+    console.log('🎭 Phase 7H.2.2 高度感情認識システム初期化中...');
+    advancedEmotionAnalyzer = new AdvancedEmotionAnalyzer();
+    console.log('✅ Phase 7H.2.2 高度感情認識システム初期化完了');
+    
+    // Phase 7H.2 応答生成エンジン初期化（高度感情分析統合）
     console.log('🎯 Phase 7H.2 応答生成エンジン初期化中...');
-    responseEngine = new ResponseGenerationEngine(multiTurnManager, personalAnalyzer);
+    responseEngine = new ResponseGenerationEngine(multiTurnManager, personalAnalyzer, advancedEmotionAnalyzer);
     console.log('✅ Phase 7H.2 応答生成エンジン初期化完了');
     
     isInitialized = true;
-    console.log('✅ ミニマムAI+ログ学習+ハイブリッド処理+品質自動調整+Phase6H.2個人特化学習システム+統合学習エンジン+Phase7H.1マルチターン対話システム+Phase7H.2応答生成エンジン初期化完了');
+    console.log('✅ ミニマムAI+ログ学習+ハイブリッド処理+品質自動調整+Phase6H.2個人特化学習システム+統合学習エンジン+Phase7H.1マルチターン対話システム+Phase7H.2応答生成エンジン+Phase7H.2.2高度感情認識システム初期化完了');
   } catch (error) {
     console.error('❌ ミニマムAI初期化エラー:', error);
     throw error;
@@ -1916,6 +1925,95 @@ app.get('/api/response/generation-stats', async (req, res) => {
     });
   } catch (error) {
     console.error('生成統計取得エラー:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// ========== Phase 7H.2.2 高度感情認識システム API ==========
+
+// 高度感情分析
+app.post('/api/emotion/advanced-analysis', async (req, res) => {
+  try {
+    if (!isInitialized) await initializeAI();
+    
+    const { userInput, sessionId = 'default', context = {} } = req.body;
+    
+    if (!userInput) {
+      return res.status(400).json({
+        success: false,
+        error: 'userInputが必要です'
+      });
+    }
+    
+    console.log(`🎭 高度感情分析: ${sessionId.substr(0, 8)}... - "${userInput.slice(0, 30)}..."`);
+    
+    const result = await advancedEmotionAnalyzer.analyzeAdvancedEmotion(userInput, sessionId, context);
+    
+    res.json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('高度感情分析エラー:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 感情パターン学習統計
+app.get('/api/emotion/pattern-learning', async (req, res) => {
+  try {
+    if (!isInitialized) await initializeAI();
+    
+    const patternStats = advancedEmotionAnalyzer.getEmotionPatternLearningStats();
+    const emotionStats = advancedEmotionAnalyzer.getAdvancedEmotionStats();
+    
+    res.json({
+      success: true,
+      data: {
+        patternLearning: patternStats,
+        emotionStats,
+        systemStatus: 'active'
+      },
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('感情パターン学習統計エラー:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// 感情推移追跡
+app.get('/api/emotion/journey-tracking', async (req, res) => {
+  try {
+    if (!isInitialized) await initializeAI();
+    
+    const { sessionId = 'default', limit = 10 } = req.query;
+    
+    // セッションの感情履歴取得
+    const emotionHistory = advancedEmotionAnalyzer.getEmotionHistory(sessionId);
+    const recentHistory = emotionHistory.slice(-parseInt(limit));
+    
+    // 感情推移分析
+    const emotionJourney = {
+      sessionId,
+      totalEntries: emotionHistory.length,
+      recentEmotions: recentHistory,
+      emotionTrends: emotionHistory.length > 1 ? {
+        currentEmotion: emotionHistory[emotionHistory.length - 1]?.dominantEmotion,
+        previousEmotion: emotionHistory[emotionHistory.length - 2]?.dominantEmotion,
+        averageIntensity: emotionHistory.reduce((sum, entry) => sum + entry.intensity, 0) / emotionHistory.length,
+        complexityTrend: emotionHistory.slice(-5).reduce((sum, entry) => sum + entry.complexity, 0) / Math.min(5, emotionHistory.length)
+      } : null
+    };
+    
+    res.json({
+      success: true,
+      data: emotionJourney,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('感情推移追跡エラー:', error);
     res.status(500).json({ success: false, error: error.message });
   }
 });
