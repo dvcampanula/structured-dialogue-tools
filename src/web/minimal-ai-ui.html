@@ -3306,12 +3306,12 @@
         
         // 初期化
         document.addEventListener('DOMContentLoaded', () => {
-            // 初期状態でシンプルモード
-            document.querySelector('.analysis-section').style.display = 'none';
+            // 初期状態で分析モードを表示
+            document.querySelector('.analysis-section').style.display = 'block';
             document.querySelector('.learning-section').style.display = 'none';
             document.querySelector('.hybrid-section').style.display = 'none';
             document.querySelector('.unified-section').style.display = 'none';
-            document.querySelector('.chat-section').style.borderRight = 'none';
+            document.querySelector('.chat-section').style.borderRight = '1px solid #e2e8f0';
             
             // 統計情報読み込み
             loadStats();
@@ -3361,12 +3361,31 @@
             // タブ切替イベントリスナー設定
             document.querySelectorAll('.tab-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
+                    console.log('Tab clicked:', btn.dataset.tab);
+                    
                     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
                     btn.classList.add('active');
                     
                     document.querySelectorAll('[id^="tab-"]').forEach(tab => tab.classList.add('hidden'));
-                    document.getElementById(`tab-${btn.dataset.tab}`).classList.remove('hidden');
+                    const targetPanel = document.getElementById(`tab-${btn.dataset.tab}`);
+                    if (targetPanel) {
+                        targetPanel.classList.remove('hidden');
+                        console.log('Panel switched to:', targetPanel.id);
+                    } else {
+                        console.error('Panel not found:', `tab-${btn.dataset.tab}`);
+                    }
                 });
+            });
+            
+            // 初期タブ状態設定
+            console.log('Initializing tab states...');
+            document.querySelectorAll('[id^="tab-"]').forEach(tab => {
+                if (tab.id === 'tab-concepts') {
+                    tab.classList.remove('hidden');
+                    console.log('Initial tab shown:', tab.id);
+                } else {
+                    tab.classList.add('hidden');
+                }
             });
             
             // ハイブリッドタブ切替イベントリスナー設定
@@ -3441,6 +3460,37 @@
                     document.getElementById(`${tabName}-panel`).style.display = 'block';
                 });
             });
+            
+            // タブの初期状態を確実に設定
+            function initializeTabStates() {
+                // Analysis タブの初期化
+                document.querySelectorAll('[id^="tab-"]').forEach(panel => {
+                    panel.classList.add('hidden');
+                });
+                document.getElementById('tab-concepts').classList.remove('hidden');
+                document.querySelector('.tab-btn[data-tab="concepts"]').classList.add('active');
+                
+                // Hybrid タブの初期化
+                document.querySelectorAll('.hybrid-panel').forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                document.getElementById('process-panel').style.display = 'block';
+                
+                // Learning タブの初期化
+                document.querySelectorAll('.tab-panel').forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                document.getElementById('upload-panel').style.display = 'block';
+                
+                // Unified タブの初期化
+                document.querySelectorAll('.unified-panel').forEach(panel => {
+                    panel.style.display = 'none';
+                });
+                document.getElementById('dialogue-panel').style.display = 'block';
+            }
+            
+            // 初期状態設定
+            initializeTabStates();
             
             // Chart.js初期化
             setTimeout(initializeCharts, 2000);
