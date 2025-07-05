@@ -1642,7 +1642,7 @@
         // === Phase 7H.1 マルチターン対話機能 ===
         
         let currentSessionId = null;
-        let sessionStartTime = null;
+        let multiTurnSessionStartTime = null;
         let sessionUpdateInterval = null;
         
         // 新規セッション開始
@@ -1660,7 +1660,7 @@
                 
                 if (result.success) {
                     currentSessionId = result.data.sessionId;
-                    sessionStartTime = new Date();
+                    multiTurnSessionStartTime = new Date();
                     
                     // UI更新
                     document.getElementById('startSessionBtn').disabled = true;
@@ -1734,7 +1734,7 @@
                     showNotification('🏁 マルチターンセッションが終了しました', 'info');
                     
                     currentSessionId = null;
-                    sessionStartTime = null;
+                    multiTurnSessionStartTime = null;
                     
                 } else {
                     throw new Error(result.error);
@@ -1960,7 +1960,7 @@
                         exportTime: new Date().toISOString(),
                         version: "ミニマムAI v2.0",
                         mode: currentMode,
-                        sessionDuration: Date.now() - sessionStartTime,
+                        sessionDuration: Date.now() - multiTurnSessionStartTime,
                         userAgent: navigator.userAgent
                     },
                     
@@ -1970,7 +1970,7 @@
                     // セッション情報
                     session: {
                         learningCount: learningCount,
-                        interactionCount: sessionStartTime ? Math.floor((Date.now() - sessionStartTime) / 60000) : 0,
+                        interactionCount: multiTurnSessionStartTime ? Math.floor((Date.now() - multiTurnSessionStartTime) / 60000) : 0,
                         mode: currentMode,
                         lastActivity: new Date().toISOString()
                     },
