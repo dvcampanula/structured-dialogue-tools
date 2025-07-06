@@ -20,6 +20,7 @@ export class PersistentLearningDB {
         this.conceptLearningPath = path.join(this.basePath, 'concept-learning.json');
         this.conversationHistoryPath = path.join(this.basePath, 'conversation-history.json');
         this.learningStatsPath = path.join(this.basePath, 'learning-stats.json');
+        this.conceptAnalysisDBPath = path.join(this.basePath, 'concept-analysis-db.json');
         
         // インメモリキャッシュ
         this.userRelationsCache = new Map();

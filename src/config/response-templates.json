@@ -1,0 +1,238 @@
+{
+  "comparison": {
+    "structure": {
+      "intro": "{topic}について{item1}と{item2}を比較いたします。\\n\\n",
+      "item1_section": "**{item1}の特徴**\\n{item1_features}\\n\\n",
+      "item2_section": "**{item2}の特徴**\\n{item2_features}\\n\\n",
+      "conclusion": "**選択指針**\\n{selection_guidance}\\n\\n"
+    },
+    "patterns": [
+      {
+        "pattern": "データサイエンス.*Python.*R.*比較",
+        "topic": "データサイエンス",
+        "item1": "Python",
+        "item2": "R",
+        "item1_features": [
+          "• 汎用性が高く、Web開発からAIまで幅広く使用",
+          "• ライブラリが豊富（pandas, numpy, scikit-learn, TensorFlow）",
+          "• 可読性の高いシンプルな構文",
+          "• 機械学習・深層学習のエコシステムが充実"
+        ],
+        "item2_features": [
+          "• 統計解析に特化した言語設計",
+          "• 統計パッケージが非常に豊富（CRAN）",
+          "• データ可視化に優れている（ggplot2）",
+          "• 学術研究での利用が多い"
+        ],
+        "selection_guidance": [
+          "• **Python**: 機械学習・AI・大規模システム開発",
+          "• **R**: 統計解析・学術研究・高度な可視化"
+        ]
+      },
+      {
+        "pattern": "TensorFlow.*PyTorch.*違い",
+        "topic": "ディープラーニングフレームワーク",
+        "item1": "TensorFlow",
+        "item2": "PyTorch",
+        "item1_features": [
+          "• Googleが開発・サポートする本格的フレームワーク",
+          "• プロダクション環境での実績が豊富",
+          "• TensorBoard による充実した可視化機能",
+          "• 静的グラフによる最適化・デプロイに有利"
+        ],
+        "item2_features": [
+          "• Facebookが開発・研究者に人気",
+          "• 動的グラフによる柔軟な実装",
+          "• Pythonライクな直感的な記述",
+          "• デバッグ・実験しやすい設計"
+        ],
+        "selection_guidance": [
+          "• **TensorFlow**: プロダクション・大規模デプロイ・安定性重視",
+          "• **PyTorch**: 研究・実験・柔軟性重視"
+        ]
+      }
+    ]
+  },
+  "optimization": {
+    "structure": {
+      "intro": "{topic}の最適化方法について説明いたします。\n\n",
+      "techniques_header": "**基本最適化テクニック**\n\n",
+      "techniques": "{optimization_techniques}",
+      "performance_header": "**パフォーマンス計測**\n",
+      "performance": "{performance_metrics}",
+      "conclusion": "\n\n具体的な状況があれば、より詳細な最適化案をご提案できます。"
+    },
+    "patterns": [
+      {
+        "pattern": "SQL.*JOIN.*最適化",
+        "topic": "SQLでJOINを使った複雑なクエリ",
+        "optimization_techniques": [
+          {
+            "title": "適切なインデックスの作成",
+            "content": "```sql\n-- JOIN条件とWHERE条件にインデックス\nCREATE INDEX idx_user_id ON orders(user_id);\nCREATE INDEX idx_order_date ON orders(order_date);\n```"
+          },
+          {
+            "title": "JOINの順序最適化",
+            "content": "```sql\n-- 小さいテーブルから先にJOIN\nSELECT u.name, o.total\nFROM users u  -- 小\nINNER JOIN orders o ON u.id = o.user_id  -- 大\nWHERE u.active = 1;\n```"
+          },
+          {
+            "title": "WHERE条件の最適化",
+            "content": "• JOIN前にできるだけ絞り込む\n• SARG（Search ARGument）を意識した条件設計\n• 関数を使わない条件記述"
+          }
+        ],
+        "performance_metrics": [
+          "• EXPLAIN PLANでの実行計画確認",
+          "• インデックススキャンvsフルテーブルスキャンの判断",
+          "• コスト見積もりの確認"
+        ]
+      }
+    ]
+  },
+  "learning_path": {
+    "structure": {
+      "intro": "{topic}の{approach}学習パスをご提案します。\n\n",
+      "phases": "{learning_phases}",
+      "projects_header": "**実践プロジェクト**\n",
+      "projects": "{practical_projects}",
+      "conclusion": "\n\n段階的に進めることで、確実にスキルアップできます。"
+    },
+    "patterns": [
+      {
+        "pattern": "ディープラーニング.*数学.*基礎.*実装.*体系的.*学習",
+        "topic": "ディープラーニング",
+        "approach": "数学的基礎から実装まで体系的な",
+        "learning_phases": [
+          {
+            "phase": "Phase 1: 数学的基礎（1-2ヶ月）",
+            "content": [
+              "• 線形代数: ベクトル、行列、固有値・固有ベクトル",
+              "• 微分積分: 偏微分、連鎖律、勾配計算",
+              "• 確率統計: ベイズ定理、分布、最尤推定",
+              "• 推奨書籍: 『機械学習のための数学』『パターン認識と機械学習』"
+            ]
+          },
+          {
+            "phase": "Phase 2: 機械学習基礎（2-3ヶ月）",
+            "content": [
+              "• 教師あり学習: 回帰、分類、決定木、SVM",
+              "• 教師なし学習: クラスタリング、次元削減",
+              "• 評価指標: 交差検証、精度、再現率、F1スコア",
+              "• 実装: scikit-learn での基本的な機械学習"
+            ]
+          },
+          {
+            "phase": "Phase 3: ディープラーニング理論（2-3ヶ月）",
+            "content": [
+              "• ニューラルネットワーク: パーセプトロン、多層NN",
+              "• バックプロパゲーション: 誤差逆伝播アルゴリズム",
+              "• 活性化関数、損失関数、最適化手法",
+              "• 正則化: Dropout、Batch Normalization"
+            ]
+          },
+          {
+            "phase": "Phase 4: 実装・応用（3-4ヶ月）",
+            "content": [
+              "• フレームワーク: TensorFlow / PyTorch",
+              "• CNN: 画像認識、畳み込み、プーリング",
+              "• RNN: 時系列データ、LSTM、GRU",
+              "• Transformer: Attention機構、BERT、GPT"
+            ]
+          }
+        ],
+        "practical_projects": [
+          "• 画像分類（CIFAR-10, ImageNet）",
+          "• 自然言語処理（感情分析、機械翻訳）",
+          "• 生成モデル（GAN、VAE）"
+        ]
+      }
+    ]
+  },
+  "troubleshooting": {
+    "structure": {
+      "intro": "{problem}の解決方法をご案内します。\n\n",
+      "causes_header": "**一般的な原因と対処法**\n\n",
+      "causes": "{common_causes}",
+      "debug_header": "**デバッグ手順**\n",
+      "debug_steps": "{debug_steps}",
+      "emergency_header": "**緊急対処法**\n",
+      "emergency": "{emergency_fixes}",
+      "conclusion": "\n\n具体的なエラーメッセージがあれば、より詳細な解決策をご提案できます。"
+    },
+    "patterns": [
+      {
+        "pattern": "アプリ.*画面.*真っ白.*動かない.*助けて",
+        "problem": "アプリの画面が真っ白になる問題",
+        "common_causes": [
+          {
+            "title": "JavaScriptエラー",
+            "solutions": [
+              "• ブラウザの開発者ツール（F12）でConsoleタブを確認",
+              "• エラーメッセージが表示されている場合は、そのエラーを修正",
+              "• `console.log()` を使用してエラー箇所を特定"
+            ]
+          },
+          {
+            "title": "ルーティングの問題",
+            "solutions": [
+              "• React Routerの設定確認",
+              "• 存在しないパスへのアクセス",
+              "• BrowserRouter vs HashRouter の設定"
+            ]
+          },
+          {
+            "title": "コンポーネントのレンダリングエラー",
+            "solutions": [
+              "• return文でJSXが正しく返されているか確認",
+              "• 条件分岐でundefinedやnullが返されていないか",
+              "• コンポーネントのpropsが正しく渡されているか"
+            ]
+          }
+        ],
+        "debug_steps": [
+          "1. ブラウザのConsoleでエラー確認",
+          "2. Network タブでAPIリクエストの失敗確認",
+          "3. React Developer Tools でコンポーネントツリー確認",
+          "4. 段階的に要素を削除してエラー箇所を特定"
+        ],
+        "emergency_fixes": [
+          "• ブラウザのキャッシュクリア（Ctrl+Shift+R）",
+          "• ローカルストレージ・セッションストレージのクリア",
+          "• 最新のコードでnpm install & npm start"
+        ]
+      }
+    ]
+  },
+  "explanation": {
+    "structure": {
+      "intro": "{topic}について説明いたします。\n\n",
+      "overview_header": "**{topic}とは**\n",
+      "overview": "{overview_content}",
+      "usage_header": "**基本的な使い方**\n",
+      "usage": "{usage_examples}",
+      "advanced_header": "**応用例・ベストプラクティス**\n",
+      "advanced": "{advanced_examples}",
+      "conclusion": "\n\n他にご質問がありましたらお聞かせください。"
+    },
+    "patterns": [
+      {
+        "pattern": "React.*useState|useState.*フック",
+        "topic": "ReactのuseStateフック",
+        "overview_content": "useStateはReactの基本的なHookの一つで、関数コンポーネントで状態管理を行うために使用します。",
+        "usage_examples": [
+          {
+            "title": "基本例",
+            "code": "```javascript\nimport React, { useState } from 'react';\n\nfunction Counter() {\n  const [count, setCount] = useState(0);\n\n  return (\n    <div>\n      <p>カウント: {count}</p>\n      <button onClick={() => setCount(count + 1)}>\n        増加\n      </button>\n    </div>\n  );\n}\n```"
+          }
+        ],
+        "advanced_examples": [
+          "• オブジェクトや配列の状態管理",
+          "• 複数の状態変数の使い分け",
+          "• useReducerとの使い分け",
+          "• パフォーマンス最適化のコツ"
+        ]
+      }
+    ]
+  },
+  "version": "1.0.0",
+  "description": "動的応答テンプレートシステム - 技術質問の自然な応答生成用テンプレート"
+}

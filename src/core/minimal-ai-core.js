@@ -136,7 +136,7 @@ export class MinimalAICore {
     async loadMinimalConceptDB() {
         try {
             // 既存の75概念DBから軽量版抽出
-            const fullDBPath = path.join(process.cwd(), 'docs', 'ANALYSIS_RESULTS_DB.json');
+            const fullDBPath = path.join(process.cwd(), 'data', 'learning', 'concept-analysis-db.json');
             const fullDB = JSON.parse(await fs.readFile(fullDBPath, 'utf-8'));
             // 軽量化変換
             this.conceptDB = this.convertToMinimalDB(fullDB);

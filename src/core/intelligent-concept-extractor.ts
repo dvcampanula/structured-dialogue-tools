@@ -183,7 +183,7 @@ export class IntelligentConceptExtractor {
   private evolutionaryDiscoverySystem: EvolutionaryPatternDiscoverySystem;
 
   constructor(
-    private dbPath: string = 'docs/ANALYSIS_RESULTS_DB.json',
+    private dbPath: string = 'data/learning/concept-analysis-db.json',
     private metaConceptConfigPath: string = 'src/config/meta-concept-patterns.json'
   ) {
     this.configManager = new ConceptExtractionConfigManager();

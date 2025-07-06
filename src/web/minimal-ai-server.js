@@ -27,7 +27,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 // ミドルウェア設定
 app.use(cors());
@@ -1473,8 +1473,31 @@ app.post('/api/unified-dialogue', async (req, res) => {
       context: context || {}
     });
 
-    // 応答生成
-    const response = await generateUnifiedResponse(message, learningResult);
+    // Phase 7H.2.1 ResponseGenerationEngine統合 - 動的応答生成
+    let response;
+    
+    // ResponseGenerationEngineを優先使用
+    if (responseEngine) {
+      console.log(`🎯 ResponseGenerationEngine使用: 動的応答生成`);
+      
+      const effectiveSessionId = sessionId || `web-session-${Date.now()}`;
+      const responseResult = await responseEngine.generateResponse(effectiveSessionId, message, {
+        learningResult,
+        userId: userId || 'web-ui-user',
+        type: type || 'dialogue'
+      });
+      
+      response = responseResult.response.content;
+      
+      // 学習結果の付加情報
+      if (learningResult.metadata.confidence > 0.5) {
+        response += `\n\n💡 **学習結果**: ${learningResult.concepts.length}個の概念と${learningResult.relationships.length}個の関係性を学習しました。`;
+      }
+    } else {
+      // フォールバック: 従来の応答生成
+      console.log(`⚠️ ResponseGenerationEngine未利用: フォールバック応答生成`);
+      response = await generateUnifiedResponse(message, learningResult);
+    }
     
     console.log(`✅ 統合学習対話処理完了: ${learningResult.metadata.processingTime}ms`);
 
@@ -1638,7 +1661,13 @@ function generateConceptUnifiedResponse(message, concepts, relationships) {
   // 「教えて」「詳しく」などの説明要求
   if (lowerMessage.includes('教えて') || lowerMessage.includes('詳しく') || lowerMessage.includes('説明')) {
     const topic = message.replace(/について.*/, '').replace(/教えて.*/, '').replace(/詳しく.*/, '').replace(/説明.*/, '').trim();
-    return `${topic}について詳しく説明いたします。\n\n申し訳ございませんが、より具体的な質問をいただけると、より詳細で有用な説明ができます。\n\n例えば：\n- 「${topic}の基本的な仕組みを教えて」\n- 「${topic}を実際に使う方法は？」\n- 「${topic}のメリット・デメリットは？」\n- 「${topic}の具体例を知りたい」\n\nどのような観点から${topic}について知りたいか、もう少し具体的に教えていただけますか？`;
+    
+    // トピックに基づく動的応答生成
+    if (topic.length > 0) {
+      return `${topic}について詳しく説明させていただきます。\n\n${topic}は多面的なテーマですが、具体的にはどの側面について知りたいでしょうか？\n\n以下のような観点から詳しく説明できます：\n- ${topic}の基本概念と定義\n- ${topic}の実用的な活用方法\n- ${topic}に関連する技術や手法\n- ${topic}の具体的な事例\n\nご関心のある方向性を教えていただければ、より適切で詳細な説明を提供いたします。`;
+    } else {
+      return `ご質問の内容について詳しく説明いたします。\n\n具体的にどのような情報をお求めでしょうか？質問内容を明確にしていただけると、より適切で有用な回答を提供できます。`;
+    }
   }
   
   // その他の一般的な質問
