@@ -152,30 +152,40 @@ export class DialogueLogLearnerAdapter {
             }
         }
         
-        // 3. 関係性情報の統合
-        for (const relationship of enhancedResult.relationships) {
-            const concept1 = Array.from(conceptSet).find(c => 
-                typeof c === 'object' && c.term === relationship.term1
-            );
-            const concept2 = Array.from(conceptSet).find(c => 
-                typeof c === 'object' && c.term === relationship.term2
-            );
-            
-            if (concept1 && concept2) {
-                concept1.relationships = concept1.relationships || [];
-                concept1.relationships.push({
-                    relatedTerm: relationship.term2,
-                    strength: relationship.strength,
-                    type: relationship.type
-                });
+        // 3. 関係性情報の統合（安全性チェック付き）
+        if (enhancedResult.relationships && Array.isArray(enhancedResult.relationships)) {
+            for (const relationship of enhancedResult.relationships) {
+                // 関係性データの有効性チェック
+                if (!relationship || !relationship.term1 || !relationship.term2) {
+                    console.warn('⚠️ 無効な関係性データをスキップ:', relationship);
+                    continue;
+                }
                 
-                concept2.relationships = concept2.relationships || [];
-                concept2.relationships.push({
-                    relatedTerm: relationship.term1,
-                    strength: relationship.strength,
-                    type: relationship.type
-                });
+                const concept1 = Array.from(conceptSet).find(c => 
+                    typeof c === 'object' && c.term === relationship.term1
+                );
+                const concept2 = Array.from(conceptSet).find(c => 
+                    typeof c === 'object' && c.term === relationship.term2
+                );
+                
+                if (concept1 && concept2) {
+                    concept1.relationships = concept1.relationships || [];
+                    concept1.relationships.push({
+                        relatedTerm: relationship.term2,
+                        strength: relationship.strength || 0.5,
+                        type: relationship.type || 'unknown'
+                    });
+                    
+                    concept2.relationships = concept2.relationships || [];
+                    concept2.relationships.push({
+                        relatedTerm: relationship.term1,
+                        strength: relationship.strength || 0.5,
+                        type: relationship.type || 'unknown'
+                    });
+                }
             }
+        } else {
+            console.warn('⚠️ enhancedResult.relationships が配列ではないか未定義です:', typeof enhancedResult.relationships);
         }
     }
 

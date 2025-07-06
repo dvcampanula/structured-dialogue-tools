@@ -573,12 +573,45 @@ export class ContextTrackingSystem {
     }
 
     hasTopicalContinuity(turn1, turn2) {
-        const text1 = turn1.content || turn1.message || turn1;
-        const text2 = turn2.content || turn2.message || turn2;
+        // 入力の型安全性チェック
+        if (!turn1 || !turn2) {
+            console.warn('❌ hasTopicalContinuity: ターンデータが不正です', { turn1: typeof turn1, turn2: typeof turn2 });
+            return false;
+        }
         
-        // 文字列チェック
+        let text1, text2;
+        
+        // 文字列またはオブジェクトからテキスト抽出
+        if (typeof turn1 === 'string') {
+            text1 = turn1;
+        } else if (typeof turn1 === 'object') {
+            text1 = turn1.content || turn1.message || turn1.userMessage || turn1.aiResponse || '';
+        } else {
+            text1 = String(turn1);
+        }
+        
+        if (typeof turn2 === 'string') {
+            text2 = turn2;
+        } else if (typeof turn2 === 'object') {
+            text2 = turn2.content || turn2.message || turn2.userMessage || turn2.aiResponse || '';
+        } else {
+            text2 = String(turn2);
+        }
+        
+        // 最終的な文字列チェック
         if (typeof text1 !== 'string' || typeof text2 !== 'string') {
-            console.warn('❌ hasTopicalContinuity: テキストが文字列ではありません', { text1: typeof text1, text2: typeof text2 });
+            console.warn('❌ hasTopicalContinuity: テキスト抽出に失敗', { 
+                text1: typeof text1, 
+                text2: typeof text2,
+                turn1Type: typeof turn1,
+                turn2Type: typeof turn2
+            });
+            return false;
+        }
+        
+        // 空文字チェック
+        if (!text1.trim() || !text2.trim()) {
+            console.warn('❌ hasTopicalContinuity: 空のテキストです');
             return false;
         }
         
@@ -589,12 +622,44 @@ export class ContextTrackingSystem {
     }
 
     hasProgression(turn1, turn2) {
-        const text1 = turn1.content || turn1.message || turn1;
-        const text2 = turn2.content || turn2.message || turn2;
+        // 入力の型安全性チェック
+        if (!turn1 || !turn2) {
+            console.warn('❌ hasProgression: ターンデータが不正です', { turn1: typeof turn1, turn2: typeof turn2 });
+            return false;
+        }
         
-        // 文字列チェック
+        let text1, text2;
+        
+        // 文字列またはオブジェクトからテキスト抽出
+        if (typeof turn1 === 'string') {
+            text1 = turn1;
+        } else if (typeof turn1 === 'object') {
+            text1 = turn1.content || turn1.message || turn1.userMessage || turn1.aiResponse || '';
+        } else {
+            text1 = String(turn1);
+        }
+        
+        if (typeof turn2 === 'string') {
+            text2 = turn2;
+        } else if (typeof turn2 === 'object') {
+            text2 = turn2.content || turn2.message || turn2.userMessage || turn2.aiResponse || '';
+        } else {
+            text2 = String(turn2);
+        }
+        
+        // 最終的な文字列チェック
         if (typeof text1 !== 'string' || typeof text2 !== 'string') {
-            console.warn('❌ hasProgression: テキストが文字列ではありません', { text1: typeof text1, text2: typeof text2 });
+            console.warn('❌ hasProgression: テキスト抽出に失敗', { 
+                text1: typeof text1, 
+                text2: typeof text2,
+                turn1Type: typeof turn1,
+                turn2Type: typeof turn2
+            });
+            return false;
+        }
+        
+        // 空文字チェック
+        if (!text1.trim() || !text2.trim()) {
             return false;
         }
         
