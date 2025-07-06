@@ -20,6 +20,7 @@ import { UnifiedLearningEngine } from '../engines/learning/unified-learning-engi
 import { SimpleMultiTurnManager } from '../systems/managers/simple-multiturn-manager.js';
 import { ResponseGenerationEngine } from '../engines/response/response-generation-engine.js';
 import { AdvancedEmotionAnalyzer } from '../analyzers/advanced-emotion-analyzer.js';
+import { EnhancedResponseGenerationEngineV2 } from '../engines/response/enhanced-response-generation-engine-v2.js';
 import fs from 'fs';
 import multer from 'multer';
 
@@ -55,6 +56,9 @@ let responseEngine;
 
 // Phase 7H.2.2 高度感情認識システム
 let advancedEmotionAnalyzer;
+
+// Enhanced ResponseGenerationEngine v2.0
+let enhancedResponseEngineV2;
 
 // ファイルアップロード設定
 const upload = multer({ 
@@ -108,6 +112,18 @@ async function initializeAI() {
     console.log('🎯 Phase 7H.2 応答生成エンジン初期化中...');
     responseEngine = new ResponseGenerationEngine(multiTurnManager, personalAnalyzer, advancedEmotionAnalyzer);
     console.log('✅ Phase 7H.2 応答生成エンジン初期化完了');
+    
+    // Enhanced ResponseGenerationEngine v2.0 初期化
+    console.log('🚀 Enhanced ResponseGenerationEngine v2.0 初期化中...');
+    enhancedResponseEngineV2 = new EnhancedResponseGenerationEngineV2({
+      enableTemplateEngine: true,
+      enableEmotionAnalysis: true,
+      enablePersonalAdaptation: true,
+      enableContextEnrichment: true,
+      qualityThreshold: 0.7
+    });
+    enhancedResponseEngineV2.setPersonalAdapter(responseAdapter);
+    console.log('✅ Enhanced ResponseGenerationEngine v2.0 初期化完了');
     
     isInitialized = true;
     console.log('✅ ミニマムAI+ログ学習+ハイブリッド処理+品質自動調整+Phase6H.2個人特化学習システム+統合学習エンジン+Phase7H.1マルチターン対話システム+Phase7H.2応答生成エンジン+Phase7H.2.2高度感情認識システム初期化完了');
@@ -1958,6 +1974,97 @@ app.get('/api/response/generation-stats', async (req, res) => {
   }
 });
 
+// ========== Enhanced ResponseGenerationEngine v2.0 API ==========
+
+// 統合応答生成 v2.0 - 次世代応答生成システム
+app.post('/api/response/unified-generate', async (req, res) => {
+  try {
+    if (!isInitialized) await initializeAI();
+    
+    const { userInput, conversationHistory = [], userProfile = {}, userId = 'anonymous' } = req.body;
+    
+    if (!userInput || typeof userInput !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'userInputが必要です（文字列）'
+      });
+    }
+    
+    console.log(`🚀 Enhanced ResponseGeneration v2.0: "${userInput.substring(0, 50)}..." (ユーザー: ${userId})`);
+    
+    const result = await enhancedResponseEngineV2.generateUnifiedResponse(
+      userInput, 
+      conversationHistory, 
+      userProfile
+    );
+    
+    // 学習データ更新（PersonalResponseAdapterを通じて）
+    if (result.response && !result.error) {
+      try {
+        // 応答適応学習
+        if (responseAdapter && responseAdapter.learnFromInteraction) {
+          await responseAdapter.learnFromInteraction(userInput, result.response, userId);
+        }
+      } catch (learningError) {
+        console.warn('⚠️ 学習データ更新エラー:', learningError.message);
+      }
+    }
+    
+    res.json({
+      success: true,
+      response: result.response,
+      metadata: {
+        ...result.metadata,
+        apiVersion: 'v2.0',
+        unifiedAnalysis: {
+          contextScore: result.analysisResult?.contextEnrichment?.overallContextScore,
+          contextConfidence: result.analysisResult?.contextEnrichment?.contextConfidence,
+          responseStrategy: result.analysisResult?.responseStrategy?.primary,
+          qualityScore: result.analysisResult?.qualityMetrics?.overallScore
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Enhanced ResponseGeneration v2.0 エラー:', error.message);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      apiVersion: 'v2.0',
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Enhanced ResponseGenerationEngine v2.0 統計情報
+app.get('/api/response/enhanced-stats', async (req, res) => {
+  try {
+    if (!isInitialized) await initializeAI();
+    
+    const stats = enhancedResponseEngineV2.getSystemStats();
+    
+    res.json({
+      success: true,
+      data: {
+        engineVersion: 'v2.0',
+        systemStats: stats,
+        integrationStatus: {
+          templateEngine: !!enhancedResponseEngineV2.dynamicTemplateEngine,
+          emotionAnalyzer: !!enhancedResponseEngineV2.emotionAnalyzer,
+          personalAdapter: !!enhancedResponseEngineV2.personalAdapter,
+          contextEnrichment: !!enhancedResponseEngineV2.contextEnrichmentEngine
+        }
+      },
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('Enhanced統計取得エラー:', error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+});
+
 // ========== Phase 7H.2.2 高度感情認識システム API ==========
 
 // 高度感情分析
@@ -2044,6 +2151,74 @@ app.get('/api/emotion/journey-tracking', async (req, res) => {
   } catch (error) {
     console.error('感情推移追跡エラー:', error);
     res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+// =============================================================================
+// Enhanced ResponseGenerationEngine v2.0 API
+// =============================================================================
+
+// API: 統合応答生成（Enhanced ResponseGenerationEngine v2.0）
+app.post('/api/response/unified-generate', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const { userInput, conversationHistory, userProfile } = req.body;
+    
+    if (!userInput || typeof userInput !== 'string') {
+      return res.status(400).json({
+        success: false,
+        error: 'userInputが必要です'
+      });
+    }
+    
+    console.log(`🎯 Enhanced ResponseGeneration v2.0: "${userInput.substring(0, 50)}..."`);
+    
+    // Enhanced ResponseGenerationEngine v2.0で統合応答生成
+    const result = await enhancedResponseEngineV2.generateUnifiedResponse(
+      userInput,
+      conversationHistory || [],
+      userProfile || {}
+    );
+    
+    res.json({
+      success: true,
+      data: result,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Enhanced ResponseGeneration v2.0 エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+// API: Enhanced ResponseGenerationEngine v2.0 統計取得
+app.get('/api/response/enhanced-stats', async (req, res) => {
+  try {
+    if (!isInitialized) {
+      await initializeAI();
+    }
+    
+    const stats = enhancedResponseEngineV2.getSystemStats();
+    
+    res.json({
+      success: true,
+      data: stats,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    console.error('❌ Enhanced Stats取得エラー:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
   }
 });
 
