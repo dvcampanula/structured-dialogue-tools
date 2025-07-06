@@ -20,7 +20,9 @@ export class ConfigLoader {
             semanticRelationships: path.join(this.dataDir, 'semantic-relationships.json'),
             evaluationThresholds: path.join(this.configDir, 'evaluation-thresholds.json'),
             systemConfig: path.join(this.configDir, 'system-config.json'),
-            learningConfig: path.join(this.configDir, 'learning-config.json')
+            learningConfig: path.join(this.configDir, 'learning-config.json'),
+            technicalPatterns: path.join(this.configDir, 'technical-patterns.json'),
+            responseTemplates: path.join(this.configDir, 'response-templates.json')
         };
     }
 

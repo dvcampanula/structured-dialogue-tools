@@ -9,12 +9,12 @@
 
 import fs from 'fs';
 import path from 'path';
-import { configLoader } from './config-loader.js';
-import { DynamicRelationshipLearner } from './dynamic-relationship-learner.js';
-import { SemanticSimilarityEngine } from './semantic-similarity-engine.js';
-import { IntentRecognitionEngine } from './intent-recognition-engine.js';
-import { ContextTrackingSystem } from './context-tracking-system.js';
-import { DialogueFlowController } from './dialogue-flow-controller.js';
+import { configLoader } from '../../data/config-loader.js';
+import { DynamicRelationshipLearner } from '../../engines/learning/dynamic-relationship-learner.js';
+import { SemanticSimilarityEngine } from '../../engines/processing/semantic-similarity-engine.js';
+import { IntentRecognitionEngine } from '../../engines/dialogue/intent-recognition-engine.js';
+import { ContextTrackingSystem } from '../../engines/dialogue/context-tracking-system.js';
+import { DialogueFlowController } from '../../engines/dialogue/dialogue-flow-controller.js';
 
 export class AdvancedDialogueController {
     constructor(personalAnalyzer, domainBuilder, responseAdapter, conceptDB, userId = 'default') {

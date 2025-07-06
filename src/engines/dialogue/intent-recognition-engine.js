@@ -7,7 +7,7 @@
  * 📊 多層意図分析・信頼度計算
  */
 
-import { configLoader } from './config-loader.js';
+import { configLoader } from '../../data/config-loader.js';
 
 export class IntentRecognitionEngine {
     constructor() {
@@ -27,7 +27,7 @@ export class IntentRecognitionEngine {
         
         // 意図カテゴリ定義
         this.intentCategories = {
-            basic: ['question', 'request', 'learning', 'clarification', 'affirmation'],
+            basic: ['question', 'request', 'learning', 'clarification', 'affirmation', 'help_request'],
             contextual: ['continuation', 'elaboration', 'pivot', 'summary'],
             emotional: ['satisfaction', 'frustration', 'curiosity', 'excitement'],
             pragmatic: ['directive', 'collaborative', 'explorative', 'confirmative']
@@ -142,7 +142,8 @@ export class IntentRecognitionEngine {
             request: 0,
             learning: 0,
             clarification: 0,
-            affirmation: 0
+            affirmation: 0,
+            help_request: 0
         };
 
         const inputLower = input.toLowerCase();
@@ -372,6 +373,16 @@ export class IntentRecognitionEngine {
     determinePrimaryIntent(basicIntent, contextualIntent, personalIntent, implicitIntents) {
         const weights = this.recognitionConfig;
         
+        // 基本意図優先ロジック（修正）
+        if (basicIntent.confidence > 0.5) {
+            console.log(`🎯 基本意図優先: ${basicIntent.type} (信頼度: ${basicIntent.confidence.toFixed(2)})`);
+            return {
+                type: basicIntent.type,
+                confidence: basicIntent.confidence,
+                source: 'basic'
+            };
+        }
+        
         const combinedScore = 
             basicIntent.confidence * weights.basicIntentWeight +
             contextualIntent.confidence * weights.contextualIntentWeight +
@@ -390,12 +401,13 @@ export class IntentRecognitionEngine {
             };
         }
 
-        // 複合意図の場合
+        // 複合意図の場合（抑制・基本意図を返す）
         if (combinedScore > weights.confidenceThreshold) {
+            console.log(`🔀 複合意図抑制: ${basicIntent.type}を基本意図として採用`);
             return {
-                type: `${basicIntent.type}_${contextualIntent.type}`,
+                type: basicIntent.type,
                 confidence: combinedScore,
-                source: 'combined',
+                source: 'basic_fallback',
                 components: {
                     basic: basicIntent,
                     contextual: contextualIntent,
@@ -464,13 +476,25 @@ export class IntentRecognitionEngine {
 
     // ヘルパーメソッド群
     detectAdditionalBasicPatterns(inputLower, basicIntents) {
-        // 技術学習パターン（最優先）
-        if ((inputLower.includes('react') || inputLower.includes('javascript') || 
-             inputLower.includes('フック') || inputLower.includes('usestate') ||
-             inputLower.includes('プログラミング') || inputLower.includes('開発')) &&
-            (inputLower.includes('教えて') || inputLower.includes('について') || 
-             inputLower.includes('詳しく') || inputLower.includes('説明'))) {
+        // 技術学習パターン（最優先・拡張）
+        const techTerms = ['react', 'javascript', 'フック', 'usestate', 'プログラミング', '開発',
+                          'python', 'データサイエンス', 'sql', 'tensorflow', 'pytorch', 'ai', 'machine learning'];
+        const learningIndicators = ['教えて', 'について', '詳しく', '説明', '比較', '違い', '特徴', 
+                                   'とは', 'どちら', 'メリット', 'デメリット', '選択'];
+        
+        const hasTechTerm = techTerms.some(term => inputLower.includes(term));
+        const hasLearningIndicator = learningIndicators.some(indicator => inputLower.includes(indicator));
+        
+        if (hasTechTerm && hasLearningIndicator) {
             basicIntents.learning += 0.9; // 技術学習は最高優先度
+            console.log(`🎯 技術学習パターン検出: 技術用語=${hasTechTerm}, 学習指標=${hasLearningIndicator}`);
+        }
+        
+        // 技術比較・分析パターン（新規追加）
+        if ((inputLower.includes('比較') || inputLower.includes('違い') || inputLower.includes('どちら')) &&
+            hasTechTerm) {
+            basicIntents.learning += 0.8; // 技術比較は学習意図
+            console.log(`📊 技術比較パターン検出: 比較用語 + 技術用語`);
         }
 
         // 質問パターン
@@ -485,18 +509,43 @@ export class IntentRecognitionEngine {
             basicIntents.learning += 0.5;
         }
 
-        // 技術実装要求パターン
+        // 技術実装要求パターン（拡張）
         if ((inputLower.includes('コード') || inputLower.includes('実装') || 
-             inputLower.includes('例') || inputLower.includes('サンプル')) &&
-            (inputLower.includes('見せて') || inputLower.includes('してください'))) {
+             inputLower.includes('例') || inputLower.includes('サンプル') || inputLower.includes('書い')) &&
+            (inputLower.includes('見せて') || inputLower.includes('してください') || 
+             inputLower.includes('書いて') || inputLower.includes('作って'))) {
             basicIntents.request += 0.8; // 技術実装要求
+            console.log(`💻 技術実装要求パターン検出`);
         }
 
-        // 一般要求パターン
+        // 一般要求パターン（技術学習優先調整）
         else if (inputLower.includes('してください') || inputLower.includes('お願い') || 
                  inputLower.includes('作って')) {
-            basicIntents.request += 0.6;
+            // 技術用語が含まれている場合は学習意図を追加で強化
+            if (hasTechTerm) {
+                basicIntents.learning += 0.7; // 技術関連要求は学習寄り
+                basicIntents.request += 0.5;  // 要求意図も維持
+                console.log(`⚖️ 技術関連要求: learning++, request+`);
+            } else {
+                basicIntents.request += 0.6;
+            }
         }
+        
+        // ヘルプ要求パターン（新規追加）
+        if (inputLower.includes('助けて') || inputLower.includes('困って') || 
+            inputLower.includes('動かない') || inputLower.includes('エラー')) {
+            basicIntents.help_request += 0.8;
+            console.log(`🆘 ヘルプ要求パターン検出`);
+        }
+        
+        // 感謝・肯定パターン（強化）
+        if (inputLower.includes('ありがとう') || inputLower.includes('感謝') || 
+            inputLower.includes('助かり') || inputLower.includes('よくわかり')) {
+            basicIntents.affirmation += 0.8;
+            console.log(`👏 感謝・肯定パターン検出`);
+        }
+        
+        console.log(`🔍 基本意図スコア:`, basicIntents);
     }
 
     containsIncompleteRequest(input) {

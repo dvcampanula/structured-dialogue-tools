@@ -7,7 +7,7 @@
  * 📊 統計ベース類似度・文脈連続性計算
  */
 
-import { configLoader } from './config-loader.js';
+import { configLoader } from '../../data/config-loader.js';
 
 export class SemanticSimilarityEngine {
     constructor() {

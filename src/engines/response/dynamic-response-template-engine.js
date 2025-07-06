@@ -9,7 +9,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { configLoader } from './config-loader.js';
+import { configLoader } from '../../data/config-loader.js';
 
 export class DynamicResponseTemplateEngine {
     constructor() {

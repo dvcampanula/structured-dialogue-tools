@@ -476,8 +476,17 @@ export class PersonalResponseAdapter {
     }
 
     expandResponse(content) {
-        // 応答を詳細化
-        return content + '\n\n詳しく説明すると、この点についてはさらに考慮すべき要素があります。具体的な例や実装方法についても検討してみましょう。';
+        // 応答を詳細化（動的パターン）
+        const expansions = [
+            'より詳細に説明すると、この分野には重要な考慮点がいくつかあります。',
+            'さらに深く掘り下げると、実践的な観点から検討すべき要素があります。',
+            '具体的なアプローチとしては、段階的に進めることが効果的です。',
+            'より包括的に理解するために、関連する要素も考慮してみましょう。',
+            '実際の応用を考えると、追加で検討すべきポイントがあります。'
+        ];
+        
+        const randomExpansion = expansions[Math.floor(Math.random() * expansions.length)];
+        return content + '\n\n' + randomExpansion;
     }
 
     balanceResponse(content) {
@@ -600,8 +609,17 @@ export class PersonalResponseAdapter {
     }
 
     async addRelatableExamples(content) {
-        // 身近な例を追加（簡略実装）
-        return content + '\n\n例えば、料理を作る時のレシピのようなものです。';
+        // 身近な例を動的生成
+        const examples = [
+            '料理を作る時のレシピのような手順で進める',
+            '地図を見ながら目的地を探すように段階的に',
+            '本を読む時の目次のように構造的に',
+            'パズルを組み立てるように一つずつ',
+            'スポーツの基本練習のように順序立てて'
+        ];
+        
+        const randomExample = examples[Math.floor(Math.random() * examples.length)];
+        return content + `\n\n例えば、${randomExample}アプローチすると良いでしょう。`;
     }
 
     restructureStepByStep(content) {

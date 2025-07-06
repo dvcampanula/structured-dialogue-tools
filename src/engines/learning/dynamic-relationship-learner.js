@@ -9,8 +9,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { configLoader } from './config-loader.js';
-import { persistentLearningDB } from './persistent-learning-db.js';
+import { configLoader } from '../../data/config-loader.js';
+import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 
 export class DynamicRelationshipLearner {
     constructor(userId = 'default') {

@@ -9,7 +9,7 @@
  * - DynamicPatternLearner: パターン検知・異常検知
  */
 
-import { persistentLearningDB } from './persistent-learning-db.js';
+import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 import { DynamicRelationshipLearner } from './dynamic-relationship-learner.js';
 import fs from 'fs';
 import path from 'path';
