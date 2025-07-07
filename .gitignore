@@ -102,3 +102,8 @@ temp-output.*
 
 # 一時作業領域 (全体除外)
 workspace/
+
+# 大容量辞書ファイル (100MB制限対応)
+data/dictionaries/JMdict
+data/wiktionary/simple-wiktionary-extract.jsonl
+data/wiktionary/kaikki-*.jsonl

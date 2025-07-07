@@ -1,0 +1,32 @@
+{
+  "buildInfo": {
+    "version": "1.0.0",
+    "timestamp": "2025-07-07T12:22:52.219Z",
+    "builder": "UnifiedDictionaryBuilder",
+    "config": {
+      "enableFullJMdict": true,
+      "enableWiktionary": true,
+      "enableOptimization": true,
+      "maxEntries": 500000,
+      "qualityThreshold": 0.05,
+      "compressionLevel": "max"
+    }
+  },
+  "statistics": {
+    "startTime": 1751890967246,
+    "jmdictEntries": 211361,
+    "wiktionaryEntries": 499,
+    "totalEntries": 211692,
+    "processedTime": 4972,
+    "outputSize": 108596652
+  },
+  "qualityMetrics": {
+    "averageDefinitionsPerEntry": 0,
+    "averageSynonymsPerEntry": 0,
+    "totalSources": 3
+  },
+  "files": {
+    "outputDirectory": "./data/dictionary-db/",
+    "distributionReady": true
+  }
+}

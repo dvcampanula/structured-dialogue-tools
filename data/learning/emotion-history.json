@@ -1,84 +1,12 @@
 {
-  "76a1f988-e1d1-4a42-be32-68b1d2201d77": [
+  "": [
     {
-      "timestamp": "2025-07-05T12:36:05.296Z",
-      "dominantEmotion": "complex_mixed_positive",
-      "intensity": 0.5,
-      "complexity": 0.7,
-      "confidence": 0.49,
-      "inputSample": "新しいプロジェクトが始まって嬉しいのですが、うまくいくか心配でもあります"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.298Z",
-      "dominantEmotion": "complex_mixed_positive",
-      "intensity": 0.5,
-      "complexity": 0.7,
-      "confidence": 0.49,
-      "inputSample": "新しいプロジェクトが始まって嬉しいのですが、うまくいくか心配でもあります"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.299Z",
-      "dominantEmotion": "neutral",
-      "intensity": 0.5,
-      "complexity": 0,
-      "confidence": 0.42000000000000004,
-      "inputSample": "最初は困っていましたが、きっと良い解決策が見つかると思います"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.299Z",
-      "dominantEmotion": "neutral",
-      "intensity": 0.5,
-      "complexity": 0,
-      "confidence": 0.42000000000000004,
-      "inputSample": "最初は困っていましたが、きっと良い解決策が見つかると思います"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.300Z",
+      "timestamp": "2025-07-07T12:35:39.104Z",
       "dominantEmotion": "joy",
-      "intensity": 1,
-      "complexity": 0,
-      "confidence": 0.47,
-      "inputSample": "本当にとても嬉しいです！！ありがとうございます！"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.300Z",
-      "dominantEmotion": "joy",
-      "intensity": 1,
-      "complexity": 0,
-      "confidence": 0.47,
-      "inputSample": "本当にとても嬉しいです！！ありがとうございます！"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.301Z",
-      "dominantEmotion": "complex_grateful_concern",
-      "intensity": 0.4,
-      "complexity": 0.7,
-      "confidence": 0.54,
-      "inputSample": "ありがとうございます。でも少し気になることがあります。"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.301Z",
-      "dominantEmotion": "complex_grateful_concern",
-      "intensity": 0.4,
-      "complexity": 0.7,
-      "confidence": 0.54,
-      "inputSample": "ありがとうございます。でも少し気になることがあります。"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.302Z",
-      "dominantEmotion": "neutral",
       "intensity": 0.5,
       "complexity": 0,
-      "confidence": 0.51,
-      "inputSample": "ちょっと疲れました。まあまあ満足です。"
-    },
-    {
-      "timestamp": "2025-07-05T12:36:05.302Z",
-      "dominantEmotion": "neutral",
-      "intensity": 0.5,
-      "complexity": 0,
-      "confidence": 0.51,
-      "inputSample": "ちょっと疲れました。まあまあ満足です。"
+      "confidence": 0.38,
+      "inputSample": "素晴らしい提案をありがとうございます。"
     }
   ]
 }

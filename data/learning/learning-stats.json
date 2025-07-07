@@ -1,653 +1,12 @@
 {
-  "totalConversations": 2,
-  "totalRelationsLearned": 4,
-  "totalConceptsLearned": 4,
-  "lastLearningDate": 1751718596494,
+  "totalConversations": 1,
+  "totalRelationsLearned": 44,
+  "totalConceptsLearned": 7,
+  "lastLearningDate": 1751892389837,
   "qualityScore": 0.5,
   "learningEvents": [
     {
-      "timestamp": 1751632180281,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 50,
-            "aiResponseLength": 120,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632180281
-        }
-      }
-    },
-    {
-      "timestamp": 1751632180284,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test_user_001",
-        "relations": 18,
-        "learningStats": {
-          "totalTerms": 3,
-          "totalRelations": 18,
-          "averageStrength": 0.6000000000000001,
-          "coOccurrencePairs": 18
-        }
-      }
-    },
-    {
-      "timestamp": 1751632180284,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 35,
-            "aiResponseLength": 126,
-            "technicalTermsUsed": 1,
-            "questionType": "general"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632180284
-        }
-      }
-    },
-    {
-      "timestamp": 1751632749554,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test_user_001",
-        "relations": 18,
-        "learningStats": {
-          "totalTerms": 2,
-          "totalRelations": 18,
-          "averageStrength": 0.5111111111111111,
-          "coOccurrencePairs": 18
-        }
-      }
-    },
-    {
-      "timestamp": 1751632749555,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 50,
-            "aiResponseLength": 125,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632749555
-        }
-      }
-    },
-    {
-      "timestamp": 1751632749559,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test_user_001",
-        "relations": 27,
-        "learningStats": {
-          "totalTerms": 3,
-          "totalRelations": 27,
-          "averageStrength": 0.6074074074074076,
-          "coOccurrencePairs": 27
-        }
-      }
-    },
-    {
-      "timestamp": 1751632749560,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 35,
-            "aiResponseLength": 131,
-            "technicalTermsUsed": 1,
-            "questionType": "general"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632749560
-        }
-      }
-    },
-    {
-      "timestamp": 1751632831307,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test_user_001",
-        "relations": 16,
-        "learningStats": {
-          "totalTerms": 2,
-          "totalRelations": 16,
-          "averageStrength": 0.5125,
-          "coOccurrencePairs": 16
-        }
-      }
-    },
-    {
-      "timestamp": 1751632831308,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 50,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632831308
-        }
-      }
-    },
-    {
-      "timestamp": 1751632831311,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test_user_001",
-        "relations": 26,
-        "learningStats": {
-          "totalTerms": 3,
-          "totalRelations": 26,
-          "averageStrength": 0.5076923076923077,
-          "coOccurrencePairs": 26
-        }
-      }
-    },
-    {
-      "timestamp": 1751632831312,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test_user_001",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 35,
-            "aiResponseLength": 806,
-            "technicalTermsUsed": 1,
-            "questionType": "general"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751632831312
-        }
-      }
-    },
-    {
-      "timestamp": 1751670121135,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 1,
-          "totalConcepts": 0,
-          "totalRelationships": 0,
-          "averageProcessingTime": 2,
-          "lastUpdated": "2025-07-04T23:02:01.135Z",
-          "confidence": 0
-        }
-      }
-    },
-    {
-      "timestamp": 1751670121136,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 2,
-          "totalConcepts": 6,
-          "totalRelationships": 0,
-          "averageProcessingTime": 1.5,
-          "lastUpdated": "2025-07-04T23:02:01.136Z",
-          "confidence": 0.5
-        }
-      }
-    },
-    {
-      "timestamp": 1751670121137,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 3,
-          "totalConcepts": 11,
-          "totalRelationships": 0,
-          "averageProcessingTime": 1.3333333333333333,
-          "lastUpdated": "2025-07-04T23:02:01.137Z",
-          "confidence": 0.5
-        }
-      }
-    },
-    {
-      "timestamp": 1751671093224,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 1,
-          "totalConcepts": 0,
-          "totalRelationships": 0,
-          "averageProcessingTime": 2,
-          "lastUpdated": "2025-07-04T23:18:13.224Z",
-          "confidence": 0
-        }
-      }
-    },
-    {
-      "timestamp": 1751671137565,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 2,
-          "totalConcepts": 1,
-          "totalRelationships": 0,
-          "averageProcessingTime": 2,
-          "lastUpdated": "2025-07-04T23:18:57.565Z",
-          "confidence": 0.1
-        }
-      }
-    },
-    {
-      "timestamp": 1751671239398,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 3,
-          "totalConcepts": 2,
-          "totalRelationships": 0,
-          "averageProcessingTime": 1.6666666666666667,
-          "lastUpdated": "2025-07-04T23:20:39.398Z",
-          "confidence": 0.1
-        }
-      }
-    },
-    {
-      "timestamp": 1751671406481,
-      "type": "unified_learning_stats",
-      "data": {
-        "learningStats": {
-          "totalProcessed": 1,
-          "totalConcepts": 1,
-          "totalRelationships": 0,
-          "averageProcessingTime": 1,
-          "lastUpdated": "2025-07-04T23:23:26.481Z",
-          "confidence": 0.1
-        }
-      }
-    },
-    {
-      "timestamp": 1751671676974,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "test-user",
-        "relations": 9,
-        "learningStats": {
-          "totalTerms": 1,
-          "totalRelations": 9,
-          "averageStrength": 0.7999999999999999,
-          "coOccurrencePairs": 9
-        }
-      }
-    },
-    {
-      "timestamp": 1751671676975,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "test-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 12,
-            "aiResponseLength": 182,
-            "technicalTermsUsed": 0,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751671676975
-        }
-      }
-    },
-    {
-      "timestamp": 1751671721350,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "unified-ui-user",
-        "relations": 8,
-        "learningStats": {
-          "totalTerms": 1,
-          "totalRelations": 8,
-          "averageStrength": 0.525,
-          "coOccurrencePairs": 8
-        }
-      }
-    },
-    {
-      "timestamp": 1751671721350,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "unified-ui-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 24,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751671721350
-        }
-      }
-    },
-    {
-      "timestamp": 1751671971396,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "unified-ui-user",
-        "relations": 17,
-        "learningStats": {
-          "totalTerms": 2,
-          "totalRelations": 17,
-          "averageStrength": 0.5117647058823529,
-          "coOccurrencePairs": 17
-        }
-      }
-    },
-    {
-      "timestamp": 1751671971397,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "unified-ui-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 12,
-            "aiResponseLength": 124,
-            "technicalTermsUsed": 0,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751671971397
-        }
-      }
-    },
-    {
-      "timestamp": 1751672911938,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "unified-learning-test",
-        "relations": 8,
-        "learningStats": {
-          "totalTerms": 1,
-          "totalRelations": 8,
-          "averageStrength": 0.525,
-          "coOccurrencePairs": 8
-        }
-      }
-    },
-    {
-      "timestamp": 1751672911939,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "unified-learning-test",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 27,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751672911939
-        }
-      }
-    },
-    {
-      "timestamp": 1751672926468,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "unified-learning-test",
-        "relations": 8,
-        "learningStats": {
-          "totalTerms": 1,
-          "totalRelations": 8,
-          "averageStrength": 0.525,
-          "coOccurrencePairs": 8
-        }
-      }
-    },
-    {
-      "timestamp": 1751672926469,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "unified-learning-test",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 27,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751672926469
-        }
-      }
-    },
-    {
-      "timestamp": 1751673384068,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "persistence-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751673384068,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "persistence-test-user",
-        "relations": 16,
-        "learningStats": {
-          "totalTerms": 2,
-          "totalRelations": 16,
-          "averageStrength": 0.5125,
-          "coOccurrencePairs": 16
-        }
-      }
-    },
-    {
-      "timestamp": 1751673384069,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "persistence-test-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 23,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 1,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751673384069
-        }
-      }
-    },
-    {
-      "timestamp": 1751686738607,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751686738608,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relations": 31,
-        "learningStats": {
-          "totalTerms": 4,
-          "totalRelations": 31,
-          "averageStrength": 0.6032258064516131,
-          "coOccurrencePairs": 31
-        }
-      }
-    },
-    {
-      "timestamp": 1751686738609,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "learning-test-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 40,
-            "aiResponseLength": 128,
-            "technicalTermsUsed": 2,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751686738609
-        }
-      }
-    },
-    {
-      "timestamp": 1751686805178,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751686805179,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relations": 0,
-        "learningStats": {
-          "totalTerms": 0,
-          "totalRelations": 0,
-          "averageStrength": 0,
-          "coOccurrencePairs": 0
-        }
-      }
-    },
-    {
-      "timestamp": 1751686805179,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "quality-test-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 40,
-            "aiResponseLength": 186,
-            "technicalTermsUsed": 0,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751686805179
-        }
-      }
-    },
-    {
-      "timestamp": 1751686822369,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751686822370,
-      "type": "dynamic_learning_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relations": 10,
-        "learningStats": {
-          "totalTerms": 1,
-          "totalRelations": 10,
-          "averageStrength": 0.52,
-          "coOccurrencePairs": 10
-        }
-      }
-    },
-    {
-      "timestamp": 1751686822371,
-      "type": "personal_analysis_update",
-      "data": {
-        "userId": "quality-test-user",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 23,
-            "aiResponseLength": 198,
-            "technicalTermsUsed": 1,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751686822371
-        }
-      }
-    },
-    {
-      "timestamp": 1751686972244,
+      "timestamp": 1751887529290,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -655,7 +14,7 @@
       }
     },
     {
-      "timestamp": 1751686972818,
+      "timestamp": 1751887529293,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -663,7 +22,23 @@
       }
     },
     {
-      "timestamp": 1751686972825,
+      "timestamp": 1751887589843,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751887589854,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751887829287,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -671,7 +46,7 @@
       }
     },
     {
-      "timestamp": 1751686972826,
+      "timestamp": 1751887829297,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -679,39 +54,7 @@
       }
     },
     {
-      "timestamp": 1751687024852,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687024859,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687092661,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687092662,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687259536,
+      "timestamp": 1751887829299,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -719,7 +62,7 @@
       }
     },
     {
-      "timestamp": 1751687260114,
+      "timestamp": 1751887829303,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -727,7 +70,23 @@
       }
     },
     {
-      "timestamp": 1751687260122,
+      "timestamp": 1751887889862,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751887889872,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888129323,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -735,7 +94,7 @@
       }
     },
     {
-      "timestamp": 1751687260123,
+      "timestamp": 1751888129327,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -743,39 +102,7 @@
       }
     },
     {
-      "timestamp": 1751687312307,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687312313,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687379917,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687379924,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687545318,
+      "timestamp": 1751888129331,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -783,7 +110,7 @@
       }
     },
     {
-      "timestamp": 1751687545898,
+      "timestamp": 1751888129336,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -791,7 +118,23 @@
       }
     },
     {
-      "timestamp": 1751687545901,
+      "timestamp": 1751888189891,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888189897,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888429363,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -799,7 +142,7 @@
       }
     },
     {
-      "timestamp": 1751687545913,
+      "timestamp": 1751888429367,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -807,39 +150,7 @@
       }
     },
     {
-      "timestamp": 1751687599592,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687599599,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687667109,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687667110,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687832325,
+      "timestamp": 1751888429370,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -847,7 +158,7 @@
       }
     },
     {
-      "timestamp": 1751687832883,
+      "timestamp": 1751888429375,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -855,7 +166,23 @@
       }
     },
     {
-      "timestamp": 1751687832898,
+      "timestamp": 1751888489936,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888489946,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888729382,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -863,7 +190,7 @@
       }
     },
     {
-      "timestamp": 1751687832899,
+      "timestamp": 1751888729393,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -871,39 +198,7 @@
       }
     },
     {
-      "timestamp": 1751687885162,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687885163,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "learning-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687952652,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751687952658,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality-test-user",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1751688350983,
+      "timestamp": 1751888729396,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -911,7 +206,7 @@
       }
     },
     {
-      "timestamp": 1751688351790,
+      "timestamp": 1751888729399,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -919,7 +214,23 @@
       }
     },
     {
-      "timestamp": 1751688351796,
+      "timestamp": 1751888789956,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751888789965,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889029409,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -927,7 +238,7 @@
       }
     },
     {
-      "timestamp": 1751688351797,
+      "timestamp": 1751889029419,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -935,7 +246,7 @@
       }
     },
     {
-      "timestamp": 1751688637689,
+      "timestamp": 1751889029422,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -943,7 +254,7 @@
       }
     },
     {
-      "timestamp": 1751688638503,
+      "timestamp": 1751889029426,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -951,7 +262,23 @@
       }
     },
     {
-      "timestamp": 1751688638509,
+      "timestamp": 1751889089967,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889089977,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889329450,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -959,7 +286,7 @@
       }
     },
     {
-      "timestamp": 1751688638510,
+      "timestamp": 1751889329460,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -967,7 +294,7 @@
       }
     },
     {
-      "timestamp": 1751689133038,
+      "timestamp": 1751889329463,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -975,7 +302,7 @@
       }
     },
     {
-      "timestamp": 1751689133746,
+      "timestamp": 1751889329466,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -983,7 +310,23 @@
       }
     },
     {
-      "timestamp": 1751689133747,
+      "timestamp": 1751889390007,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889390016,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889629474,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -991,7 +334,7 @@
       }
     },
     {
-      "timestamp": 1751689133754,
+      "timestamp": 1751889629479,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -999,7 +342,7 @@
       }
     },
     {
-      "timestamp": 1751689419530,
+      "timestamp": 1751889629481,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1007,7 +350,7 @@
       }
     },
     {
-      "timestamp": 1751689420115,
+      "timestamp": 1751889629486,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1015,7 +358,23 @@
       }
     },
     {
-      "timestamp": 1751689420122,
+      "timestamp": 1751889690027,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889690031,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889929488,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1023,7 +382,7 @@
       }
     },
     {
-      "timestamp": 1751689420123,
+      "timestamp": 1751889929493,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1031,7 +390,7 @@
       }
     },
     {
-      "timestamp": 1751689704382,
+      "timestamp": 1751889929496,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1039,7 +398,7 @@
       }
     },
     {
-      "timestamp": 1751689704791,
+      "timestamp": 1751889929500,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1047,7 +406,23 @@
       }
     },
     {
-      "timestamp": 1751689704791,
+      "timestamp": 1751889990045,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751889990048,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890229510,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1055,7 +430,7 @@
       }
     },
     {
-      "timestamp": 1751689704799,
+      "timestamp": 1751890229525,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1063,7 +438,7 @@
       }
     },
     {
-      "timestamp": 1751689990765,
+      "timestamp": 1751890229528,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1071,7 +446,7 @@
       }
     },
     {
-      "timestamp": 1751689991026,
+      "timestamp": 1751890229532,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1079,7 +454,23 @@
       }
     },
     {
-      "timestamp": 1751689991027,
+      "timestamp": 1751890290074,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890290083,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890529527,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1087,7 +478,7 @@
       }
     },
     {
-      "timestamp": 1751689991028,
+      "timestamp": 1751890529536,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1095,7 +486,7 @@
       }
     },
     {
-      "timestamp": 1751718595701,
+      "timestamp": 1751890529539,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1103,7 +494,7 @@
       }
     },
     {
-      "timestamp": 1751718596487,
+      "timestamp": 1751890529544,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1111,7 +502,23 @@
       }
     },
     {
-      "timestamp": 1751718596493,
+      "timestamp": 1751890590095,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890590104,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890829549,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -1119,10 +526,282 @@
       }
     },
     {
-      "timestamp": 1751718596498,
+      "timestamp": 1751890829558,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890829562,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890829566,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890890098,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751890890109,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891129547,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891129558,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891129562,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891129566,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891190120,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891190133,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891429589,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891429602,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891429605,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891429609,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891490148,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891490157,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891729604,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891729616,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891729619,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891729622,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891790190,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751891790197,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892029623,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892029632,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892029635,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892029640,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892090208,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892090215,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892329238,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892329250,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892329252,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892329255,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892389832,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
+        "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1751892389837,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "test-general",
         "relationsCount": 4
       }
     }

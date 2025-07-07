@@ -8,7 +8,9 @@
         "javascript.*function",
         "useState.*フック",
         "javascript.*コード",
-        "API.*使い方"
+        "API.*使い方",
+        "React.*教えて",
+        "useState.*教えて"
       ]
     },
     {
@@ -35,7 +37,10 @@
         "scikit-learn",
         "データ分析.*手法",
         "統計.*分析.*手法",
-        "機械学習.*アルゴリズム"
+        "機械学習.*アルゴリズム",
+        "JavaScript.*Python",
+        "JavaScript.*教えて",
+        "Python.*教えて"
       ]
     },
     {
@@ -220,9 +225,9 @@
     "learningThreshold": 3,
     "confidenceThreshold": 0.7,
     "maxPatternsPerCategory": 20,
-    "lastPatternUpdate": 1751803736404
+    "lastPatternUpdate": 1751856750652
   },
   "version": "1.0.0",
-  "lastUpdated": "2025-07-06T12:08:56.404Z",
+  "lastUpdated": "2025-07-07T02:52:30.652Z",
   "description": "技術パターン設定 - 動的学習対応型技術質問検出パターン"
 }

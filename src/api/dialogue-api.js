@@ -14,6 +14,7 @@ import { PersonalResponseAdapter } from '../systems/adapters/personal-response-a
 import { persistentLearningDB } from '../data/persistent-learning-db.js';
 import { dynamicTechnicalPatterns } from '../engines/response/dynamic-technical-patterns.js';
 import { dynamicResponseTemplateEngine } from '../engines/response/dynamic-response-template-engine.js';
+import { enhancedResponseGenerationEngineV2 } from '../engines/response/enhanced-response-generation-engine-v2.js';
 
 export class DialogueAPI {
     constructor() {
@@ -236,29 +237,36 @@ export class DialogueAPI {
         const intentType = dialogueResult.intentAnalysis?.primaryIntent?.type;
         console.log(`🎯 応答生成: 意図タイプ="${intentType}"`);
         
-        switch (intentType) {
-            case 'learning':
-            case 'learning_pivot':  // 複合意図にも対応
-                console.log(`🎓 学習応答生成: "${request.message}"`);
-                response = await this.generateLearningResponse(request.message, dialogueResult, userSession);
-                break;
-            case 'question':
-            case 'question_pivot':  // 複合意図にも対応
-                console.log(`❓ 質問応答生成: "${request.message}"`);
-                response = await this.generateQuestionResponse(request.message, dialogueResult, userSession);
-                break;
-            case 'request':
-            case 'request_pivot':   // 複合意図にも対応
-                console.log(`🔄 要求応答生成: "${request.message}"`);
-                response = await this.generateRequestResponse(request.message, dialogueResult, userSession);
-                break;
-            case 'affirmation':     // 感謝・肯定応答
-                console.log(`👏 肯定応答生成: "${request.message}"`);
-                response = await this.generateAffirmationResponse(request.message, dialogueResult, userSession);
-                break;
-            default:
-                console.log(`🔧 一般応答生成: "${request.message}"`);
-                response = await this.generateGeneralResponse(request.message, dialogueResult, userSession);
+        // 🚀 Enhanced ResponseGenerationEngine v2.0 統合判定
+        if (this.shouldUseEnhancedV2(dialogueResult, request)) {
+            console.log(`🚀 Enhanced v2.0応答生成: "${request.message}"`);
+            response = await this.generateEnhancedResponseV2(request.message, dialogueResult, userSession);
+        } else {
+            // 従来の意図ベース応答生成
+            switch (intentType) {
+                case 'learning':
+                case 'learning_pivot':  // 複合意図にも対応
+                    console.log(`🎓 学習応答生成: "${request.message}"`);
+                    response = await this.generateLearningResponse(request.message, dialogueResult, userSession);
+                    break;
+                case 'question':
+                case 'question_pivot':  // 複合意図にも対応
+                    console.log(`❓ 質問応答生成: "${request.message}"`);
+                    response = await this.generateQuestionResponse(request.message, dialogueResult, userSession);
+                    break;
+                case 'request':
+                case 'request_pivot':   // 複合意図にも対応
+                    console.log(`🔄 要求応答生成: "${request.message}"`);
+                    response = await this.generateRequestResponse(request.message, dialogueResult, userSession);
+                    break;
+                case 'affirmation':     // 感謝・肯定応答
+                    console.log(`👏 肯定応答生成: "${request.message}"`);
+                    response = await this.generateAffirmationResponse(request.message, dialogueResult, userSession);
+                    break;
+                default:
+                    console.log(`🔧 一般応答生成: "${request.message}"`);
+                    response = await this.generateGeneralResponse(request.message, dialogueResult, userSession);
+            }
         }
 
         // 個人特化適応（技術的応答の場合はスキップ）
@@ -1159,6 +1167,215 @@ export class DialogueAPI {
                 console.log(`🧹 非アクティブセッションクリーンアップ: ${userId}`);
                 this.activeUsers.delete(userId);
             }
+        }
+    }
+
+    /**
+     * Enhanced ResponseGenerationEngine v2.0 統合メソッド群
+     */
+    
+    /**
+     * Enhanced v2.0使用判定
+     */
+    shouldUseEnhancedV2(dialogueResult, request) {
+        // 🌟 汎用AI化: すべての質問をEnhanced v2.0で処理
+        // ハードコードキーワード判定を削除し、より柔軟な応答を実現
+        
+        const intentType = dialogueResult.intentAnalysis?.primaryIntent?.type;
+        
+        // 汎用的な意図タイプでEnhanced v2.0を使用
+        const generalIntents = ['learning', 'question', 'request', 'affirmation', 'help_request', 'general'];
+        const shouldUseForIntent = generalIntents.includes(intentType);
+        
+        // 技術偏重を避け、日常会話・感情応答も積極的に処理
+        const isConversational = request.message.length > 5; // 基本的な会話判定
+        
+        return shouldUseForIntent || isConversational;
+    }
+    
+    /**
+     * Enhanced v2.0統合応答生成
+     */
+    async generateEnhancedResponseV2(message, dialogueResult, userSession) {
+        try {
+            // Enhanced v2.0に渡すための統合分析データ構築
+            // originalMessageを確実に設定
+            if (!dialogueResult.originalMessage) {
+                dialogueResult.originalMessage = message;
+            }
+            
+            // Phase 2: コーパス学習用会話履歴を設定
+            this.currentConversationHistory = userSession?.conversationHistory || [];
+            
+            const analysisData = {
+                userInput: message,
+                generalAnalysis: this.extractGeneralAnalysis(dialogueResult),
+                emotionAnalysis: this.extractEmotionAnalysis(dialogueResult, userSession),
+                templateAnalysis: this.extractTemplateAnalysis(dialogueResult),
+                personalAnalysis: this.extractPersonalAnalysis(userSession),
+                conversationHistory: this.extractConversationHistory(userSession),
+                contextEnrichment: this.extractContextEnrichment(dialogueResult)
+            };
+            
+            // Enhanced ResponseGenerationEngine v2.0で応答生成
+            // analysisDataを第2引数として渡して統合分析を活用
+            const enhancedResult = await enhancedResponseGenerationEngineV2.generateUnifiedResponse(
+                message,
+                analysisData, // analysisDataを会話履歴の代わりに渡す
+                analysisData.personalAnalysis || {}
+            );
+            
+            // 結果からresponseテキストを抽出
+            const enhancedResponse = enhancedResult?.response || enhancedResult;
+            
+            if (enhancedResponse && typeof enhancedResponse === 'string' && enhancedResponse.length > 20) {
+                console.log(`✅ Enhanced v2.0応答生成成功: ${enhancedResponse.length}文字`);
+                return enhancedResponse;
+            } else {
+                console.warn(`⚠️ Enhanced v2.0応答生成失敗、従来システムにフォールバック`);
+                console.warn(`⚠️ 受信データ:`, typeof enhancedResult, enhancedResult?.response?.substring?.(0, 100));
+                return await this.generateFallbackResponse(message, dialogueResult, userSession);
+            }
+            
+        } catch (error) {
+            console.error('❌ Enhanced v2.0応答生成エラー:', error);
+            return await this.generateFallbackResponse(message, dialogueResult, userSession);
+        }
+    }
+    
+    /**
+     * 分析データ抽出ヘルパーメソッド群
+     */
+    extractGeneralAnalysis(dialogueResult) {
+        // 汎用的な分析結果を抽出（技術偏重を削除）
+        const intentAnalysis = dialogueResult.intentAnalysis;
+        return {
+            category: this.detectGeneralCategory(dialogueResult),
+            confidence: intentAnalysis?.primaryIntent?.confidence || 0.5,
+            patterns: dialogueResult.patterns || [],
+            conversationType: this.detectConversationType(dialogueResult),
+            // Phase 2: コーパス学習用会話履歴
+            conversationHistory: this.currentConversationHistory || []
+        };
+    }
+    
+    extractEmotionAnalysis(dialogueResult, userSession) {
+        // 感情分析結果を抽出
+        return {
+            dominantEmotion: dialogueResult.emotionAnalysis?.dominantEmotion || 'neutral',
+            emotionScore: dialogueResult.emotionAnalysis?.emotionScore || 0.5,
+            emotionHistory: userSession.emotionHistory || []
+        };
+    }
+    
+    extractTemplateAnalysis(dialogueResult) {
+        // テンプレート分析結果を抽出
+        return {
+            type: this.detectTemplateType(dialogueResult),
+            confidence: 0.5,
+            pattern: dialogueResult.templatePattern || null
+        };
+    }
+    
+    extractPersonalAnalysis(userSession) {
+        // 個人特化分析結果を抽出
+        if (userSession.personalAnalyzer) {
+            return userSession.personalAnalyzer.getPersonalProfile();
+        }
+        return null;
+    }
+    
+    extractConversationHistory(userSession) {
+        // 会話履歴を抽出
+        return userSession.conversationHistory || [];
+    }
+    
+    extractContextEnrichment(dialogueResult) {
+        // 文脈強化データを抽出
+        return {
+            overallContextScore: 0.5,
+            confidence: 0.7,
+            contextFactors: []
+        };
+    }
+    
+    /**
+     * ヘルパーメソッド群
+     */
+    detectGeneralCategory(dialogueResult) {
+        const intentType = dialogueResult.intentAnalysis?.primaryIntent?.type;
+        const message = dialogueResult.originalMessage || '';
+        
+        console.log(`🔍 カテゴリ検出開始: message="${message}", intentType="${intentType}"`);
+        
+        // 🌟 感情・日常会話を優先的に分類
+        if (message.includes('ありがとう') || message.includes('感謝') || message.includes('助かり')) {
+            console.log(`💝 感謝カテゴリ検出: "${message}"`);
+            return 'gratitude';
+        }
+        if (message.includes('困って') || message.includes('落ち込') || message.includes('不安') || message.includes('つらい')) {
+            return 'emotional_support';
+        }
+        if (message.includes('おはよう') || message.includes('こんに') || message.includes('はじめまして')) {
+            return 'greeting';
+        }
+        if (message.includes('学習') || message.includes('勉強') || message.includes('教えて') || message.includes('覚え')) {
+            return 'learning_support';
+        }
+        if (message.includes('比較') || message.includes('違い') || message.includes('どちら')) {
+            return 'comparison_request';
+        }
+        if (message.includes('やり方') || message.includes('方法') || message.includes('どう')) {
+            return 'how_to_request';
+        }
+        
+        // 技術的内容は最後の選択肢
+        if (message.includes('Python') || message.includes('JavaScript') || message.includes('React') || 
+            message.includes('データサイエンス') || message.includes('プログラミング')) {
+            console.log(`🔧 技術カテゴリ検出: "${message}"`);
+            return 'technical_inquiry';
+        }
+        
+        console.log(`💬 汎用会話カテゴリ: "${message}"`);
+        return 'general_conversation';
+    }
+    
+    detectConversationType(dialogueResult) {
+        const message = dialogueResult.originalMessage || '';
+        
+        if (message.includes('？') || message.includes('?')) {
+            return 'question';
+        }
+        if (message.includes('！') || message.includes('!')) {
+            return 'exclamation';
+        }
+        if (message.length < 20) {
+            return 'short_message';
+        }
+        return 'statement';
+    }
+    
+    detectTemplateType(dialogueResult) {
+        const message = dialogueResult.originalMessage || '';
+        
+        if (message.includes('比較')) return 'comparison';
+        if (message.includes('教えて') || message.includes('について')) return 'explanation';
+        if (message.includes('やり方') || message.includes('方法')) return 'howto';
+        
+        return 'explanation';
+    }
+    
+    async generateFallbackResponse(message, dialogueResult, userSession) {
+        // Enhanced v2.0失敗時の従来システムフォールバック
+        const intentType = dialogueResult.intentAnalysis?.primaryIntent?.type || 'general';
+        
+        switch (intentType) {
+            case 'learning':
+                return await this.generateLearningResponse(message, dialogueResult, userSession);
+            case 'question':
+                return await this.generateQuestionResponse(message, dialogueResult, userSession);
+            default:
+                return await this.generateGeneralResponse(message, dialogueResult, userSession);
         }
     }
 }

@@ -869,7 +869,127 @@
     "userRelations": {
       "userRelations": {
         "userRelations": {
-          "userRelations": {},
+          "userRelations": {
+            "userRelations": {
+              "userRelations": {
+                "userRelations": {
+                  "userRelations": {
+                    "userRelations": {
+                      "userRelations": {
+                        "userRelations": {
+                          "userRelations": {},
+                          "coOccurrenceData": {},
+                          "learningConfig": {
+                            "minCoOccurrence": 2,
+                            "strengthThreshold": 0.3,
+                            "maxRelationsPerTerm": 10,
+                            "decayFactor": 0.95,
+                            "learningRate": 0.1,
+                            "forgettingThreshold": 0.1,
+                            "maxMemorySize": 1000,
+                            "batchSaveInterval": 5,
+                            "qualityThreshold": 0.6
+                          },
+                          "lastSaved": 1751687832899
+                        },
+                        "coOccurrenceData": {},
+                        "learningConfig": {
+                          "minCoOccurrence": 2,
+                          "strengthThreshold": 0.3,
+                          "maxRelationsPerTerm": 10,
+                          "decayFactor": 0.95,
+                          "learningRate": 0.1,
+                          "forgettingThreshold": 0.1,
+                          "maxMemorySize": 1000,
+                          "batchSaveInterval": 5,
+                          "qualityThreshold": 0.6
+                        },
+                        "lastSaved": 1751688638509
+                      },
+                      "coOccurrenceData": {},
+                      "learningConfig": {
+                        "minCoOccurrence": 2,
+                        "strengthThreshold": 0.3,
+                        "maxRelationsPerTerm": 10,
+                        "decayFactor": 0.95,
+                        "learningRate": 0.1,
+                        "forgettingThreshold": 0.1,
+                        "maxMemorySize": 1000,
+                        "batchSaveInterval": 5,
+                        "qualityThreshold": 0.6
+                      },
+                      "lastSaved": 1751689991027
+                    },
+                    "coOccurrenceData": {},
+                    "learningConfig": {
+                      "minCoOccurrence": 2,
+                      "strengthThreshold": 0.3,
+                      "maxRelationsPerTerm": 10,
+                      "decayFactor": 0.95,
+                      "learningRate": 0.1,
+                      "forgettingThreshold": 0.1,
+                      "maxMemorySize": 1000,
+                      "batchSaveInterval": 5,
+                      "qualityThreshold": 0.6
+                    },
+                    "lastSaved": 1751720954964
+                  },
+                  "coOccurrenceData": {},
+                  "learningConfig": {
+                    "minCoOccurrence": 2,
+                    "strengthThreshold": 0.3,
+                    "maxRelationsPerTerm": 10,
+                    "decayFactor": 0.95,
+                    "learningRate": 0.1,
+                    "forgettingThreshold": 0.1,
+                    "maxMemorySize": 1000,
+                    "batchSaveInterval": 5,
+                    "qualityThreshold": 0.6
+                  },
+                  "lastSaved": 1751755737716
+                },
+                "coOccurrenceData": {},
+                "learningConfig": {
+                  "minCoOccurrence": 2,
+                  "strengthThreshold": 0.3,
+                  "maxRelationsPerTerm": 10,
+                  "decayFactor": 0.95,
+                  "learningRate": 0.1,
+                  "forgettingThreshold": 0.1,
+                  "maxMemorySize": 1000,
+                  "batchSaveInterval": 5,
+                  "qualityThreshold": 0.6
+                },
+                "lastSaved": 1751756062155
+              },
+              "coOccurrenceData": {},
+              "learningConfig": {
+                "minCoOccurrence": 2,
+                "strengthThreshold": 0.3,
+                "maxRelationsPerTerm": 10,
+                "decayFactor": 0.95,
+                "learningRate": 0.1,
+                "forgettingThreshold": 0.1,
+                "maxMemorySize": 1000,
+                "batchSaveInterval": 5,
+                "qualityThreshold": 0.6
+              },
+              "lastSaved": 1751785546822
+            },
+            "coOccurrenceData": {},
+            "learningConfig": {
+              "minCoOccurrence": 2,
+              "strengthThreshold": 0.3,
+              "maxRelationsPerTerm": 10,
+              "decayFactor": 0.95,
+              "learningRate": 0.1,
+              "forgettingThreshold": 0.1,
+              "maxMemorySize": 1000,
+              "batchSaveInterval": 5,
+              "qualityThreshold": 0.6
+            },
+            "lastSaved": 1751786159579
+          },
           "coOccurrenceData": {},
           "learningConfig": {
             "minCoOccurrence": 2,
@@ -882,7 +1002,7 @@
             "batchSaveInterval": 5,
             "qualityThreshold": 0.6
           },
-          "lastSaved": 1751687832899
+          "lastSaved": 1751788124065
         },
         "coOccurrenceData": {},
         "learningConfig": {
@@ -896,7 +1016,7 @@
           "batchSaveInterval": 5,
           "qualityThreshold": 0.6
         },
-        "lastSaved": 1751688638509
+        "lastSaved": 1751806362773
       },
       "coOccurrenceData": {},
       "learningConfig": {
@@ -910,7 +1030,7 @@
         "batchSaveInterval": 5,
         "qualityThreshold": 0.6
       },
-      "lastSaved": 1751689991027
+      "lastSaved": 1751809245282
     },
     "coOccurrenceData": {},
     "learningConfig": {
@@ -924,6 +1044,7311 @@
       "batchSaveInterval": 5,
       "qualityThreshold": 0.6
     },
-    "lastSaved": 1751718596493
+    "lastSaved": 1751892329252
+  },
+  "user_anonymous": {
+    "userRelations": {
+      "userRelations": {
+        "userRelations": {
+          "構造的対話": [
+            {
+              "term": "学習",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "技術分野",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "以下",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "基本概念",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "理解",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "実践的",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "演習",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "応用事例",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            },
+            {
+              "term": "確認",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751754882208,
+              "lastUpdated": 1751754882208
+            }
+          ]
+        },
+        "coOccurrenceData": {
+          "学習|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "学習",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "技術分野|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "技術分野",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "以下|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "以下",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "基本概念|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "基本概念",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "構造的対話|理解": {
+            "term1": "構造的対話",
+            "term2": "理解",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "実践的|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "実践的",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "構造的対話|演習": {
+            "term1": "構造的対話",
+            "term2": "演習",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "応用事例|構造的対話": {
+            "term1": "構造的対話",
+            "term2": "応用事例",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "構造的対話|確認": {
+            "term1": "構造的対話",
+            "term2": "確認",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          }
+        },
+        "learningConfig": {
+          "minCoOccurrence": 2,
+          "strengthThreshold": 0.3,
+          "maxRelationsPerTerm": 10,
+          "decayFactor": 0.95,
+          "learningRate": 0.1,
+          "forgettingThreshold": 0.1,
+          "maxMemorySize": 1000,
+          "batchSaveInterval": 5,
+          "qualityThreshold": 0.6
+        },
+        "lastSaved": 1751755756475,
+        "比較": [
+          {
+            "term": "特徴",
+            "strength": 0.7595000000000001,
+            "count": 1,
+            "firstSeen": 1751787855932,
+            "lastUpdated": 1751788056556
+          },
+          {
+            "term": "選択指針",
+            "strength": 0.7595000000000001,
+            "count": 1,
+            "firstSeen": 1751787855932,
+            "lastUpdated": 1751788056556
+          }
+        ]
+      },
+      "coOccurrenceData": {
+        "比較|特徴": {
+          "term1": "比較",
+          "term2": "特徴",
+          "count": 5,
+          "strength": 0,
+          "contexts": []
+        },
+        "比較|選択指針": {
+          "term1": "比較",
+          "term2": "選択指針",
+          "count": 5,
+          "strength": 0,
+          "contexts": []
+        }
+      },
+      "learningConfig": {
+        "minCoOccurrence": 2,
+        "strengthThreshold": 0.3,
+        "maxRelationsPerTerm": 10,
+        "decayFactor": 0.95,
+        "learningRate": 0.1,
+        "forgettingThreshold": 0.1,
+        "maxMemorySize": 1000,
+        "batchSaveInterval": 5,
+        "qualityThreshold": 0.6
+      },
+      "lastSaved": 1751788142791
+    },
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751806174071
+  },
+  "user_webui-user": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755553618
+  },
+  "user_test-user-1": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        }
+      ],
+      "非同期処理": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755324320,
+          "lastUpdated": 1751755333663
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|実装": {
+        "term1": "javascript",
+        "term2": "実装",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|説明": {
+        "term1": "javascript",
+        "term2": "説明",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|考慮": {
+        "term1": "javascript",
+        "term2": "考慮",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|要素": {
+        "term1": "javascript",
+        "term2": "要素",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|具体的": {
+        "term1": "javascript",
+        "term2": "具体的",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|実装方法": {
+        "term1": "javascript",
+        "term2": "実装方法",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|検討": {
+        "term1": "javascript",
+        "term2": "検討",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|料理": {
+        "term1": "javascript",
+        "term2": "料理",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "説明",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "考慮|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "考慮",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "要素|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "要素",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "具体的",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装方法|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装方法",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "検討",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "料理",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755615116
+  },
+  "user_test-user-2": {
+    "userRelations": {
+      "参考": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "学習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "内容",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755345021,
+          "lastUpdated": 1751755345021
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "参考|実装": {
+        "term1": "参考",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|学習": {
+        "term1": "参考",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|質問": {
+        "term1": "参考",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "内容|参考": {
+        "term1": "参考",
+        "term2": "内容",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|説明": {
+        "term1": "参考",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|考慮": {
+        "term1": "参考",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|要素": {
+        "term1": "参考",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|参考": {
+        "term1": "参考",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|実装方法": {
+        "term1": "参考",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "参考|検討": {
+        "term1": "参考",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755636712
+  },
+  "user_test-user-3": {
+    "userRelations": {
+      "発生": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "考慮",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "要素",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "検討",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        },
+        {
+          "term": "料理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755356503,
+          "lastUpdated": 1751755356503
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "実装|発生": {
+        "term1": "発生",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "発生|質問": {
+        "term1": "発生",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "発生|説明": {
+        "term1": "発生",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "発生|考慮": {
+        "term1": "発生",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "発生|要素": {
+        "term1": "発生",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|発生": {
+        "term1": "発生",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装方法|発生": {
+        "term1": "発生",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|発生": {
+        "term1": "発生",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|発生": {
+        "term1": "発生",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755647244
+  },
+  "user_test-user-4": {
+    "userRelations": {
+      "一緒": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "考慮",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "要素",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "検討",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        },
+        {
+          "term": "料理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751755371098,
+          "lastUpdated": 1751755371098
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "一緒|実装": {
+        "term1": "一緒",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|質問": {
+        "term1": "一緒",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|説明": {
+        "term1": "一緒",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|考慮": {
+        "term1": "一緒",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|要素": {
+        "term1": "一緒",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|具体的": {
+        "term1": "一緒",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|実装方法": {
+        "term1": "一緒",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|検討": {
+        "term1": "一緒",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "一緒|料理": {
+        "term1": "一緒",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755662763
+  },
+  "user_test-user-5": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755691691
+  },
+  "user_test-improved": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        }
+      ],
+      "ai": [
+        {
+          "term": "実装",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        }
+      ],
+      "非同期処理": [
+        {
+          "term": "実装",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "実装方法",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751755746550,
+          "lastUpdated": 1751755746550
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|実装": {
+        "term1": "javascript",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|説明": {
+        "term1": "javascript",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|考慮": {
+        "term1": "javascript",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|要素": {
+        "term1": "javascript",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|具体的": {
+        "term1": "javascript",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|実装方法": {
+        "term1": "javascript",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|検討": {
+        "term1": "javascript",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|料理": {
+        "term1": "javascript",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|実装": {
+        "term1": "ai",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|説明": {
+        "term1": "ai",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|考慮": {
+        "term1": "ai",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|要素": {
+        "term1": "ai",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|具体的": {
+        "term1": "ai",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|実装方法": {
+        "term1": "ai",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|検討": {
+        "term1": "ai",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|料理": {
+        "term1": "ai",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "考慮|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "要素|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装方法|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755746550
+  },
+  "user_test-new": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751756201280
+  },
+  "user_test-gratitude": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751755923415
+  },
+  "user_test-user": {
+    "userRelations": {
+      "userRelations": {
+        "userRelations": {
+          "userRelations": {
+            "javascript": [
+              {
+                "term": "詳細",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "説明",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "分野",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "重要",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "考慮点",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "基本練習",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "順序立",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "料理",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769478143,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "手順",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769478143,
+                "lastUpdated": 1751769478143
+              }
+            ],
+            "ai": [
+              {
+                "term": "詳細",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "説明",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "分野",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "重要",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "考慮点",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "基本練習",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "順序立",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769439239,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "料理",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769478143,
+                "lastUpdated": 1751769478143
+              },
+              {
+                "term": "手順",
+                "strength": 0.5,
+                "count": 1,
+                "firstSeen": 1751769478143,
+                "lastUpdated": 1751769478143
+              }
+            ]
+          },
+          "coOccurrenceData": {
+            "javascript|詳細": {
+              "term1": "javascript",
+              "term2": "詳細",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|説明": {
+              "term1": "javascript",
+              "term2": "説明",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|分野": {
+              "term1": "javascript",
+              "term2": "分野",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|重要": {
+              "term1": "javascript",
+              "term2": "重要",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|考慮点": {
+              "term1": "javascript",
+              "term2": "考慮点",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|基本練習": {
+              "term1": "javascript",
+              "term2": "基本練習",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|順序立": {
+              "term1": "javascript",
+              "term2": "順序立",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|詳細": {
+              "term1": "ai",
+              "term2": "詳細",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|説明": {
+              "term1": "ai",
+              "term2": "説明",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|分野": {
+              "term1": "ai",
+              "term2": "分野",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|重要": {
+              "term1": "ai",
+              "term2": "重要",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|考慮点": {
+              "term1": "ai",
+              "term2": "考慮点",
+              "count": 2,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|基本練習": {
+              "term1": "ai",
+              "term2": "基本練習",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|順序立": {
+              "term1": "ai",
+              "term2": "順序立",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|料理": {
+              "term1": "javascript",
+              "term2": "料理",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "javascript|手順": {
+              "term1": "javascript",
+              "term2": "手順",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|料理": {
+              "term1": "ai",
+              "term2": "料理",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            },
+            "ai|手順": {
+              "term1": "ai",
+              "term2": "手順",
+              "count": 1,
+              "strength": 0,
+              "contexts": []
+            }
+          },
+          "learningConfig": {
+            "minCoOccurrence": 2,
+            "strengthThreshold": 0.3,
+            "maxRelationsPerTerm": 10,
+            "decayFactor": 0.95,
+            "learningRate": 0.1,
+            "forgettingThreshold": 0.1,
+            "maxMemorySize": 1000,
+            "batchSaveInterval": 5,
+            "qualityThreshold": 0.6
+          },
+          "lastSaved": 1751769478143,
+          "比較": [
+            {
+              "term": "開発",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651355,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "ai",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651355,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "機械学習",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "学習",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "説明",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "特徴",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "汎用性",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "幅広",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "使用",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785651356,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "承知",
+              "strength": 0.5,
+              "count": 1,
+              "firstSeen": 1751785504476,
+              "lastUpdated": 1751785531171
+            }
+          ],
+          "最適化": [
+            {
+              "term": "ai",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "複雑",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "最適化方法",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "説明",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "基本最適化",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "適切",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "作成",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "条件",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "順序最適化",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            }
+          ],
+          "方法": [
+            {
+              "term": "ai",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "複雑",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "最適化方法",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "説明",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "基本最適化",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "適切",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "作成",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "条件",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "順序最適化",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            },
+            {
+              "term": "最適化",
+              "strength": 0.8,
+              "count": 1,
+              "firstSeen": 1751785752083,
+              "lastUpdated": 1751785802502
+            }
+          ]
+        },
+        "coOccurrenceData": {
+          "比較|開発": {
+            "term1": "比較",
+            "term2": "開発",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "ai|比較": {
+            "term1": "比較",
+            "term2": "ai",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "機械学習|比較": {
+            "term1": "比較",
+            "term2": "機械学習",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "学習|比較": {
+            "term1": "比較",
+            "term2": "学習",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "比較|説明": {
+            "term1": "比較",
+            "term2": "説明",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "比較|特徴": {
+            "term1": "比較",
+            "term2": "特徴",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "比較|汎用性": {
+            "term1": "比較",
+            "term2": "汎用性",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "幅広|比較": {
+            "term1": "比較",
+            "term2": "幅広",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "使用|比較": {
+            "term1": "比較",
+            "term2": "使用",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "ai|最適化": {
+            "term1": "最適化",
+            "term2": "ai",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|複雑": {
+            "term1": "最適化",
+            "term2": "複雑",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|最適化方法": {
+            "term1": "最適化",
+            "term2": "最適化方法",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|説明": {
+            "term1": "最適化",
+            "term2": "説明",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "基本最適化|最適化": {
+            "term1": "最適化",
+            "term2": "基本最適化",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|適切": {
+            "term1": "最適化",
+            "term2": "適切",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "作成|最適化": {
+            "term1": "最適化",
+            "term2": "作成",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|条件": {
+            "term1": "最適化",
+            "term2": "条件",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "最適化|順序最適化": {
+            "term1": "最適化",
+            "term2": "順序最適化",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "ai|方法": {
+            "term1": "方法",
+            "term2": "ai",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|複雑": {
+            "term1": "方法",
+            "term2": "複雑",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|最適化方法": {
+            "term1": "方法",
+            "term2": "最適化方法",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|説明": {
+            "term1": "方法",
+            "term2": "説明",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "基本最適化|方法": {
+            "term1": "方法",
+            "term2": "基本最適化",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|適切": {
+            "term1": "方法",
+            "term2": "適切",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "作成|方法": {
+            "term1": "方法",
+            "term2": "作成",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|条件": {
+            "term1": "方法",
+            "term2": "条件",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|順序最適化": {
+            "term1": "方法",
+            "term2": "順序最適化",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          },
+          "方法|最適化": {
+            "term1": "方法",
+            "term2": "最適化",
+            "count": 1,
+            "strength": 0,
+            "contexts": []
+          }
+        },
+        "learningConfig": {
+          "minCoOccurrence": 2,
+          "strengthThreshold": 0.3,
+          "maxRelationsPerTerm": 10,
+          "decayFactor": 0.95,
+          "learningRate": 0.1,
+          "forgettingThreshold": 0.1,
+          "maxMemorySize": 1000,
+          "batchSaveInterval": 5,
+          "qualityThreshold": 0.6
+        },
+        "lastSaved": 1751786226584,
+        "比較": [
+          {
+            "term": "特徴",
+            "strength": 0.8,
+            "count": 1,
+            "firstSeen": 1751786620443,
+            "lastUpdated": 1751786929920
+          },
+          {
+            "term": "選択指針",
+            "strength": 0.8,
+            "count": 1,
+            "firstSeen": 1751786620443,
+            "lastUpdated": 1751786929920
+          }
+        ]
+      },
+      "coOccurrenceData": {
+        "比較|特徴": {
+          "term1": "比較",
+          "term2": "特徴",
+          "count": 3,
+          "strength": 0,
+          "contexts": []
+        },
+        "比較|選択指針": {
+          "term1": "比較",
+          "term2": "選択指針",
+          "count": 3,
+          "strength": 0,
+          "contexts": []
+        }
+      },
+      "learningConfig": {
+        "minCoOccurrence": 2,
+        "strengthThreshold": 0.3,
+        "maxRelationsPerTerm": 10,
+        "decayFactor": 0.95,
+        "learningRate": 0.1,
+        "forgettingThreshold": 0.1,
+        "maxMemorySize": 1000,
+        "batchSaveInterval": 5,
+        "qualityThreshold": 0.6
+      },
+      "lastSaved": 1751788059999,
+      "比較": [
+        {
+          "term": "開発",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "ai",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "機械学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "特徴",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "汎用性",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "幅広",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "使用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        },
+        {
+          "term": "豊富",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751803721836,
+          "lastUpdated": 1751803736405
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "比較|開発": {
+        "term1": "比較",
+        "term2": "開発",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|比較": {
+        "term1": "比較",
+        "term2": "ai",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "機械学習|比較": {
+        "term1": "比較",
+        "term2": "機械学習",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|比較": {
+        "term1": "比較",
+        "term2": "学習",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|特徴": {
+        "term1": "比較",
+        "term2": "特徴",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|汎用性": {
+        "term1": "比較",
+        "term2": "汎用性",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "幅広|比較": {
+        "term1": "比較",
+        "term2": "幅広",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "使用|比較": {
+        "term1": "比較",
+        "term2": "使用",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|豊富": {
+        "term1": "比較",
+        "term2": "豊富",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751806197493
+  },
+  "user_test-tech": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751769932415
+  },
+  "user_test-final": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "ai",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "実装",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "定義",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "非同期処理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "結果",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "表現",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "状態",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        }
+      ],
+      "ai": [
+        {
+          "term": "javascript",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "実装",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "定義",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "非同期処理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "結果",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "表現",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        },
+        {
+          "term": "状態",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770103274,
+          "lastUpdated": 1751770103274
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "ai|javascript": {
+        "term1": "javascript",
+        "term2": "ai",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|実装": {
+        "term1": "javascript",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|説明": {
+        "term1": "javascript",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|基本的": {
+        "term1": "javascript",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|定義": {
+        "term1": "javascript",
+        "term2": "定義",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|非同期処理": {
+        "term1": "javascript",
+        "term2": "非同期処理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|結果": {
+        "term1": "javascript",
+        "term2": "結果",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|表現": {
+        "term1": "javascript",
+        "term2": "表現",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|状態": {
+        "term1": "javascript",
+        "term2": "状態",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|実装": {
+        "term1": "ai",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|説明": {
+        "term1": "ai",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|基本的": {
+        "term1": "ai",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|定義": {
+        "term1": "ai",
+        "term2": "定義",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|非同期処理": {
+        "term1": "ai",
+        "term2": "非同期処理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|結果": {
+        "term1": "ai",
+        "term2": "結果",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|表現": {
+        "term1": "ai",
+        "term2": "表現",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|状態": {
+        "term1": "ai",
+        "term2": "状態",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751770103274
+  },
+  "user_test-gratitude-final": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785274187
+  },
+  "user_test-comprehensive": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "ai",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "実装",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "定義",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "非同期処理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "結果",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "表現",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "状態",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        }
+      ],
+      "ai": [
+        {
+          "term": "javascript",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "実装",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "定義",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "非同期処理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "結果",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "表現",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        },
+        {
+          "term": "状態",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770329167,
+          "lastUpdated": 1751770329167
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "ai|javascript": {
+        "term1": "javascript",
+        "term2": "ai",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|実装": {
+        "term1": "javascript",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|説明": {
+        "term1": "javascript",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|基本的": {
+        "term1": "javascript",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|定義": {
+        "term1": "javascript",
+        "term2": "定義",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|非同期処理": {
+        "term1": "javascript",
+        "term2": "非同期処理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|結果": {
+        "term1": "javascript",
+        "term2": "結果",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|表現": {
+        "term1": "javascript",
+        "term2": "表現",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|状態": {
+        "term1": "javascript",
+        "term2": "状態",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|実装": {
+        "term1": "ai",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|説明": {
+        "term1": "ai",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|基本的": {
+        "term1": "ai",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|定義": {
+        "term1": "ai",
+        "term2": "定義",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|非同期処理": {
+        "term1": "ai",
+        "term2": "非同期処理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|結果": {
+        "term1": "ai",
+        "term2": "結果",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|表現": {
+        "term1": "ai",
+        "term2": "表現",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "ai|状態": {
+        "term1": "ai",
+        "term2": "状態",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785355932
+  },
+  "user_test-react": {
+    "userRelations": {
+      "react": [
+        {
+          "term": "javascript",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "関数",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "状態管理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "使用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "現在",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        },
+        {
+          "term": "重要",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770700721,
+          "lastUpdated": 1751770700721
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|react": {
+        "term1": "react",
+        "term2": "javascript",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|学習": {
+        "term1": "react",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|基本的": {
+        "term1": "react",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|関数": {
+        "term1": "react",
+        "term2": "関数",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|状態管理": {
+        "term1": "react",
+        "term2": "状態管理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|使用": {
+        "term1": "react",
+        "term2": "使用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|現在": {
+        "term1": "react",
+        "term2": "現在",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|重要": {
+        "term1": "react",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785436398
+  },
+  "user_test-ml": {
+    "userRelations": {
+      "機械学習": [
+        {
+          "term": "学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "技術分野",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "以下",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "基本概念",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "理解",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "実践的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "演習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "応用事例",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        },
+        {
+          "term": "確認",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770747211,
+          "lastUpdated": 1751770747211
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "学習|機械学習": {
+        "term1": "機械学習",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "技術分野|機械学習": {
+        "term1": "機械学習",
+        "term2": "技術分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "以下|機械学習": {
+        "term1": "機械学習",
+        "term2": "以下",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本概念|機械学習": {
+        "term1": "機械学習",
+        "term2": "基本概念",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "機械学習|理解": {
+        "term1": "機械学習",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実践的|機械学習": {
+        "term1": "機械学習",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "機械学習|演習": {
+        "term1": "機械学習",
+        "term2": "演習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用事例|機械学習": {
+        "term1": "機械学習",
+        "term2": "応用事例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "機械学習|確認": {
+        "term1": "機械学習",
+        "term2": "確認",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785482415
+  },
+  "user_test-request": {
+    "userRelations": {
+      "react": [
+        {
+          "term": "手伝",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "気軽",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "詳細",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "分野",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "重要",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "考慮点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        },
+        {
+          "term": "手順",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770764298,
+          "lastUpdated": 1751770764298
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "react|手伝": {
+        "term1": "react",
+        "term2": "手伝",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|気軽": {
+        "term1": "react",
+        "term2": "気軽",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|詳細": {
+        "term1": "react",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|分野": {
+        "term1": "react",
+        "term2": "分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|重要": {
+        "term1": "react",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|考慮点": {
+        "term1": "react",
+        "term2": "考慮点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|料理": {
+        "term1": "react",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|手順": {
+        "term1": "react",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785498847
+  },
+  "user_test-gratitude2": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785512721
+  },
+  "user_test-complex": {
+    "userRelations": {
+      "非同期処理": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "技術的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "観点",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "実装例",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        },
+        {
+          "term": "使用方法",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751770863303,
+          "lastUpdated": 1751770863303
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "実装|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "技術的|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "技術的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "観点|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "観点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装例|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "実装例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "使用方法|非同期処理": {
+        "term1": "非同期処理",
+        "term2": "使用方法",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785308703
+  },
+  "user_test-casual": {
+    "userRelations": {
+      "今日": [
+        {
+          "term": "実践的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "観点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "地図",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "目的地",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        }
+      ],
+      "天気": [
+        {
+          "term": "実践的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "観点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "地図",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "目的地",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751770890599,
+          "lastUpdated": 1751770890599
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "今日|実践的": {
+        "term1": "今日",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|観点": {
+        "term1": "今日",
+        "term2": "観点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|検討": {
+        "term1": "今日",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|要素": {
+        "term1": "今日",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|地図": {
+        "term1": "今日",
+        "term2": "地図",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|目的地": {
+        "term1": "今日",
+        "term2": "目的地",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今日|段階的": {
+        "term1": "今日",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|実践的": {
+        "term1": "天気",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|観点": {
+        "term1": "天気",
+        "term2": "観点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|検討": {
+        "term1": "天気",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|要素": {
+        "term1": "天気",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "地図|天気": {
+        "term1": "天気",
+        "term2": "地図",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|目的地": {
+        "term1": "天気",
+        "term2": "目的地",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "天気|段階的": {
+        "term1": "天気",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785336160
+  },
+  "user_test-datascience": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "効果的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "順序立",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771110900,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "詳細",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772211234,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772211234,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "分野",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772211234,
+          "lastUpdated": 1751772211234
+        },
+        {
+          "term": "重要",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772211234,
+          "lastUpdated": 1751772211234
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|比較": {
+        "term1": "比較",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "段階的|比較": {
+        "term1": "比較",
+        "term2": "段階的",
+        "count": 2,
+        "strength": 0,
+        "contexts": []
+      },
+      "効果的|比較": {
+        "term1": "比較",
+        "term2": "効果的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本練習|比較": {
+        "term1": "比較",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|順序立": {
+        "term1": "比較",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|詳細": {
+        "term1": "比較",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|説明": {
+        "term1": "比較",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "分野|比較": {
+        "term1": "比較",
+        "term2": "分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|重要": {
+        "term1": "比較",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|考慮点": {
+        "term1": "比較",
+        "term2": "考慮点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "地図|比較": {
+        "term1": "比較",
+        "term2": "地図",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|目的地": {
+        "term1": "比較",
+        "term2": "目的地",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785554036
+  },
+  "user_test-invitation": {
+    "userRelations": {
+      "今度": [
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "段階的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "効果的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "目次",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "構造的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        }
+      ],
+      "週末": [
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "今度",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "効果的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "目次",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "構造的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        }
+      ],
+      "映画": [
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "今度",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "効果的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "目次",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        },
+        {
+          "term": "構造的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771126879,
+          "lastUpdated": 1751771126879
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "今度|質問": {
+        "term1": "今度",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|説明": {
+        "term1": "今度",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|具体的": {
+        "term1": "今度",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|段階的": {
+        "term1": "今度",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|効果的": {
+        "term1": "今度",
+        "term2": "効果的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|目次": {
+        "term1": "今度",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|構造的": {
+        "term1": "今度",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "質問|週末": {
+        "term1": "週末",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|週末": {
+        "term1": "週末",
+        "term2": "今度",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|週末": {
+        "term1": "週末",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|週末": {
+        "term1": "週末",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "段階的|週末": {
+        "term1": "週末",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "効果的|週末": {
+        "term1": "週末",
+        "term2": "効果的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "目次|週末": {
+        "term1": "週末",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "構造的|週末": {
+        "term1": "週末",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "映画|質問": {
+        "term1": "映画",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "今度|映画": {
+        "term1": "映画",
+        "term2": "今度",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "映画|説明": {
+        "term1": "映画",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|映画": {
+        "term1": "映画",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "映画|段階的": {
+        "term1": "映画",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "効果的|映画": {
+        "term1": "映画",
+        "term2": "効果的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "映画|目次": {
+        "term1": "映画",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "映画|構造的": {
+        "term1": "映画",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785283378
+  },
+  "user_test-troubleshoot": {
+    "userRelations": {
+      "画面": [
+        {
+          "term": "手伝",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "気軽",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "包括的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "関連",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        },
+        {
+          "term": "順序立",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771136377,
+          "lastUpdated": 1751771136377
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "手伝|画面": {
+        "term1": "画面",
+        "term2": "手伝",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "気軽|画面": {
+        "term1": "画面",
+        "term2": "気軽",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "包括的|画面": {
+        "term1": "画面",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "理解|画面": {
+        "term1": "画面",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|関連": {
+        "term1": "画面",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|要素": {
+        "term1": "画面",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|考慮": {
+        "term1": "画面",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本練習|画面": {
+        "term1": "画面",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|順序立": {
+        "term1": "画面",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785292113
+  },
+  "user_test-database": {
+    "userRelations": {
+      "複雑": [
+        {
+          "term": "学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155763,
+          "lastUpdated": 1751771155763
+        },
+        {
+          "term": "技術分野",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "以下",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "基本概念",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "理解",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "実践的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "演習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "応用事例",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "確認",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        }
+      ],
+      "最適化方法": [
+        {
+          "term": "学習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "複雑",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "技術分野",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "以下",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "基本概念",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "実践的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "演習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "応用事例",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        },
+        {
+          "term": "確認",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771155764,
+          "lastUpdated": 1751771155764
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "学習|複雑": {
+        "term1": "複雑",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "技術分野|複雑": {
+        "term1": "複雑",
+        "term2": "技術分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "以下|複雑": {
+        "term1": "複雑",
+        "term2": "以下",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本概念|複雑": {
+        "term1": "複雑",
+        "term2": "基本概念",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "理解|複雑": {
+        "term1": "複雑",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実践的|複雑": {
+        "term1": "複雑",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "演習|複雑": {
+        "term1": "複雑",
+        "term2": "演習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用事例|複雑": {
+        "term1": "複雑",
+        "term2": "応用事例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "確認|複雑": {
+        "term1": "複雑",
+        "term2": "確認",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "最適化方法|複雑": {
+        "term1": "最適化方法",
+        "term2": "複雑",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "技術分野|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "技術分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "以下|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "以下",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本概念|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "基本概念",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "最適化方法|理解": {
+        "term1": "最適化方法",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実践的|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "最適化方法|演習": {
+        "term1": "最適化方法",
+        "term2": "演習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用事例|最適化方法": {
+        "term1": "最適化方法",
+        "term2": "応用事例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "最適化方法|確認": {
+        "term1": "最適化方法",
+        "term2": "確認",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785311126
+  },
+  "user_test-clarification": {
+    "userRelations": {
+      "説明": [
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "包括的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "理解",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "関連",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "要素",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "考慮",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "料理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        },
+        {
+          "term": "手順",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771210835,
+          "lastUpdated": 1751771210835
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "説明|質問": {
+        "term1": "説明",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "包括的|説明": {
+        "term1": "説明",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "理解|説明": {
+        "term1": "説明",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "説明|関連": {
+        "term1": "説明",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "要素|説明": {
+        "term1": "説明",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "考慮|説明": {
+        "term1": "説明",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|説明": {
+        "term1": "説明",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "手順|説明": {
+        "term1": "説明",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785365566
+  },
+  "user_test-learning-path": {
+    "userRelations": {
+      "実装": [
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "実際",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "応用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "追加",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "検討",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "料理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "手順",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        }
+      ],
+      "学習": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "手順",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        }
+      ],
+      "数学的基礎": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "手順",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        }
+      ],
+      "体系的": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        },
+        {
+          "term": "手順",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771223263,
+          "lastUpdated": 1751771223263
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "実装|質問": {
+        "term1": "実装",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|説明": {
+        "term1": "実装",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|実際": {
+        "term1": "実装",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|応用": {
+        "term1": "実装",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|追加": {
+        "term1": "実装",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|検討": {
+        "term1": "実装",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|料理": {
+        "term1": "実装",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|手順": {
+        "term1": "実装",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実装": {
+        "term1": "学習",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|質問": {
+        "term1": "学習",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|説明": {
+        "term1": "学習",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実際": {
+        "term1": "学習",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|応用": {
+        "term1": "学習",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|追加": {
+        "term1": "学習",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|検討": {
+        "term1": "学習",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|料理": {
+        "term1": "学習",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|手順": {
+        "term1": "学習",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|質問": {
+        "term1": "数学的基礎",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|説明": {
+        "term1": "数学的基礎",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実際|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|追加": {
+        "term1": "数学的基礎",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|検討": {
+        "term1": "数学的基礎",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|料理": {
+        "term1": "数学的基礎",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "手順|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|実装": {
+        "term1": "体系的",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|質問": {
+        "term1": "体系的",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|説明": {
+        "term1": "体系的",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|実際": {
+        "term1": "体系的",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|応用": {
+        "term1": "体系的",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|追加": {
+        "term1": "体系的",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|検討": {
+        "term1": "体系的",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|料理": {
+        "term1": "体系的",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|手順": {
+        "term1": "体系的",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785378238
+  },
+  "user_test-extended-patterns": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "実践的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "観点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        },
+        {
+          "term": "順序立",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771357158,
+          "lastUpdated": 1751771357158
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実践的|比較": {
+        "term1": "比較",
+        "term2": "実践的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|観点": {
+        "term1": "比較",
+        "term2": "観点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|比較": {
+        "term1": "比較",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|要素": {
+        "term1": "比較",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本練習|比較": {
+        "term1": "比較",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|順序立": {
+        "term1": "比較",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785510970
+  },
+  "user_test-troubleshoot-extended": {
+    "userRelations": {
+      "画面": [
+        {
+          "term": "手伝",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "気軽",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "詳細",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "分野",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "重要",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "考慮点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        },
+        {
+          "term": "順序立",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771371613,
+          "lastUpdated": 1751771371613
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "手伝|画面": {
+        "term1": "画面",
+        "term2": "手伝",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "気軽|画面": {
+        "term1": "画面",
+        "term2": "気軽",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|詳細": {
+        "term1": "画面",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|説明": {
+        "term1": "画面",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "分野|画面": {
+        "term1": "画面",
+        "term2": "分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|重要": {
+        "term1": "画面",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|考慮点": {
+        "term1": "画面",
+        "term2": "考慮点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "基本練習|画面": {
+        "term1": "画面",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "画面|順序立": {
+        "term1": "画面",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785526320
+  },
+  "user_test-learning-extended": {
+    "userRelations": {
+      "実装": [
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "実際",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "応用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "追加",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "検討",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        }
+      ],
+      "学習": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        }
+      ],
+      "数学的基礎": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        }
+      ],
+      "体系的": [
+        {
+          "term": "実装",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771378543,
+          "lastUpdated": 1751771378543
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "実装|質問": {
+        "term1": "実装",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|説明": {
+        "term1": "実装",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|実際": {
+        "term1": "実装",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|応用": {
+        "term1": "実装",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|追加": {
+        "term1": "実装",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|検討": {
+        "term1": "実装",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実装": {
+        "term1": "学習",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|質問": {
+        "term1": "学習",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|説明": {
+        "term1": "学習",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|実際": {
+        "term1": "学習",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|応用": {
+        "term1": "学習",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|追加": {
+        "term1": "学習",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "学習|検討": {
+        "term1": "学習",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実装|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|質問": {
+        "term1": "数学的基礎",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|説明": {
+        "term1": "数学的基礎",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実際|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用|数学的基礎": {
+        "term1": "数学的基礎",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|追加": {
+        "term1": "数学的基礎",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "数学的基礎|検討": {
+        "term1": "数学的基礎",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|実装": {
+        "term1": "体系的",
+        "term2": "実装",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|質問": {
+        "term1": "体系的",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|説明": {
+        "term1": "体系的",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|実際": {
+        "term1": "体系的",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|応用": {
+        "term1": "体系的",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|追加": {
+        "term1": "体系的",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "体系的|検討": {
+        "term1": "体系的",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785531910
+  },
+  "user_test-dynamic-system": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "包括的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "関連",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "目次",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        },
+        {
+          "term": "構造的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751771630470,
+          "lastUpdated": 1751771630470
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "包括的|比較": {
+        "term1": "比較",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|理解": {
+        "term1": "比較",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|関連": {
+        "term1": "比較",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|要素": {
+        "term1": "比較",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|考慮": {
+        "term1": "比較",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|目次": {
+        "term1": "比較",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "構造的|比較": {
+        "term1": "比較",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785493710
+  },
+  "user_test-dynamic-pattern": {
+    "userRelations": {
+      "react": [
+        {
+          "term": "javascript",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "学習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "関数",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "状態管理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "使用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192341,
+          "lastUpdated": 1751772192341
+        },
+        {
+          "term": "現在",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192342,
+          "lastUpdated": 1751772192342
+        },
+        {
+          "term": "重要",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751772192342,
+          "lastUpdated": 1751772192342
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|react": {
+        "term1": "react",
+        "term2": "javascript",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|学習": {
+        "term1": "react",
+        "term2": "学習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|基本的": {
+        "term1": "react",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|関数": {
+        "term1": "react",
+        "term2": "関数",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|状態管理": {
+        "term1": "react",
+        "term2": "状態管理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|使用": {
+        "term1": "react",
+        "term2": "使用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|現在": {
+        "term1": "react",
+        "term2": "現在",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|重要": {
+        "term1": "react",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785474818
+  },
+  "user_test-dynamic-fix": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "詳細",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "分野",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "重要",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "考慮点",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "地図",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "目的地",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        },
+        {
+          "term": "段階的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772328045,
+          "lastUpdated": 1751772328045
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|詳細": {
+        "term1": "比較",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|説明": {
+        "term1": "比較",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "分野|比較": {
+        "term1": "比較",
+        "term2": "分野",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|重要": {
+        "term1": "比較",
+        "term2": "重要",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|考慮点": {
+        "term1": "比較",
+        "term2": "考慮点",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "地図|比較": {
+        "term1": "比較",
+        "term2": "地図",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|目的地": {
+        "term1": "比較",
+        "term2": "目的地",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "段階的|比較": {
+        "term1": "比較",
+        "term2": "段階的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785321715
+  },
+  "user_test-debug": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785423261
+  },
+  "user_test-fixed-system": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "包括的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "関連",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "目次",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        },
+        {
+          "term": "構造的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772604945,
+          "lastUpdated": 1751772604945
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "包括的|比較": {
+        "term1": "比較",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|理解": {
+        "term1": "比較",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|関連": {
+        "term1": "比較",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|要素": {
+        "term1": "比較",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|考慮": {
+        "term1": "比較",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|目次": {
+        "term1": "比較",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "構造的|比較": {
+        "term1": "比較",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785308693
+  },
+  "user_test-debug-pattern": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "実際",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "応用",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "追加",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "検討",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "料理",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        },
+        {
+          "term": "手順",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772699730,
+          "lastUpdated": 1751772699730
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "実際|比較": {
+        "term1": "比較",
+        "term2": "実際",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "応用|比較": {
+        "term1": "比較",
+        "term2": "応用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|追加": {
+        "term1": "比較",
+        "term2": "追加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "検討|比較": {
+        "term1": "比較",
+        "term2": "検討",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "料理|比較": {
+        "term1": "比較",
+        "term2": "料理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "手順|比較": {
+        "term1": "比較",
+        "term2": "手順",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785404236
+  },
+  "user_test-final-debug": {
+    "userRelations": {
+      "比較": [
+        {
+          "term": "承知",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "包括的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "関連",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "目次",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        },
+        {
+          "term": "構造的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751772735694,
+          "lastUpdated": 1751772735694
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "承知|比較": {
+        "term1": "比較",
+        "term2": "承知",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "包括的|比較": {
+        "term1": "比較",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|理解": {
+        "term1": "比較",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|関連": {
+        "term1": "比較",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|要素": {
+        "term1": "比較",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|考慮": {
+        "term1": "比較",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|目次": {
+        "term1": "比較",
+        "term2": "目次",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "構造的|比較": {
+        "term1": "比較",
+        "term2": "構造的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751785438350
+  },
+  "user_webui-debug": {
+    "userRelations": {},
+    "coOccurrenceData": {},
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751806349487
+  },
+  "user_test-enhanced-v2": {
+    "userRelations": {
+      "javascript": [
+        {
+          "term": "比較",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "詳細情報",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "具体的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "部分",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "詳細",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "回答",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "提供",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        }
+      ],
+      "比較": [
+        {
+          "term": "詳細情報",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "具体的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "部分",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "詳細",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "回答",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "提供",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808983448,
+          "lastUpdated": 1751808991977
+        }
+      ],
+      "react": [
+        {
+          "term": "javascript",
+          "strength": 1,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "基本的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "関数",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "状態管理",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "使用",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "基本例",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "増加",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        },
+        {
+          "term": "応用例",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751808991977,
+          "lastUpdated": 1751808991977
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "javascript|比較": {
+        "term1": "javascript",
+        "term2": "比較",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|詳細情報": {
+        "term1": "javascript",
+        "term2": "詳細情報",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|具体的": {
+        "term1": "javascript",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|部分": {
+        "term1": "javascript",
+        "term2": "部分",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|詳細": {
+        "term1": "javascript",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|回答": {
+        "term1": "javascript",
+        "term2": "回答",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|提供": {
+        "term1": "javascript",
+        "term2": "提供",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|詳細情報": {
+        "term1": "比較",
+        "term2": "詳細情報",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "具体的|比較": {
+        "term1": "比較",
+        "term2": "具体的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|部分": {
+        "term1": "比較",
+        "term2": "部分",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "比較|詳細": {
+        "term1": "比較",
+        "term2": "詳細",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "回答|比較": {
+        "term1": "比較",
+        "term2": "回答",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "提供|比較": {
+        "term1": "比較",
+        "term2": "提供",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "javascript|react": {
+        "term1": "react",
+        "term2": "javascript",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|説明": {
+        "term1": "react",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|基本的": {
+        "term1": "react",
+        "term2": "基本的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|関数": {
+        "term1": "react",
+        "term2": "関数",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|状態管理": {
+        "term1": "react",
+        "term2": "状態管理",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|使用": {
+        "term1": "react",
+        "term2": "使用",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|基本例": {
+        "term1": "react",
+        "term2": "基本例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|増加": {
+        "term1": "react",
+        "term2": "増加",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "react|応用例": {
+        "term1": "react",
+        "term2": "応用例",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751808991978
+  },
+  "user_test-general": {
+    "userRelations": {
+      "プログラミング": [
+        {
+          "term": "質問",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "説明",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "包括的",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "理解",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "関連",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "要素",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "考慮",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "順序立",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        }
+      ],
+      "初心者": [
+        {
+          "term": "プログラミング",
+          "strength": 0.8,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "質問",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "説明",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "包括的",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "理解",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "関連",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "要素",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "考慮",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "基本練習",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        },
+        {
+          "term": "順序立",
+          "strength": 0.5,
+          "count": 1,
+          "firstSeen": 1751837866511,
+          "lastUpdated": 1751837866511
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "プログラミング|質問": {
+        "term1": "プログラミング",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|説明": {
+        "term1": "プログラミング",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|包括的": {
+        "term1": "プログラミング",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|理解": {
+        "term1": "プログラミング",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|関連": {
+        "term1": "プログラミング",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|要素": {
+        "term1": "プログラミング",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|考慮": {
+        "term1": "プログラミング",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|基本練習": {
+        "term1": "プログラミング",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|順序立": {
+        "term1": "プログラミング",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "プログラミング|初心者": {
+        "term1": "初心者",
+        "term2": "プログラミング",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|質問": {
+        "term1": "初心者",
+        "term2": "質問",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|説明": {
+        "term1": "初心者",
+        "term2": "説明",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|包括的": {
+        "term1": "初心者",
+        "term2": "包括的",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|理解": {
+        "term1": "初心者",
+        "term2": "理解",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|関連": {
+        "term1": "初心者",
+        "term2": "関連",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|要素": {
+        "term1": "初心者",
+        "term2": "要素",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|考慮": {
+        "term1": "初心者",
+        "term2": "考慮",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|基本練習": {
+        "term1": "初心者",
+        "term2": "基本練習",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      },
+      "初心者|順序立": {
+        "term1": "初心者",
+        "term2": "順序立",
+        "count": 1,
+        "strength": 0,
+        "contexts": []
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1751892389832
   }
 }

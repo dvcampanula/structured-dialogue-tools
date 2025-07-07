@@ -1,27 +1,55 @@
 [
   {
-    "timestamp": 1751686805178,
-    "userId": "quality-test-user",
-    "sessionId": "session_1751686805175_53ad7su0q",
-    "userMessage": "TypeScript の interface と type の違いを詳しく教えて",
-    "aiResponse": "そうですね、undefinedについて学習されるのですね。\n\n技術分野での学習として、以下のステップをお勧めします：\n1. 基本概念の理解\n2. 実践的な演習\n3. 応用事例の確認\n\n先ほどの内容との関連性も考慮して、段階的に進めていきましょう。\n\n例えば、料理を作る時のレシピのようなものです。ということですね。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
+    "timestamp": 1751856750689,
+    "userId": "diversity-test-4",
+    "sessionId": "session_1751856750687_dyxhggk60",
+    "userMessage": "ありがとうございます！",
+    "aiResponse": "そうですね、お役に立てて満足です！😊\n\n他にもご質問やお手伝いできることがございましたら、いつでもお気軽にお声かけください。どのようなことでもサポートます。\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。",
     "dialogueAnalysis": {
       "contextDepth": 0,
-      "intentType": "learning",
-      "intentConfidence": 0.5,
+      "intentType": "affirmation",
+      "intentConfidence": 0.8,
       "semanticContinuity": 1,
-      "strategy": "educational"
+      "strategy": "exploratory"
     }
   },
   {
-    "timestamp": 1751686822369,
-    "userId": "quality-test-user",
-    "sessionId": "session_1751686805175_53ad7su0q",
-    "userMessage": "Reactのカスタムフックのベストプラクティス",
-    "aiResponse": "そうですね、申し訳ございませんが、ご質問の内容をもう少し詳しく教えていただけますでしょうか？\n\n詳しく説明すると、この点についてはさらに考慮すべき要素があります。具体的な例や実装方法についても検討してみましょう。\n\n例えば、料理を作る時のレシピのようなものです。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
+    "timestamp": 1751856750716,
+    "userId": "diversity-test-4",
+    "sessionId": "session_1751856750687_dyxhggk60",
+    "userMessage": "困っています",
+    "aiResponse": "そうですね、お困りの状況をお察しします。憂慮な気持ち、よく分かります。\n\n対処に向けて一緒に取り組みましょう。具体的にどのような問題が発生していますか？詳しく教えていただければ、適切なアドバイスをご提案できます。\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。\n\n問題解決のため、段階的にアプローチしていきましょう。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
     "dialogueAnalysis": {
       "contextDepth": 1,
-      "intentType": "affirmation",
+      "intentType": "help_request",
+      "intentConfidence": 0.8,
+      "semanticContinuity": 0,
+      "strategy": "exploratory"
+    }
+  },
+  {
+    "timestamp": 1751856750745,
+    "userId": "diversity-test-4",
+    "sessionId": "session_1751856750687_dyxhggk60",
+    "userMessage": "おはようございます",
+    "aiResponse": "そうですね、おはようございます！☀️\n\n今日も見事一日になりますように。何かお手伝いできることがあれば、お気軽にお声かけくださいね。\n\n例えば、料理を作る時のレシピのような手順で進めるアプローチすると良いでしょう。ということですね。",
+    "dialogueAnalysis": {
+      "contextDepth": 2,
+      "intentType": "help_request",
+      "intentConfidence": 0,
+      "semanticContinuity": 0,
+      "strategy": "exploratory"
+    }
+  },
+  {
+    "timestamp": 1751856750774,
+    "userId": "diversity-test-4",
+    "sessionId": "session_1751856750687_dyxhggk60",
+    "userMessage": "初心者です",
+    "aiResponse": "そうですね、「初心者です」についてお話ししましょう！\n\n何でもお気軽にお聞かせください。あなたのお役に立てるよう、できる限りサポートいたします。どのような点について詳しく知りたいでしょうか？\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。",
+    "dialogueAnalysis": {
+      "contextDepth": 3,
+      "intentType": "help_request",
       "intentConfidence": 0,
       "semanticContinuity": 0,
       "strategy": "exploratory"
