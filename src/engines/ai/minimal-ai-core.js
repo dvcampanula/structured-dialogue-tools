@@ -14,6 +14,7 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import kuromoji from 'kuromoji';
+import { enhancedResponseGenerationEngineV2 } from '../response/enhanced-response-generation-engine-v2.js';
 // 対話フェーズ予測AI（統計+ルールベース）
 class DialoguePhasePredictor {
     phasePatterns = new Map([
@@ -76,35 +77,27 @@ class LocalConceptEngine {
         return uniqueFound.sort((a, b) => b.length - a.length).slice(0, 8); // 最大8概念
     }
 }
-// パターンベース応答生成システム
-class PatternBasedResponseGenerator {
-    responseTemplates = new Map([
-        ['analysis', [
-                '分析を始めましょう。まず {concept} について詳しく見てみます。',
-                '{concept} の構造を理解するために、いくつか質問があります。',
-                '現在の {concept} の状況を把握することから始めるのが良さそうです。'
-            ]],
-        ['design', [
-                '{concept} の設計アプローチとして、以下を検討してはいかがでしょうか？',
-                '{concept} を構造化するために、段階的なアプローチを提案します。',
-                '{concept} の全体設計を考える前に、要件を整理しましょう。'
-            ]],
-        ['implementation', [
-                '{concept} の実装を開始しましょう。最初のステップは以下です：',
-                '{concept} を実際に構築していきます。段階的に進めていきましょう。',
-                '{concept} の実装で重要なポイントを確認しながら進めます。'
-            ]],
-        ['reflection', [
-                '{concept} について振り返ってみると、次のような学びがありました。',
-                '{concept} の経験から、今後に活かせるポイントを整理しましょう。',
-                '{concept} を通じて得られた洞察を次回に繋げていきます。'
-            ]]
-    ]);
-    generate(phase, concepts) {
-        const templates = this.responseTemplates.get(phase) || ['継続的な対話を支援します。'];
-        const randomTemplate = templates[Math.floor(Math.random() * templates.length)];
-        const mainConcept = concepts[0] || '対話';
-        return randomTemplate.replace('{concept}', mainConcept);
+// AI応答生成器（Enhanced v2.0統合）
+class EnhancedAIResponseGenerator {
+    async generate(phase, concepts, userInput, conversationHistory = []) {
+        // Enhanced ResponseGenerationEngine v2.0を使用した真のAI応答生成
+        try {
+            const result = await enhancedResponseGenerationEngineV2.generateUnifiedResponse(
+                userInput,
+                conversationHistory,
+                {
+                    phase: phase,
+                    detectedConcepts: concepts,
+                    dialogueType: 'structured'
+                }
+            );
+            return result.response;
+        } catch (error) {
+            console.warn('Enhanced v2.0エラー:', error.message);
+            // シンプルなフォールバック
+            const mainConcept = concepts[0] || 'このテーマ';
+            return `${mainConcept}について、さらに詳しくお話ししましょう。どのような点に特に興味をお持ちでしょうか？`;
+        }
     }
 }
 // 育てる自家製ミニマムAI メインクラス
@@ -116,7 +109,7 @@ export class MinimalAICore {
     tokenizer;
     constructor() {
         this.phasePredictor = new DialoguePhasePredictor();
-        this.responseGenerator = new PatternBasedResponseGenerator();
+        this.responseGenerator = new EnhancedAIResponseGenerator();
     }
     async initialize() {
         // 形態素解析器初期化
@@ -232,8 +225,8 @@ export class MinimalAICore {
             const related = this.conceptEngine.getRelatedConcepts(concept, 3);
             suggestedConcepts.push(...related);
         }
-        // 4. 応答生成
-        const response = this.responseGenerator.generate(phaseResult.phase, detectedConcepts);
+        // 4. AI応答生成（Enhanced v2.0）
+        const response = await this.responseGenerator.generate(phaseResult.phase, detectedConcepts, userInput, []);
         // 5. 学習シグナル検出
         const learningSignal = this.detectLearningOpportunity(userInput, detectedConcepts);
         return {

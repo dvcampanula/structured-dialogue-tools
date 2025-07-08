@@ -347,8 +347,8 @@ export class PersonalResponseAdapter {
         // 応答スタイル適応
         adaptedResponse = await this.applyResponseStyleAdaptations(adaptedResponse, personalProfile);
         
-        // ドメイン特化適応
-        adaptedResponse = await this.applyDomainAdaptations(adaptedResponse, domainContext);
+        // ドメイン特化適応（originalInputを渡す）
+        adaptedResponse = await this.applyDomainAdaptations(adaptedResponse, domainContext, originalInput);
         
         // パーソナリティ適応
         adaptedResponse = await this.applyPersonalityAdaptations(adaptedResponse, personalProfile);
@@ -384,9 +384,15 @@ export class PersonalResponseAdapter {
         return adapted;
     }
 
-    async applyDomainAdaptations(response, domainContext) {
+    async applyDomainAdaptations(response, domainContext, originalMessage = null) {
         const strategy = domainContext.adaptationStrategy;
         let adapted = response;
+        
+        // 適応処理をスキップすべきかの判定（originalMessageを使用）
+        if (originalMessage && this.shouldSkipAdaptations(response, originalMessage)) {
+            console.log(`🚫 ドメイン適応スキップ: 日常会話・感謝メッセージのため`);
+            return adapted;
+        }
         
         // 専門用語適応
         if (strategy.vocabulary === 'technical_terms') {
@@ -395,18 +401,23 @@ export class PersonalResponseAdapter {
             adapted = this.simplifyTechnicalTerms(adapted);
         }
         
-        // 例示スタイル適応
-        if (strategy.examples === 'code_examples') {
-            adapted = await this.addCodeExamples(adapted);
-        } else if (strategy.examples === 'relatable_scenarios') {
-            adapted = await this.addRelatableExamples(adapted);
+        // 例示スタイル適応（感謝・お礼メッセージには適用しない）
+        const isGratitudeMessage = this.isGratitudeMessage(response);
+        if (!isGratitudeMessage) {
+            if (strategy.examples === 'code_examples') {
+                adapted = await this.addCodeExamples(adapted);
+            } else if (strategy.examples === 'relatable_scenarios') {
+                adapted = await this.addRelatableExamples(adapted, originalMessage);
+            }
         }
         
-        // 構造適応
-        if (strategy.structure === 'step_by_step') {
-            adapted = this.restructureStepByStep(adapted);
-        } else if (strategy.structure === 'conversational') {
-            adapted = this.restructureConversational(adapted);
+        // 構造適応（感謝・お礼メッセージには適用しない）
+        if (!isGratitudeMessage) {
+            if (strategy.structure === 'step_by_step') {
+                adapted = this.restructureStepByStep(adapted);
+            } else if (strategy.structure === 'conversational') {
+                adapted = this.restructureConversational(adapted, originalMessage);
+            }
         }
         
         return adapted;
@@ -596,30 +607,49 @@ export class PersonalResponseAdapter {
                      .replace(/処理/g, 'プロセッシング');
     }
 
-    simplifyTechnicalTerms(content) {
-        // 技術用語を簡略化（簡略実装）
-        return content.replace(/システムアーキテクチャ/g, 'システム')
-                     .replace(/データ構造/g, 'データ')
-                     .replace(/プロセッシング/g, '処理');
-    }
-
-    async addCodeExamples(content) {
-        // コード例を追加（簡略実装）
-        return content + '\n\n```javascript\n// 実装例\nconsole.log("Hello, World!");\n```';
-    }
-
-    async addRelatableExamples(content) {
-        // 身近な例を動的生成
-        const examples = [
-            '料理を作る時のレシピのような手順で進める',
-            '地図を見ながら目的地を探すように段階的に',
-            '本を読む時の目次のように構造的に',
-            'パズルを組み立てるように一つずつ',
-            'スポーツの基本練習のように順序立てて'
+    isGratitudeMessage(response) {
+        // 感謝・お礼メッセージの判定
+        const gratitudePatterns = [
+            'お役に立', '喜ん', '光栄', '満足', '嬉しい', '安心',
+            'ありがと', '感謝', '助かり', 'サポート'
         ];
         
-        const randomExample = examples[Math.floor(Math.random() * examples.length)];
-        return content + `\n\n例えば、${randomExample}アプローチすると良いでしょう。`;
+        return gratitudePatterns.some(pattern => response.includes(pattern));
+    }
+
+    isCasualConversation(response, originalMessage) {
+        // 日常会話・挨拶の判定
+        const casualPatterns = [
+            'おはよう', 'こんにちは', 'こんばんは', 'お疲れ',
+            'いい天気', '最近どう', '元気', '調子', 'どうですか',
+            'はじめまして', 'よろしく', 'いらっしゃい'
+        ];
+        
+        // 原則として originalMessage を基準に判定
+        const checkText = originalMessage || response;
+        const isGreeting = casualPatterns.some(pattern => 
+            checkText.toLowerCase().includes(pattern.toLowerCase())
+        );
+        
+        // 短文での挨拶パターンもチェック
+        if (originalMessage && originalMessage.length < 15) {
+            const shortCasualPatterns = ['おはよう', 'こんに', 'お疲れ'];
+            const isShortGreeting = shortCasualPatterns.some(pattern => 
+                originalMessage.includes(pattern)
+            );
+            if (isShortGreeting) {
+                console.log(`🔍 短文挨拶検出: "${originalMessage}"`);
+                return true;
+            }
+        }
+        
+        return isGreeting;
+    }
+
+    shouldSkipAdaptations(response, originalMessage) {
+        // 適応処理をスキップすべきかの総合判定
+        return this.isGratitudeMessage(response) || 
+               this.isCasualConversation(response, originalMessage);
     }
 
     restructureStepByStep(content) {
@@ -628,7 +658,13 @@ export class PersonalResponseAdapter {
         return sentences.map((s, i) => `${i + 1}. ${s.trim()}`).join('\n') + '。';
     }
 
-    restructureConversational(content) {
+    restructureConversational(content, originalMessage = null) {
+        // 日常会話での不適切な構造化を回避
+        if (originalMessage && this.isCasualConversation(content, originalMessage)) {
+            console.log(`🚫 日常会話のため構造化スキップ`);
+            return content;
+        }
+        
         // 会話的構造化
         return 'そうですね、' + content + 'ということですね。';
     }

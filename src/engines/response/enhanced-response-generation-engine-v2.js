@@ -7,11 +7,11 @@
  * 📊 文脈理解強化・品質最適化・個人特化応答生成
  */
 
-import { DynamicResponseTemplateEngine } from './dynamic-response-template-engine.js';
 import { AdvancedEmotionAnalyzer } from '../../analyzers/advanced-emotion-analyzer.js';
 import { PersonalResponseAdapter } from '../../systems/adapters/personal-response-adapter.js';
 import { DynamicTechnicalPatterns } from './dynamic-technical-patterns.js';
 import { VocabularyDiversifier } from '../language/vocabulary-diversifier.js';
+import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 
 /**
  * 統合分析結果データ構造
@@ -343,7 +343,6 @@ export class ContextEnrichmentEngine {
 export class EnhancedResponseGenerationEngineV2 {
     constructor(options = {}) {
         // 統合コンポーネント初期化
-        this.dynamicTemplateEngine = new DynamicResponseTemplateEngine();
         this.emotionAnalyzer = new AdvancedEmotionAnalyzer();
         this.personalAdapter = null; // 外部から注入
         this.technicalPatterns = new DynamicTechnicalPatterns();
@@ -356,11 +355,11 @@ export class EnhancedResponseGenerationEngineV2 {
         
         // 設定
         this.config = {
-            enableTemplateEngine: true,
             enableEmotionAnalysis: true,
             enablePersonalAdaptation: true,
             enableContextEnrichment: true,
             enableVocabularyDiversification: true, // 語彙多様化
+            enableLearningIntegration: true, // 学習データ統合
             qualityThreshold: 0.7,
             maxProcessingTime: 5000,
             ...options
@@ -375,8 +374,8 @@ export class EnhancedResponseGenerationEngineV2 {
             lastProcessingTime: Date.now()
         };
         
-        console.log('🚀 Enhanced ResponseGenerationEngine v2.0 + Vocabulary Diversifier 初期化完了');
-        console.log(`📊 設定: Template=${this.config.enableTemplateEngine}, Emotion=${this.config.enableEmotionAnalysis}, Personal=${this.config.enablePersonalAdaptation}, VocabDiversify=${this.config.enableVocabularyDiversification}`);
+        console.log('🚀 Enhanced ResponseGenerationEngine v2.0 + Vocabulary Diversifier + Learning Integration 初期化完了');
+        console.log(`📊 設定: Emotion=${this.config.enableEmotionAnalysis}, Personal=${this.config.enablePersonalAdaptation}, VocabDiversify=${this.config.enableVocabularyDiversification}, Learning=${this.config.enableLearningIntegration}`);
     }
     
     /**
@@ -460,9 +459,26 @@ export class EnhancedResponseGenerationEngineV2 {
             
             console.log(`✅ Enhanced ResponseGeneration v2.0 完了: ${analysisResult.processingTime}ms, 品質=${qualityMetrics.overallScore.toFixed(2)}`);
             
+            // 語彙多様化統計の収集（遅延読み込み対応）
+            const vocabularyStats = this.vocabularyDiversifier ? {
+                dictionaryEntries: this.vocabularyDiversifier.dictionaryDB?.getSize() || 0,
+                synonymMapSize: this.vocabularyDiversifier.dictionaryDB?.synonymMap?.size || 0,
+                diversificationEnabled: this.config.enableVocabularyDiversification,
+                diversificationApplied: finalResponse !== analysisResult.userInput,
+                dictionaryStatus: this.vocabularyDiversifier.dictionaryDB ? 'loaded' : 'loading',
+                internalSynonyms: Object.keys(this.vocabularyDiversifier.synonymDict?.emotionSynonyms || {}).length
+            } : null;
+
             return {
                 response: finalResponse,
                 analysisResult: analysisResult,
+                analysis: {
+                    vocabularyDiversification: vocabularyStats,
+                    dictionaryStats: vocabularyStats,
+                    processingTime: analysisResult.processingTime,
+                    qualityScore: qualityMetrics.overallScore,
+                    responseStrategy: responseStrategy.primary
+                },
                 metadata: {
                     processingTime: analysisResult.processingTime,
                     qualityScore: qualityMetrics.overallScore,
@@ -500,13 +516,6 @@ export class EnhancedResponseGenerationEngineV2 {
             analysisResult.technicalAnalysis = { isTechnical: false, confidence: 0 };
         }
         
-        // 動的テンプレート分析
-        if (this.config.enableTemplateEngine) {
-            analysisPromises.push(
-                this.analyzeTemplateNeeds(analysisResult)
-                    .catch(err => console.warn('テンプレート分析エラー:', err.message))
-            );
-        }
         
         // 感情分析
         if (this.config.enableEmotionAnalysis) {
@@ -524,18 +533,18 @@ export class EnhancedResponseGenerationEngineV2 {
             );
         }
         
+        // 学習データ統合分析
+        if (this.config.enableLearningIntegration) {
+            analysisPromises.push(
+                this.analyzeLearningContext(analysisResult, userProfile)
+                    .catch(err => console.warn('学習データ分析エラー:', err.message))
+            );
+        }
+        
         // 並列実行
         await Promise.allSettled(analysisPromises);
     }
     
-    async analyzeTemplateNeeds(analysisResult) {
-        const technical = analysisResult.technicalAnalysis;
-        const detection = this.dynamicTemplateEngine.detectTemplateType(
-            analysisResult.userInput, 
-            technical?.category
-        );
-        analysisResult.templateAnalysis = detection;
-    }
     
     async analyzeEmotionalState(analysisResult) {
         // AdvancedEmotionAnalyzerとの統合
@@ -556,6 +565,47 @@ export class EnhancedResponseGenerationEngineV2 {
             );
             analysisResult.personalAnalysis = personal;
         }
+    }
+    
+    async analyzeLearningContext(analysisResult, userProfile) {
+        // 学習データベースから関連情報を取得
+        try {
+            const userId = userProfile?.userId || 'default';
+            
+            // ユーザーの関係性データを取得
+            const userRelations = await persistentLearningDB.getUserRelations(userId);
+            
+            // 会話履歴を取得
+            const conversationHistory = await persistentLearningDB.getConversationHistory(userId, 5);
+            
+            // 学習統計を取得
+            const learningStats = await persistentLearningDB.getLearningStats();
+            
+            // 分析結果に学習データを統合
+            analysisResult.learningAnalysis = {
+                userRelations: userRelations || [],
+                pastConversations: conversationHistory || [],
+                learningStats: learningStats || {},
+                hasLearningData: (userRelations?.length > 0) || (conversationHistory?.length > 0),
+                adaptationStrength: this.calculateAdaptationStrength(userRelations, conversationHistory)
+            };
+            
+            console.log(`📚 学習データ統合: 関係性${userRelations?.length || 0}件, 履歴${conversationHistory?.length || 0}件`);
+        } catch (error) {
+            console.warn('学習データ統合エラー:', error.message);
+            analysisResult.learningAnalysis = {
+                userRelations: [],
+                pastConversations: [],
+                hasLearningData: false,
+                adaptationStrength: 0
+            };
+        }
+    }
+    
+    calculateAdaptationStrength(userRelations, conversationHistory) {
+        const relationScore = Math.min((userRelations?.length || 0) / 10, 1.0);
+        const historyScore = Math.min((conversationHistory?.length || 0) / 5, 1.0);
+        return (relationScore + historyScore) / 2;
     }
     
     /**
@@ -595,6 +645,13 @@ export class EnhancedResponseGenerationEngineV2 {
             strategy.secondary.push('emotion_aware');
             strategy.confidence += 0.15;
             strategy.reasoning.push('感情配慮');
+        }
+        
+        // 学習データ活用戦略
+        if (analysisResult.learningAnalysis?.hasLearningData) {
+            strategy.secondary.push('learning_enhanced');
+            strategy.confidence += analysisResult.learningAnalysis.adaptationStrength * 0.2;
+            strategy.reasoning.push(`学習データ活用 (強度: ${(analysisResult.learningAnalysis.adaptationStrength * 100).toFixed(0)}%)`);
         }
         
         // 個人特化戦略
@@ -654,35 +711,12 @@ export class EnhancedResponseGenerationEngineV2 {
         const userInput = analysisResult.userInput;
         const template = analysisResult.templateAnalysis;
         
-        // 1. DynamicResponseTemplateEngine完全統合（Enhanced v2.0モード）
-        if (this.dynamicTemplateEngine && general?.category) {
-            try {
-                // Enhanced統合モードでテンプレート応答生成
-                const templateResponse = await this.dynamicTemplateEngine.generateResponse(
-                    userInput,
-                    {
-                        type: template?.type || 'explanation',
-                        category: general.category,
-                        confidence: general.confidence || 0.5,
-                        enhancedMode: true
-                    },
-                    general.category,
-                    { enhanced: true, version: 'v2.0' }
-                );
-                
-                // テンプレート応答が具体的かつ有用かチェック
-                if (templateResponse && templateResponse.length > 50) {
-                    // 汎用的すぎる応答を除外
-                    if (templateResponse.includes('詳細情報をお探しですね') || 
-                        templateResponse.includes('分かりやすく説明いたします') ||
-                        templateResponse.includes('について説明いたします')) {
-                        // 汎用応答の場合はカテゴリ別応答にフォールバック
-                    } else {
-                        return templateResponse;
-                    }
-                }
-            } catch (error) {
-                console.warn('[Enhanced v2.0] Template generation failed:', error.message);
+        // 1. 学習データ強化応答生成
+        if (analysisResult.learningAnalysis?.hasLearningData) {
+            const learningEnhancedResponse = await this.generateLearningEnhancedResponse(userInput, general, analysisResult.learningAnalysis);
+            if (learningEnhancedResponse) {
+                console.log(`🧠 学習強化応答生成成功: "${userInput}"`);
+                return learningEnhancedResponse;
             }
         }
         
@@ -1265,7 +1299,7 @@ export class EnhancedResponseGenerationEngineV2 {
         return {
             positive: ['ありがとう', 'うれしい', '感謝', '助かり', '良い', 'よかった', '嬉しい', '満足', '素晴らしい'],
             negative: ['困って', '落ち込', 'つらい', '不安', 'わからない', '疲れ', '悩み', '心配', 'だめ'],
-            greeting: ['おはよう', 'こんに', 'はじめまして', 'お疲れ', 'いらっしゃい'],
+            greeting: ['おはよう', 'こんに', 'はじめまして', 'お疲れ', 'いらっしゃい', '最近どう', '元気', '調子', 'どうですか'],
             learning: ['教えて', '学習', '勉強', '覚え', 'わかりやすく', '知りたい', '理解', '習得'],
             support: ['手伝って', 'サポート', '支援', '相談', 'アドバイス', '解決'],
             technical: ['プログラミング', 'Python', 'JavaScript', 'React', 'データサイエンス', 'コード', '開発']
@@ -1301,7 +1335,7 @@ export class EnhancedResponseGenerationEngineV2 {
         const similarities = {};
         
         const patterns = {
-            daily_conversation: ['おはよう', 'こんに', '元気', '今日', '昨日', '明日'],
+            daily_conversation: ['おはよう', 'こんに', '元気', '今日', '昨日', '明日', '最近どう', '調子', 'どうですか'],
             emotional_support: ['困って', '不安', '落ち込', 'つらい', '悩み', '心配'],
             learning_request: ['教えて', '学習', '勉強', '覚え', '知りたい', '方法'],
             technical_inquiry: ['プログラミング', 'コード', '開発', 'Python', 'JavaScript'],
@@ -1380,6 +1414,134 @@ export class EnhancedResponseGenerationEngineV2 {
         const actionPattern = /(.+?)(の?方法|やり方|どう)/;
         const match = input.match(actionPattern);
         return match ? match[1].trim() : '実装・設定';
+    }
+
+    /**
+     * 学習データ強化応答生成
+     */
+    async generateLearningEnhancedResponse(userInput, general, learningAnalysis) {
+        try {
+            // 学習データから関連情報を抽出
+            const relatedConcepts = this.extractRelatedConcepts(userInput, learningAnalysis.userRelations);
+            const conversationContext = this.extractConversationContext(learningAnalysis.pastConversations);
+            const personalPreferences = this.extractPersonalPreferences(learningAnalysis);
+
+            // 学習データに基づく個人化されたベース応答を生成
+            let baseResponse = await this.generatePersonalizedBaseResponse(
+                userInput, 
+                general, 
+                relatedConcepts, 
+                conversationContext, 
+                personalPreferences
+            );
+
+            if (!baseResponse) {
+                return null; // 学習データが応答生成に適用できない場合
+            }
+
+            // 語彙多様化処理（学習データ考慮）
+            if (this.config.enableVocabularyDiversification) {
+                const context = {
+                    category: general?.category || 'learning_enhanced',
+                    politeness: this.determinePoliteness(userInput, general),
+                    intensity: this.determineIntensity(userInput),
+                    conversationHistory: learningAnalysis.pastConversations || [],
+                    personalPreferences: personalPreferences,
+                    relatedConcepts: relatedConcepts
+                };
+                baseResponse = await this.vocabularyDiversifier.diversifyResponse(baseResponse, context);
+            }
+
+            return baseResponse;
+        } catch (error) {
+            console.warn('学習強化応答生成エラー:', error.message);
+            return null;
+        }
+    }
+
+    extractRelatedConcepts(userInput, userRelations) {
+        const inputWords = userInput.toLowerCase().split(/\s+/);
+        const relatedConcepts = [];
+
+        for (const relation of userRelations || []) {
+            for (const word of inputWords) {
+                if (relation.concept1?.toLowerCase().includes(word) || relation.concept2?.toLowerCase().includes(word)) {
+                    relatedConcepts.push({
+                        concept1: relation.concept1,
+                        concept2: relation.concept2,
+                        strength: relation.strength || 1,
+                        context: relation.context
+                    });
+                }
+            }
+        }
+
+        return relatedConcepts.slice(0, 3); // 最大3つまで
+    }
+
+    extractConversationContext(pastConversations) {
+        if (!pastConversations || pastConversations.length === 0) {
+            return { themes: [], patterns: [], recentTopics: [] };
+        }
+
+        const recentTopics = pastConversations.slice(-3).map(conv => conv.topic || conv.userMessage?.substring(0, 50));
+        const themes = [...new Set(pastConversations.map(conv => conv.category || 'general'))];
+        
+        return {
+            themes: themes.slice(0, 3),
+            patterns: [],
+            recentTopics: recentTopics.filter(Boolean)
+        };
+    }
+
+    extractPersonalPreferences(learningAnalysis) {
+        return {
+            adaptationStrength: learningAnalysis.adaptationStrength || 0,
+            preferredTopics: [],
+            communicationStyle: 'friendly', // デフォルト値
+            detailLevel: 'medium'
+        };
+    }
+
+    async generatePersonalizedBaseResponse(userInput, general, relatedConcepts, conversationContext, personalPreferences) {
+        // 関連概念がある場合の個人化応答
+        if (relatedConcepts.length > 0) {
+            const mainConcept = relatedConcepts[0];
+            const personalizedResponse = `「${userInput}」についてですね。`;
+            
+            if (mainConcept.concept1 && mainConcept.concept2) {
+                return personalizedResponse + `以前お話しした「${mainConcept.concept1}」と「${mainConcept.concept2}」の関連性を踏まえて、さらに詳しくお話ししましょう。
+
+${this.generateContextualResponse(userInput, mainConcept, general)}`;
+            }
+        }
+
+        // 過去の会話履歴がある場合の継続性応答
+        if (conversationContext.recentTopics.length > 0) {
+            const recentTopic = conversationContext.recentTopics[0];
+            return `「${userInput}」についてですね。以前の「${recentTopic}」に関するお話も踏まえて、お答えしますね。
+
+${this.generateContinuityResponse(userInput, recentTopic, general)}`;
+        }
+
+        return null; // 学習データが活用できない場合
+    }
+
+    generateContextualResponse(userInput, concept, general) {
+        const category = general?.category || 'general';
+        
+        switch (category) {
+            case 'technical_inquiry':
+                return `「${concept.concept1}」と「${concept.concept2}」の関係性から考えると、この技術的な課題にはいくつかのアプローチが考えられます。あなたの過去の学習パターンを考慮して、最適な解決方法をご提案します。`;
+            case 'learning_support':
+                return `これまでの学習内容を振り返ると、「${concept.concept1}」での経験が今回の「${concept.concept2}」の理解に活かせそうです。段階的に進めていきましょう。`;
+            default:
+                return `「${concept.concept1}」と「${concept.concept2}」のつながりを意識しながら、あなたに最適な情報をお伝えします。`;
+        }
+    }
+
+    generateContinuityResponse(userInput, recentTopic, general) {
+        return `前回の「${recentTopic}」から発展して、今回のテーマも深く探求していきましょう。あなたの学習の流れを大切にしながら、新しい視点も加えてお答えします。`;
     }
 
     /**

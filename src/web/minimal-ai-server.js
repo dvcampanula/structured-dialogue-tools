@@ -18,7 +18,6 @@ import { PersonalResponseAdapter } from '../systems/adapters/personal-response-a
 import { dialogueAPI } from '../api/dialogue-api.js';
 import { UnifiedLearningEngine } from '../engines/learning/unified-learning-engine.js';
 import { SimpleMultiTurnManager } from '../systems/managers/simple-multiturn-manager.js';
-import { ResponseGenerationEngine } from '../engines/response/response-generation-engine.js';
 import { AdvancedEmotionAnalyzer } from '../analyzers/advanced-emotion-analyzer.js';
 import { EnhancedResponseGenerationEngineV2 } from '../engines/response/enhanced-response-generation-engine-v2.js';
 import fs from 'fs';
@@ -108,15 +107,12 @@ async function initializeAI() {
     advancedEmotionAnalyzer = new AdvancedEmotionAnalyzer();
     console.log('✅ Phase 7H.2.2 高度感情認識システム初期化完了');
     
-    // Phase 7H.2 応答生成エンジン初期化（高度感情分析統合）
-    console.log('🎯 Phase 7H.2 応答生成エンジン初期化中...');
-    responseEngine = new ResponseGenerationEngine(multiTurnManager, personalAnalyzer, advancedEmotionAnalyzer);
-    console.log('✅ Phase 7H.2 応答生成エンジン初期化完了');
+    // Phase 7H.2 応答生成エンジン削除（Enhanced v2.0に完全移行）
+    console.log('🎯 Enhanced v2.0完全移行（旧ResponseGenerationEngine削除）');
     
     // Enhanced ResponseGenerationEngine v2.0 初期化
     console.log('🚀 Enhanced ResponseGenerationEngine v2.0 初期化中...');
     enhancedResponseEngineV2 = new EnhancedResponseGenerationEngineV2({
-      enableTemplateEngine: true,
       enableEmotionAnalysis: true,
       enablePersonalAdaptation: true,
       enableContextEnrichment: true,
@@ -151,12 +147,47 @@ app.get('/api/stats', async (req, res) => {
     }
     
     const stats = minimalAI.getStatistics();
+    
+    // DialogueAPIから語彙多様化統計を取得
+    let vocabularyStats = null;
+    let dialogueApiStats = null;
+    try {
+      if (dialogueAPI) {
+        dialogueApiStats = {
+          totalRequests: dialogueAPI.apiStats?.totalRequests || 0,
+          totalUsers: dialogueAPI.apiStats?.totalUsers || 0,
+          successRate: dialogueAPI.apiStats?.successRate || 0
+        };
+      }
+      
+      // Enhanced v2.0エンジンから直接統計取得
+      const { enhancedResponseGenerationEngineV2 } = await import('../engines/response/enhanced-response-generation-engine-v2.js');
+      if (enhancedResponseGenerationEngineV2?.vocabularyDiversifier) {
+        const diversifier = enhancedResponseGenerationEngineV2.vocabularyDiversifier;
+        vocabularyStats = {
+          dictionaryEntries: diversifier.dictionaryDB?.getSize() || 0,
+          synonymMapSize: diversifier.dictionaryDB?.synonymMap?.size || 0,
+          diversificationEnabled: true,
+          internalSynonyms: Object.keys(diversifier.synonymDict?.emotionSynonyms || {}).length,
+          dictionaryStatus: diversifier.dictionaryDB ? 'loaded' : 'loading',
+          // 辞書DB読み込み状況の詳細
+          dictionaryLoading: !diversifier.dictionaryDB || diversifier.dictionaryDB.getSize() === 0,
+          lastUpdated: new Date().toISOString()
+        };
+      }
+    } catch (error) {
+      console.warn('語彙多様化統計取得エラー:', error.message);
+    }
+    
     res.json({
       success: true,
       data: {
         totalConcepts: stats.totalConcepts,
         learningPatterns: stats.learningPatterns,
         confidence: stats.confidence,
+        vocabularyDiversification: vocabularyStats,
+        dialogueApi: dialogueApiStats,
+        enhancedResponseV2Available: !!vocabularyStats,
         timestamp: new Date().toISOString()
       }
     });
