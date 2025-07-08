@@ -26,20 +26,20 @@
 
 **現状**: `EnhancedResponseGenerationEngineV2`の応答生成ロジックから主要なハードコードが外部化され、より柔軟で拡張性の高いシステムへと進化しました。これにより、応答の品質と管理の容易さが向上しました。
 
-**最優先課題**: **`MetaCognitiveController`内のメソッドの正当性検証**（残りの部分）
+**最優先課題**: **システム全体のE2E (End-to-End) テストの実施**
 
 ---
 
 ## 🚀 **次回セッション推奨テーマ**
 
-### **優先度A: `MetaCognitiveController`内のメソッドの正当性検証**
+### **優先度A: システム全体のE2E (End-to-End) テストの実施**
+- **目的**: 全てのコンポーネントが連携して期待通りに動作することを確認する。
+- **アクション**: `minimal-ai-server.js`を起動し、再実装されたAPIエンドポイントを呼び出すテストシナリオを作成・実行する。特に、`AdvancedDialogueController`を介したデータフローと、`EnhancedResponseGenerationEngineV2`、`MetaCognitiveController`の連携を確認する。
+
+### **優先度B: `MetaCognitiveController`内のメソッドの正当性検証**
 - **目的**: コードベースの健全性を維持し、無駄な複雑さを排除するため、`MetaCognitiveController`内の各メソッドの必要性と冗長性を評価する。
 - **具体的なアクション**:
     1.  `MetaCognitiveController.js`内の各メソッドの役割と、それが`executeMetaCognition`の全体的な目標にどのように貢献しているかを詳細にレビューする。
     2.  各メソッドが本当に必要であるか、あるいは他のメソッドに統合できるか、または完全に削除できるかを検討する。
     3.  特に、簡略化された実装（`// 簡略実装`とコメントされている部分）を持つメソッドについて、その将来的な必要性や、現在のシステムにおける役割を評価する。
     4.  冗長なロジックや、ほとんど機能していないメソッドを特定し、削除またはリファクタリングの提案を行う。
-
-### **優先度B: システム全体のE2E (End-to-End) テストの実施**
-- **目的**: 全てのコンポーネントが連携して期待通りに動作することを確認する。
-- **アクション**: `minimal-ai-server.js`を起動し、再実装されたAPIエンドポイントを呼び出すテストシナリオを作成・実行する。特に、`AdvancedDialogueController`を介したデータフローと、`EnhancedResponseGenerationEngineV2`、`MetaCognitiveController`の連携を確認する。

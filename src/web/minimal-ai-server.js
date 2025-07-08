@@ -24,6 +24,7 @@ import { persistentLearningDB } from '../data/persistent-learning-db.js';
 import { DialogueLogLearner } from '../engines/learning/dialogue-log-learner.js';
 import { EnhancedHybridLanguageProcessor } from '../engines/processing/enhanced-hybrid-processor.js';
 import { QualityAutoAdjustmentSystem } from '../systems/managers/quality-auto-adjustment-system.js';
+import { ConceptQualityManager } from '../tools/concept-quality-evaluator.js';
 import { EnhancedMinimalAI } from '../engines/ai/enhanced-minimal-ai.js';
 
 // fsとmulterはファイルアップロードAPIが残る場合に必要
@@ -94,7 +95,7 @@ async function initializeAI() {
     qualityAdjuster = new QualityAutoAdjustmentSystem();
 
     // 概念品質管理システム初期化
-    // ConceptQualityManager削除済み - 存在しないクラス
+    conceptQualityManager = new ConceptQualityManager(conceptDBInstance);
 
     // メタ認知コントローラーを初期化
     // MetaCognitiveController削除済み - ハードコード満載システムのため不要
@@ -108,7 +109,7 @@ async function initializeAI() {
         null, // metaCognitiveController削除済み
         hybridProcessor,
         qualityAdjuster,
-        null // conceptQualityManager削除済み
+        conceptQualityManager // ★ conceptQualityManagerを注入
     );
     // MetaCognitiveController削除済み
     // 応答生成エンジンを司令塔に注入 (司令塔が応答生成を指示するため)
