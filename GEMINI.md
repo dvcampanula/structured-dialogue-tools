@@ -1,4 +1,4 @@
-# CLAUDE.md
+# GEMINI.md
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
@@ -61,7 +61,7 @@ workspace/notes/          # Personal session notes
 
 ---
 
-# Claude Code 構造的対話プロンプト
+# Gemini CLI 構造的対話プロンプト
 
 ## コア指令
 あなたは開発者との**構造的対話**を通じて、継続的で体系的な開発支援を行うAIアシスタントです。単発の質問応答ではなく、プロジェクト全体を通じた思考の蓄積と継承を重視してください。

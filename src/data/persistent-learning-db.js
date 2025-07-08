@@ -497,6 +497,45 @@ export class PersistentLearningDB {
             console.error('❌ データクリーンアップエラー:', error.message);
         }
     }
+    
+    /**
+     * 学習イベントログ記録
+     */
+    async logLearningEvent(eventData) {
+        try {
+            // 現在の学習統計を取得
+            let stats = this.getLearningStats();
+            
+            // 学習イベントをstatsに追加
+            if (!stats.learningEvents) {
+                stats.learningEvents = [];
+            }
+            
+            stats.learningEvents.push({
+                timestamp: Date.now(),
+                type: 'learning_event',
+                data: {
+                    userId: eventData.userId,
+                    input: eventData.input,
+                    response: eventData.response,
+                    sessionId: eventData.sessionId,
+                    analysis: eventData.analysis
+                }
+            });
+            
+            // 学習統計更新
+            stats.lastLearningDate = Date.now();
+            stats.totalConversations = (stats.totalConversations || 0) + 1;
+            
+            // 保存
+            this.saveLearningStats(stats);
+            
+            console.log('📚 学習イベントログ記録完了');
+            
+        } catch (error) {
+            console.warn('⚠️ 学習イベントログ記録エラー:', error.message);
+        }
+    }
 }
 
 // デフォルトインスタンス

@@ -389,71 +389,47 @@ export class EnhancedResponseGenerationEngineV2 {
     /**
      * 統合応答生成メイン処理
      */
-    async generateUnifiedResponse(userInput, conversationHistory = [], userProfile = {}) {
+    async generateUnifiedResponse(userInput, controlResult, userProfile = {}) {
         const startTime = Date.now();
         this.stats.totalRequests++;
         
         try {
             console.log(`🎯 Enhanced ResponseGeneration v2.0 開始: "${userInput.substring(0, 50)}..."`);
             
-            // DialogueAPIから分析データが渡された場合の処理
-            let actualConversationHistory = [];
-            let externalAnalysisData = null;
-            
-            if (conversationHistory && conversationHistory.generalAnalysis) {
-                // conversationHistoryがanalysisDataオブジェクトの場合
-                externalAnalysisData = conversationHistory;
-                actualConversationHistory = conversationHistory.conversationHistory || [];
-                console.log(`🔗 外部分析データ受信: generalAnalysis.category="${externalAnalysisData.generalAnalysis?.category}"`);
-            } else {
-                // 通常の会話履歴配列の場合
-                actualConversationHistory = Array.isArray(conversationHistory) ? conversationHistory : [];
-            }
-            
-            // 1. 統合分析結果初期化
+            // ★ controlResultから必要な情報を抽出
+            const { contextAnalysis, intentAnalysis, flowControl, dialogueStrategy, personalizedStrategy, responseGuidance } = controlResult;
+            const actualConversationHistory = contextAnalysis.conversationHistory || [];
+
+            // 1. 統合分析結果初期化 (controlResultから取得した分析結果を使用)
             const analysisResult = new UnifiedAnalysisResult(userInput, actualConversationHistory);
-            
-            // 2. 外部分析データがあれば統合（Phase 1汎用AI化対応）
-            if (externalAnalysisData) {
-                if (externalAnalysisData.generalAnalysis) {
-                    analysisResult.generalAnalysis = externalAnalysisData.generalAnalysis;
-                    console.log(`🔗 外部generalAnalysis統合: category="${analysisResult.generalAnalysis.category}"`);
-                }
-                if (externalAnalysisData.emotionAnalysis) {
-                    analysisResult.emotionAnalysis = externalAnalysisData.emotionAnalysis;
-                }
-                if (externalAnalysisData.templateAnalysis) {
-                    analysisResult.templateAnalysis = externalAnalysisData.templateAnalysis;
-                }
-                if (externalAnalysisData.personalAnalysis) {
-                    analysisResult.personalAnalysis = externalAnalysisData.personalAnalysis;
-                }
-            }
-            
-            // 3. 不足している分析データを内部で補完
-            if (!analysisResult.technicalAnalysis) {
+            analysisResult.contextAnalysis = contextAnalysis;
+            analysisResult.intentAnalysis = intentAnalysis;
+            analysisResult.flowControl = flowControl;
+            analysisResult.dialogueStrategy = dialogueStrategy;
+            analysisResult.personalizedStrategy = personalizedStrategy;
+            analysisResult.responseGuidance = responseGuidance; // 応答生成指示を直接セット
+
+            // 2. 不足している分析データを内部で補完 (必要であれば)
+            // AdvancedDialogueControllerが全ての分析を行うため、ここでは基本的に不要だが、
+            // 念のため既存のperformUnifiedAnalysisを呼び出す構造は残す。
+            // ただし、analysisResultに既に情報がある場合はスキップされるべき。
+            if (!analysisResult.technicalAnalysis && !analysisResult.emotionAnalysis && !analysisResult.personalAnalysis) {
                 await this.performUnifiedAnalysis(analysisResult, userProfile);
             }
             
             console.log(`🔍 統合分析完了: generalAnalysis=`, analysisResult.generalAnalysis, `technicalAnalysis=`, analysisResult.technicalAnalysis);
             
-            // 4. 文脈理解強化
-            if (this.config.enableContextEnrichment) {
-                await this.contextEnrichmentEngine.enrichContext(analysisResult);
-            }
+            // 応答戦略決定 (controlResultから取得したdialogueStrategyを使用)
+            analysisResult.responseStrategy = dialogueStrategy; // 司令塔が決定した戦略をそのまま使用
             
-            // 5. 応答戦略決定
-            const responseStrategy = this.determineResponseStrategy(analysisResult);
-            analysisResult.responseStrategy = responseStrategy;
-            
-            // 5. 統合応答生成
+            // 統合応答生成
             const finalResponse = await this.generateFinalResponse(analysisResult);
             
-            // 6. 品質評価・最適化
+            // 品質評価・最適化
             const qualityMetrics = this.evaluateResponseQuality(analysisResult, finalResponse);
             analysisResult.qualityMetrics = qualityMetrics;
             
-            // 7. 統計更新
+            // 統計更新
             analysisResult.processingTime = Date.now() - startTime;
             this.updateStats(analysisResult, true);
             
@@ -477,12 +453,12 @@ export class EnhancedResponseGenerationEngineV2 {
                     dictionaryStats: vocabularyStats,
                     processingTime: analysisResult.processingTime,
                     qualityScore: qualityMetrics.overallScore,
-                    responseStrategy: responseStrategy.primary
+                    responseStrategy: dialogueStrategy.primaryStrategy // 司令塔が決定した戦略
                 },
                 metadata: {
                     processingTime: analysisResult.processingTime,
                     qualityScore: qualityMetrics.overallScore,
-                    responseStrategy: responseStrategy.primary,
+                    responseStrategy: dialogueStrategy.primaryStrategy, // 司令塔が決定した戦略
                     systemVersion: 'v2.0'
                 }
             };
@@ -673,8 +649,25 @@ export class EnhancedResponseGenerationEngineV2 {
      */
     async generateFinalResponse(analysisResult) {
         const strategy = analysisResult.responseStrategy;
+        const responseGuidance = analysisResult.responseGuidance; // 司令塔からの指示
+        const longTermContext = analysisResult.contextAnalysis?.longTermContext; // 長期記憶の分析結果
+
+        // analysisResultに長期記憶情報を統合し、他のメソッドからアクセスしやすくする
+        analysisResult.longTermContext = longTermContext;
+
         let response = "";
-        
+
+        // 応答構造の決定 (responseGuidanceに基づいて)
+        let responseStructure = responseGuidance?.responseStructure || 'adaptive_structure';
+
+        // 長期記憶の活用例: 頻出トピックがあれば、それに関連する応答を優先する
+        if (longTermContext?.frequentTopics?.length > 0) {
+            const dominantTopic = longTermContext.frequentTopics[0].word; // 修正: wordプロパティを参照
+            console.log(`🧠 長期記憶活用: 頻出トピック「${dominantTopic}」を考慮`);
+            // ここで、dominantTopicに基づいてprimaryStrategyを調整するロジックを追加することも可能
+            // 例: if (dominantTopic === 'React') strategy.primary = 'technical';
+        }
+
         // 戦略に基づく応答生成
         switch (strategy.primary) {
             case 'technical':
@@ -690,12 +683,99 @@ export class EnhancedResponseGenerationEngineV2 {
             default:
                 response = await this.generateBalancedResponse(analysisResult);
         }
-        
+
         // 二次戦略適用
         for (const secondaryStrategy of strategy.secondary) {
             response = await this.applySecondaryStrategy(response, secondaryStrategy, analysisResult);
         }
-        
+
+        // responseGuidanceに基づく最終的な応答の調整
+        response = this.applyResponseGuidanceAdjustments(response, responseGuidance);
+
+        return response;
+    }
+
+    // ★ responseGuidanceに基づく最終的な応答の調整メソッド
+    applyResponseGuidanceAdjustments(response, guidance) {
+        let adjustedResponse = response;
+
+        if (!guidance) return adjustedResponse;
+
+        // 構造の調整
+        switch (guidance.responseStructure) {
+            case 'step_by_step':
+                adjustedResponse = this.restructureStepByStep(adjustedResponse);
+                break;
+            case 'summary_only':
+                adjustedResponse = this.summarizeResponse(adjustedResponse);
+                break;
+            // 他の構造調整ロジック
+        }
+
+        // スタイルの調整
+        switch (guidance.styleInstructions) {
+            case 'formal':
+                adjustedResponse = this.formalizeResponse(adjustedResponse);
+                break;
+            case 'casual':
+                adjustedResponse = this.casualizeResponse(adjustedResponse);
+                break;
+            // 他のスタイル調整ロジック
+        }
+
+        // 内容の調整 (contentGuidelines)
+        if (guidance.contentGuidelines?.includes('be_concise')) {
+            adjustedResponse = this.condenseResponse(adjustedResponse);
+        }
+        if (guidance.contentGuidelines?.includes('be_detailed')) {
+            adjustedResponse = this.expandResponse(adjustedResponse);
+        }
+
+        // 品質目標の考慮 (qualityTargets)
+        // ここでは直接応答を調整するのではなく、品質評価に影響を与える
+
+        return adjustedResponse;
+    }
+
+    // ★ 応答調整のためのヘルパーメソッド (簡易実装)
+    restructureStepByStep(response) {
+        // 例: 箇条書きにする
+        const sentences = response.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
+        if (sentences.length > 1) {
+            return "\n" + sentences.map((s, i) => `${i + 1}. ${s.trim()}`).join("\n");
+        }
+        return response;
+    }
+
+    summarizeResponse(response) {
+        // 例: 最初の2文に要約
+        const sentences = response.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
+        return sentences.slice(0, 2).join("。") + (sentences.length > 2 ? "。..." : "");
+    }
+
+    formalizeResponse(response) {
+        // 例: 語尾を「です・ます」調に
+        return response.replace(/だ|である/g, 'です').replace(/だよ|だね/g, 'ですね');
+    }
+
+    casualizeResponse(response) {
+        // 例: 語尾を「だ・である」調に
+        return response.replace(/です|ます/g, 'だ').replace(/ですね/g, 'だね');
+    }
+
+    condenseResponse(response) {
+        // 例: 長い応答を短くする
+        if (response.length > 200) {
+            return response.substring(0, 200) + "...";
+        }
+        return response;
+    }
+
+    expandResponse(response) {
+        // 例: 短い応答を長くする (ここではプレースホルダー)
+        if (response.length < 50) {
+            return response + "\n\n詳細については、さらに掘り下げて説明することも可能です。";
+        }
         return response;
     }
     
@@ -710,7 +790,30 @@ export class EnhancedResponseGenerationEngineV2 {
         }; // 後方互換性 + デフォルト値
         const userInput = analysisResult.userInput;
         const template = analysisResult.templateAnalysis;
-        
+        const longTermContext = analysisResult.longTermContext; // 長期記憶の分析結果
+
+        // 長期記憶の活用例: 頻出トピックやキーワードを応答に組み込む
+        if (longTermContext?.historyExists) {
+            let longTermHint = '';
+            if (longTermContext.frequentTopics?.length > 0) {
+                const topic = longTermContext.frequentTopics[0].word; // 修正: wordプロパティを参照
+                longTermHint += `以前、${topic}についてよく話されていましたね。`;
+            }
+            if (longTermContext.dominantIntents?.length > 0) {
+                const intent = longTermContext.dominantIntents[0].word; // 修正: wordプロパティを参照
+                longTermHint += `あなたの主な意図は${intent}のようですね。`;
+            }
+            if (longTermContext.coreKeywords?.length > 0) {
+                const keyword = longTermContext.coreKeywords[0].word; // 修正: wordプロパティを参照
+                longTermHint += `特に${keyword}という言葉をよく使われますね。`;
+            }
+            if (longTermHint) {
+                console.log(`🧠 長期記憶からのヒント: ${longTermHint}`);
+                // 応答の冒頭に長期記憶からのヒントを追加する例
+                // ただし、ここでは直接応答を生成せず、各カテゴリ別応答で活用する
+            }
+        }
+
         // 1. 学習データ強化応答生成
         if (analysisResult.learningAnalysis?.hasLearningData) {
             const learningEnhancedResponse = await this.generateLearningEnhancedResponse(userInput, general, analysisResult.learningAnalysis);
@@ -726,33 +829,33 @@ export class EnhancedResponseGenerationEngineV2 {
             switch (general.category) {
                 case 'gratitude':
                     console.log(`💝 感謝応答生成: "${userInput}"`);
-                    return await this.generateGratitudeResponse(userInput, general);
+                    return await this.generateGratitudeResponse(userInput, general, longTermContext);
                 case 'emotional_support':
                     console.log(`🤗 感情サポート応答生成: "${userInput}"`);
-                    return await this.generateEmotionalSupportResponse(userInput, general);
+                    return await this.generateEmotionalSupportResponse(userInput, general, longTermContext);
                 case 'greeting':
                     console.log(`👋 挨拶応答生成: "${userInput}"`);
-                    return await this.generateGreetingResponse(userInput, general);
+                    return await this.generateGreetingResponse(userInput, general, longTermContext);
                 case 'learning_support':
                     console.log(`📚 学習サポート応答生成: "${userInput}"`);
-                    return await this.generateLearningSupportResponse(userInput, general);
+                    return await this.generateLearningSupportResponse(userInput, general, longTermContext);
                 case 'comparison_request':
                     console.log(`⚖️ 比較応答生成: "${userInput}"`);
-                    return await this.generateComparisonResponse(userInput, general);
+                    return await this.generateComparisonResponse(userInput, general, longTermContext);
                 case 'how_to_request':
                     console.log(`❓ 方法応答生成: "${userInput}"`);
-                    return await this.generateHowToResponse(userInput, general);
+                    return await this.generateHowToResponse(userInput, general, longTermContext);
                 case 'technical_inquiry':
                     console.log(`🔧 技術応答生成: "${userInput}"`);
-                    return await this.generateTechnicalInquiryResponse(userInput, general);
+                    return await this.generateTechnicalInquiryResponse(userInput, general, longTermContext);
                 default:
                     console.log(`💬 汎用応答生成: "${userInput}" (カテゴリ: ${general.category})`);
-                    return await this.generateGeneralConversationResponse(userInput, general);
+                    return await this.generateGeneralConversationResponse(userInput, general, longTermContext);
             }
         }
         
         // 3. インテリジェントフォールバック
-        return this.generateIntelligentFallback(userInput, { type: 'general', context: general });
+        return this.generateIntelligentFallback(userInput, { type: 'general', context: general, longTermContext: longTermContext });
     }
     
     async generateEmotionalResponse(analysisResult) {
@@ -962,9 +1065,15 @@ export class EnhancedResponseGenerationEngineV2 {
      * 🌟 感情・日常会話重視応答生成メソッド群
      */
     
-    async generateGratitudeResponse(userInput, general) {
+    async generateGratitudeResponse(userInput, general, longTermContext) {
         let baseResponse = "お役に立てて嬉しいです！😊\n\n他にもご質問やお手伝いできることがございましたら、いつでもお気軽にお声かけください。どのようなことでもサポートいたします。";
         
+        // 長期記憶の活用例: ユーザーがよく使うキーワードを応答に含める
+        if (longTermContext?.coreKeywords?.length > 0) {
+            const keyword = longTermContext.coreKeywords[0].word; // 修正: wordプロパティを参照
+            baseResponse += `\n\n特に${keyword}に関するご質問は、いつでも歓迎です！`;
+        }
+
         // 語彙多様化処理（ローカル・無料自然性向上）
         if (this.config.enableVocabularyDiversification) {
             const context = {
@@ -979,7 +1088,7 @@ export class EnhancedResponseGenerationEngineV2 {
         return baseResponse;
     }
     
-    async generateEmotionalSupportResponse(userInput, general) {
+    async generateEmotionalSupportResponse(userInput, general, longTermContext) {
         let baseResponse;
         if (userInput.includes('落ち込') || userInput.includes('つらい')) {
             baseResponse = "お疲れ様です。落ち込むこともありますよね。\n\n一人で抱え込まずに、お話しいただけて良かったです。どのようなことでお困りですか？具体的な状況を教えていただければ、一緒に解決策を考えましょう。";
@@ -987,6 +1096,16 @@ export class EnhancedResponseGenerationEngineV2 {
             baseResponse = "お困りの状況をお察しします。不安な気持ち、よく分かります。\n\n解決に向けて一緒に取り組みましょう。具体的にどのような問題が発生していますか？詳しく教えていただければ、適切なアドバイスをご提案できます。";
         } else {
             baseResponse = "大変そうですね。お疲れ様です。\n\nどのようなことでお悩みでしょうか？お聞かせください。一緒に解決策を考えましょう。";
+        }
+
+        // 長期記憶の活用例: ユーザーの主要な意図を考慮したサポート
+        if (longTermContext?.dominantIntents?.length > 0) {
+            const dominantIntent = longTermContext.dominantIntents[0].word; // 修正: wordプロパティを参照
+            if (dominantIntent === 'learning') {
+                baseResponse += `\n\n学習に関するお悩みでしたら、私が全力でサポートします。`;
+            } else if (dominantIntent === 'problem') {
+                baseResponse += `\n\n問題解決に向けて、具体的なステップをご提案できます。`;
+            }
         }
         
         // 語彙多様化処理（ローカル・無料自然性向上）
@@ -1003,7 +1122,7 @@ export class EnhancedResponseGenerationEngineV2 {
         return baseResponse;
     }
     
-    async generateGreetingResponse(userInput, general) {
+    async generateGreetingResponse(userInput, general, longTermContext) {
         let baseResponse;
         if (userInput.includes('おはよう')) {
             baseResponse = "おはようございます！☀️\n\n今日も良い一日になりますように。何かお手伝いできることがあれば、お気軽にお声かけくださいね。";
@@ -1013,6 +1132,12 @@ export class EnhancedResponseGenerationEngineV2 {
             baseResponse = "はじめまして！お会いできて嬉しいです。😊\n\n私はあなたの学習や相談をサポートするAIアシスタントです。どのようなことでもお気軽にご相談ください。よろしくお願いします！";
         } else {
             baseResponse = "こんにちは！\n\n今日はどのようなことでお手伝いできるでしょうか？何でもお気軽にお聞かせください。";
+        }
+
+        // 長期記憶の活用例: ユーザーがよく話すトピックを挨拶に含める
+        if (longTermContext?.frequentTopics?.length > 0) {
+            const topic = longTermContext.frequentTopics[0].word; // 修正: wordプロパティを参照
+            baseResponse += `\n\n${topic}について何かお困りですか？`;
         }
         
         // 語彙多様化処理（ローカル・無料自然性向上）
@@ -1029,7 +1154,7 @@ export class EnhancedResponseGenerationEngineV2 {
         return baseResponse;
     }
     
-    async generateLearningSupportResponse(userInput, general) {
+    async generateLearningSupportResponse(userInput, general, longTermContext) {
         let baseResponse;
         if (userInput.includes('初心者') || userInput.includes('始め')) {
             baseResponse = "学習を始められるのですね！素晴らしいです！🌟\n\n初心者の方には、基本から一歩ずつ確実に進むことをおすすめします。あなたのペースに合わせて、分かりやすくサポートします。\n\nどの分野の学習をお考えですか？具体的な目標があれば教えてください。";
@@ -1037,6 +1162,14 @@ export class EnhancedResponseGenerationEngineV2 {
             baseResponse = "効果的な学習方法についてお答えします！📚\n\n一人ひとりに最適な学習スタイルがありますので、あなたに合った方法を一緒に見つけましょう。どのような分野を学習されたいのか、現在のレベルや目標を教えてください。";
         } else {
             baseResponse = "学習についてのご質問ですね！📝\n\nあなたの目標達成をサポートします。どの分野について学びたいか、どのようなことで困っているかを詳しく教えてください。";
+        }
+
+        // 長期記憶の活用例: ユーザーの主要な意図が学習関連であれば、より踏み込んだ提案
+        if (longTermContext?.dominantIntents?.length > 0) {
+            const dominantIntent = longTermContext.dominantIntents[0].word; // 修正: wordプロパティを参照
+            if (dominantIntent === 'learning') {
+                baseResponse += `\n\nこれまでの学習履歴から、${longTermContext.frequentTopics[0]?.word || '特定の分野'}に興味をお持ちのようですね。`;
+            }
         }
         
         // 語彙多様化処理（ローカル・無料自然性向上）
@@ -1053,12 +1186,20 @@ export class EnhancedResponseGenerationEngineV2 {
         return baseResponse;
     }
     
-    async generateTechnicalInquiryResponse(userInput, general) {
+    async generateTechnicalInquiryResponse(userInput, general, longTermContext) {
         let baseResponse;
         if (userInput.includes('初心者') && userInput.includes('プログラミング')) {
             baseResponse = "プログラミング学習を始められるのですね！素晴らしいです！💻\n\n初心者の方には、まず基本的な概念から始めることをおすすめします。あなたの興味や目標に合わせて、最適な学習パスをご提案できます。\n\nどのような分野に興味がありますか？Webサイト作成、アプリ開発、データ分析など、目指したい方向があれば教えてください。";
         } else {
             baseResponse = "技術的なご質問ですね！🔧\n\nあなたのレベルや目的に合わせて、分かりやすく説明いたします。具体的にどのような技術や課題についてお聞きしたいでしょうか？";
+        }
+
+        // 長期記憶の活用例: ユーザーがよく使う技術キーワードを応答に含める
+        if (longTermContext?.coreKeywords?.length > 0) {
+            const techKeyword = longTermContext.coreKeywords.find(kw => ['Python', 'JavaScript', 'React', 'データサイエンス'].includes(kw.word))?.word; // 修正: wordプロパティを参照
+            if (techKeyword) {
+                baseResponse += `\n\n特に${techKeyword}に関するご質問は、私にお任せください。`;
+            }
         }
         
         // 語彙多様化処理（技術分野対応）
@@ -1075,8 +1216,14 @@ export class EnhancedResponseGenerationEngineV2 {
         return baseResponse;
     }
     
-    async generateGeneralConversationResponse(userInput, general) {
+    async generateGeneralConversationResponse(userInput, general, longTermContext) {
         let baseResponse = `「${this.extractKeyTopic(userInput)}」についてお話ししましょう！\n\n何でもお気軽にお聞かせください。あなたのお役に立てるよう、できる限りサポートいたします。どのような点について詳しく知りたいでしょうか？`;
+
+        // 長期記憶の活用例: ユーザーの頻出トピックを会話のきっかけにする
+        if (longTermContext?.frequentTopics?.length > 0) {
+            const topic = longTermContext.frequentTopics[0].word; // 修正: wordプロパティを参照
+            baseResponse += `\n\nそういえば、以前${topic}についてもお話しされていましたね。何か進展はありましたか？`;
+        }
         
         // 語彙多様化処理（一般会話対応）
         if (this.config.enableVocabularyDiversification) {

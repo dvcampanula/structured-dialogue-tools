@@ -1,10 +1,10 @@
 [
   {
-    "timestamp": 1751856750689,
-    "userId": "diversity-test-4",
-    "sessionId": "session_1751856750687_dyxhggk60",
-    "userMessage": "ありがとうございます！",
-    "aiResponse": "そうですね、お役に立てて満足です！😊\n\n他にもご質問やお手伝いできることがございましたら、いつでもお気軽にお声かけください。どのようなことでもサポートます。\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。",
+    "timestamp": 1751948335420,
+    "userId": "anonymous",
+    "sessionId": "session_1751948335418_v8bk77n10",
+    "userMessage": "ありがとうございます",
+    "aiResponse": "お役に立てて嬉しいです！😊\n\n他にもご質問やお手伝いできることがございましたら、いつでもお気軽にお声かけください。どのようなことでもサポートいたします。",
     "dialogueAnalysis": {
       "contextDepth": 0,
       "intentType": "affirmation",
@@ -14,41 +14,27 @@
     }
   },
   {
-    "timestamp": 1751856750716,
-    "userId": "diversity-test-4",
-    "sessionId": "session_1751856750687_dyxhggk60",
-    "userMessage": "困っています",
-    "aiResponse": "そうですね、お困りの状況をお察しします。憂慮な気持ち、よく分かります。\n\n対処に向けて一緒に取り組みましょう。具体的にどのような問題が発生していますか？詳しく教えていただければ、適切なアドバイスをご提案できます。\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。\n\n問題解決のため、段階的にアプローチしていきましょう。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
+    "timestamp": 1751948337324,
+    "userId": "anonymous",
+    "sessionId": "session_1751948335418_v8bk77n10",
+    "userMessage": "宇宙について教えて",
+    "aiResponse": "学習についてのご質問ですね！📝\n\nあなたの目標達成をサポートします。どの分野について学びたいか、どのようなことで困っているかを詳しく教えてください。\n\n問題解決のため、段階的にアプローチしていきましょう。\n\n学習を進めるため、理解度を確認しながら進めていきます。",
     "dialogueAnalysis": {
       "contextDepth": 1,
-      "intentType": "help_request",
-      "intentConfidence": 0.8,
+      "intentType": "learning",
+      "intentConfidence": 0.5,
       "semanticContinuity": 0,
-      "strategy": "exploratory"
+      "strategy": "educational"
     }
   },
   {
-    "timestamp": 1751856750745,
-    "userId": "diversity-test-4",
-    "sessionId": "session_1751856750687_dyxhggk60",
-    "userMessage": "おはようございます",
-    "aiResponse": "そうですね、おはようございます！☀️\n\n今日も見事一日になりますように。何かお手伝いできることがあれば、お気軽にお声かけくださいね。\n\n例えば、料理を作る時のレシピのような手順で進めるアプローチすると良いでしょう。ということですね。",
+    "timestamp": 1751948343531,
+    "userId": "anonymous",
+    "sessionId": "session_1751948335418_v8bk77n10",
+    "userMessage": "昨日映画を見ました",
+    "aiResponse": "「昨日映画を見ました」についてお話ししましょう！\n\n何でもお気軽にお聞かせください。あなたのお役に立てるよう、できる限りサポートいたします。どのような点について詳しく知りたいでしょうか？\n\n他にご質問がございましたら、お気軽にお聞かせください。",
     "dialogueAnalysis": {
       "contextDepth": 2,
-      "intentType": "help_request",
-      "intentConfidence": 0,
-      "semanticContinuity": 0,
-      "strategy": "exploratory"
-    }
-  },
-  {
-    "timestamp": 1751856750774,
-    "userId": "diversity-test-4",
-    "sessionId": "session_1751856750687_dyxhggk60",
-    "userMessage": "初心者です",
-    "aiResponse": "そうですね、「初心者です」についてお話ししましょう！\n\n何でもお気軽にお聞かせください。あなたのお役に立てるよう、できる限りサポートいたします。どのような点について詳しく知りたいでしょうか？\n\n例えば、本を読む時の目次のように構造的にアプローチすると良いでしょう。ということですね。\n\n他にご質問がございましたら、お気軽にお聞かせください。",
-    "dialogueAnalysis": {
-      "contextDepth": 3,
       "intentType": "help_request",
       "intentConfidence": 0,
       "semanticContinuity": 0,

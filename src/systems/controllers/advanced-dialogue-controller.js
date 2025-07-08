@@ -15,13 +15,16 @@ import { SemanticSimilarityEngine } from '../../engines/processing/semantic-simi
 import { IntentRecognitionEngine } from '../../engines/dialogue/intent-recognition-engine.js';
 import { ContextTrackingSystem } from '../../engines/dialogue/context-tracking-system.js';
 import { DialogueFlowController } from '../../engines/dialogue/dialogue-flow-controller.js';
+import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 
 export class AdvancedDialogueController {
-    constructor(personalAnalyzer, domainBuilder, responseAdapter, conceptDB, userId = 'default') {
-        this.personalAnalyzer = personalAnalyzer;
-        this.domainBuilder = domainBuilder;
-        this.responseAdapter = responseAdapter;
-        this.conceptDB = conceptDB;
+    constructor(personalDialogueAnalyzer, domainKnowledgeBuilder, personalResponseAdapter, conceptDB, metaCognitiveController, userId = 'default') {
+        this.personalDialogueAnalyzer = personalDialogueAnalyzer; // 注入されたアナライザー
+        this.domainKnowledgeBuilder = domainKnowledgeBuilder;     // 注入されたビルダー
+        this.personalResponseAdapter = personalResponseAdapter;   // 注入されたアダプター
+        this.conceptDB = conceptDB; // 注入されたconceptDB
+        this.db = persistentLearningDB; // DBインスタンスを保持
+        this.metaCognitiveController = metaCognitiveController; // 注入されたメタ認知コントローラー
         
         // 外部設定・データ（起動時に読み込み）
         this.techRelations = {};
@@ -41,7 +44,7 @@ export class AdvancedDialogueController {
         
         // 対話制御コア
         this.contextMemory = new Map();
-        this.conversationHistory = [];
+        this.conversationHistory = []; // 初期化時にDBからロード
         this.dialogueState = {
             currentTopic: null,
             intentStack: [],
@@ -66,6 +69,9 @@ export class AdvancedDialogueController {
         // 外部設定・データ読み込み
         await this.loadExternalConfig();
         
+        // ★ DBから対話履歴を読み込み
+        await this.loadConversationHistory();
+
         // 動的学習システム初期化
         this.dynamicLearner = new DynamicRelationshipLearner(this.userId);
         
@@ -73,6 +79,34 @@ export class AdvancedDialogueController {
         await this.integrateModules();
         
         console.log('✅ AdvancedDialogueController: モジュラー高度対話制御システム初期化完了');
+    }
+
+    /**
+     * ★ DBから対話履歴を読み込む
+     */
+    async loadConversationHistory() {
+        try {
+            const history = await this.db.getConversationHistory();
+            if (history && history.length > 0) {
+                this.conversationHistory = history;
+                console.log(`📚 DBから対話履歴を読み込みました: ${history.length}件`);
+            }
+        } catch (error) {
+            console.warn('⚠️ 対話履歴の読み込みに失敗しました。', error);
+            this.conversationHistory = [];
+        }
+    }
+
+    /**
+     * ★ DBに対話履歴を保存する
+     */
+    async saveConversationHistory() {
+        try {
+            await this.db.saveConversationHistory(this.conversationHistory);
+            console.log(`💾 対話履歴をDBに保存しました: ${this.conversationHistory.length}件`);
+        } catch (error) {
+            console.error('❌ 対話履歴の保存に失敗しました。', error);
+        }
     }
 
     /**
@@ -180,7 +214,7 @@ export class AdvancedDialogueController {
         
         try {
             // Step 1: 多段階文脈追跡（モジュール使用）
-            const contextAnalysis = await this.contextTracker.trackContext(input, conversationHistory);
+            const contextAnalysis = await this.contextTracker.trackContext(input, this.conversationHistory);
             
             // Step 2: 高度意図認識（モジュール使用）
             const intentAnalysis = await this.intentEngine.recognizeIntent(input, contextAnalysis);
@@ -197,12 +231,6 @@ export class AdvancedDialogueController {
             // Step 6: 応答生成指示作成（モジュール使用）
             const responseGuidance = this.flowController.createResponseGuidance(personalizedStrategy);
             
-            // 対話状態更新
-            this.updateDialogueState(input, contextAnalysis, intentAnalysis, flowControl);
-            
-            // 意味的連続性計算（モジュール使用）
-            contextAnalysis.semanticContinuity = await this.semanticEngine.calculateSemanticContinuity(input, conversationHistory);
-            
             const result = {
                 contextAnalysis: contextAnalysis,
                 intentAnalysis: intentAnalysis,
@@ -212,15 +240,40 @@ export class AdvancedDialogueController {
                 responseGuidance: responseGuidance,
                 conversationMetrics: this.calculateConversationMetrics()
             };
+
+            // ★ 対話ターンの要約を作成し、状態を更新
+            const summary = this._summarizeTurn(input, result);
+            this.updateDialogueState(summary);
+            
+            // 意味的連続性計算（モジュール使用）
+            contextAnalysis.semanticContinuity = await this.semanticEngine.calculateSemanticContinuity(input, conversationHistory);
+            result.contextAnalysis.semanticContinuity = contextAnalysis.semanticContinuity; // 結果オブジェクトに反映
             
             this.controllerStats.totalConversations++;
             console.log(`✅ 高度対話制御完了: 文脈深度${contextAnalysis.contextDepth}, 意図信頼度${intentAnalysis.confidence}`);
             
+            // ★ 対話履歴をDBに保存
+            await this.saveConversationHistory();
+
+            // Step 7: メタ認知コントローラーを呼び出し、対話結果を渡す
+            if (this.metaCognitiveController) {
+                await this.metaCognitiveController.executeMetaCognition(result, null); // responseResultは後で追加
+            }
+
             return result;
             
         } catch (error) {
             console.error('❌ 高度対話制御エラー:', error);
             return this.generateFallbackControl(input, conversationHistory);
+        }
+    }
+
+    /**
+     * 対話結果をメタ認知コントローラーに渡す
+     */
+    async processDialogueResultsForMetaCognition(controlResult, responseResult) {
+        if (this.metaCognitiveController) {
+            await this.metaCognitiveController.executeMetaCognition(controlResult, responseResult);
         }
     }
 
@@ -849,20 +902,14 @@ export class AdvancedDialogueController {
     }
 
     // 対話状態管理
-    updateDialogueState(input, contextAnalysis, intentAnalysis, flowControl) {
-        this.dialogueState.currentTopic = contextAnalysis.topicEvolution.slice(-1)[0]?.topic || null;
-        this.dialogueState.intentStack.push(intentAnalysis.primaryIntent);
-        this.dialogueState.contextDepth = contextAnalysis.contextDepth;
-        this.dialogueState.conversationGoals = flowControl.conversationGoals;
+    updateDialogueState(summary) {
+        this.dialogueState.currentTopic = summary.topic;
+        this.dialogueState.intentStack.push(summary.intent);
+        this.dialogueState.contextDepth = summary.analysis.contextDepth;
+        // this.dialogueState.conversationGoals = flowControl.conversationGoals;
         
-        // 履歴更新
-        this.conversationHistory.push({
-            input: input,
-            timestamp: new Date().toISOString(),
-            contextAnalysis: contextAnalysis,
-            intentAnalysis: intentAnalysis,
-            flowControl: flowControl
-        });
+        // 履歴更新 (★ 要約オブジェクトを保存)
+        this.conversationHistory.push(summary);
         
         // 履歴サイズ制限
         if (this.conversationHistory.length > 50) {
@@ -1326,6 +1373,30 @@ export class AdvancedDialogueController {
     assessPolitenessLevel(input) { return 0.7; }
     assessDirectness(input) { return 0.6; }
     assessCooperativeness(input, context) { return 0.8; }
+
+    /**
+     * ★ 対話ターンの要約を作成する
+     * @param {string} input - ユーザー入力
+     * @param {Object} result - 制御結果オブジェクト
+     * @returns {Object} - 要約オブジェクト
+     */
+    _summarizeTurn(input, result) {
+        const { contextAnalysis, intentAnalysis } = result;
+        return {
+            userInput: input,
+            // response: result.responseGuidance, // 将来的にAIの応答も記録
+            timestamp: new Date().toISOString(),
+            topic: contextAnalysis.contextualState?.dominantTopic || 'unknown',
+            intent: intentAnalysis.primaryIntent?.type || 'unknown',
+            keywords: this.extractKeywords(input),
+            // 元の分析結果も保持しておく
+            analysis: {
+                contextDepth: contextAnalysis.contextDepth,
+                intentConfidence: intentAnalysis.confidence,
+                flowStrategy: result.dialogueStrategy?.primaryStrategy,
+            }
+        };
+    }
 }
 
 // サブクラス（簡略実装）

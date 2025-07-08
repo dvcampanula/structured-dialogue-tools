@@ -272,10 +272,18 @@ export class VocabularyDiversifier {
                     // 高品質同義語選択
                     const synonym = this.getHighQualitySynonym(word, context);
                     if (synonym && synonym !== word && this.isAppropriateSynonym(word, synonym)) {
-                        result = result.replace(new RegExp(word, 'g'), synonym);
-                        replacedWords.add(word);
-                        replacedWords.add(synonym); // 置換後の語も保護
-                        console.log(`🚀 高品質語彙置換: "${word}" → "${synonym}"`);
+                        // 日本語対応の安全な置換（完全一致のみ）
+                        const exactMatches = result.split(/(\s+|[、。！？\n])/).map(part => {
+                            return part === word ? synonym : part;
+                        }).join('');
+                        
+                        // 実際に置換されたかチェック
+                        if (exactMatches !== result) {
+                            result = exactMatches;
+                            replacedWords.add(word);
+                            replacedWords.add(synonym);
+                            console.log(`🚀 高品質語彙置換: "${word}" → "${synonym}"`);
+                        }
                     }
                 }
             });
@@ -301,9 +309,17 @@ export class VocabularyDiversifier {
                 }
                 
                 if (synonym !== word && this.isAppropriateSynonym(word, synonym)) {
-                    result = result.replace(new RegExp(word, 'g'), synonym);
-                    replacedWords.add(word);
-                    console.log(`🔄 感情語彙置換: "${word}" → "${synonym}"`);
+                    // 日本語対応の安全な置換（完全一致のみ）
+                    const exactMatches = result.split(/(\s+|[、。！？\n])/).map(part => {
+                        return part === word ? synonym : part;
+                    }).join('');
+                    
+                    // 実際に置換されたかチェック
+                    if (exactMatches !== result) {
+                        result = exactMatches;
+                        replacedWords.add(word);
+                        console.log(`🔄 感情語彙置換: "${word}" → "${synonym}"`);
+                    }
                 }
             }
         });
@@ -593,6 +609,32 @@ export class VocabularyDiversifier {
             });
         }
         return changes;
+    }
+    
+    /**
+     * 強化同義語マップ構築（辞書DB利用）
+     */
+    async buildEnhancedSynonymMap() {
+        console.log('🔄 同義語マッピング強化開始（VocabularyDiversifier）');
+        
+        try {
+            if (!this.dictionaryDB) {
+                console.warn('⚠️ 辞書DB未初期化、内蔵辞書のみ使用');
+                return { enhancedCount: 0, totalSynonyms: 0 };
+            }
+            
+            // DictionaryDBCoreの強化同義語マップ構築を呼び出し
+            const result = await this.dictionaryDB.buildEnhancedSynonymMap();
+            
+            console.log(`✅ 同義語マッピング強化完了: ${result.enhancedCount}件追加`);
+            console.log(`📊 統計: 類似性${result.similarities || 0}組, グループ${result.groups || 0}組, 相互${result.mutualConnections || 0}組`);
+            
+            return result;
+            
+        } catch (error) {
+            console.warn('⚠️ 同義語マッピング強化エラー:', error.message);
+            return { enhancedCount: 0, totalSynonyms: 0 };
+        }
     }
     
     /**

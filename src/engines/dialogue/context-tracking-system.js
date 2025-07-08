@@ -47,7 +47,11 @@ export class ContextTrackingSystem {
     async trackContext(currentInput, conversationHistory = []) {
         console.log(`📊 文脈追跡開始: ${conversationHistory.length}ターン履歴分析`);
         
+        // ★ 長期的な履歴分析を追加
+        const longTermContext = this._analyzeSummarizedHistory(conversationHistory);
+
         const contextAnalysis = {
+            longTermContext: longTermContext, // ★ 長期文脈を追加
             contextDepth: 0,
             topicEvolution: [],
             referenceChain: [],
@@ -899,6 +903,49 @@ export class ContextTrackingSystem {
             contextBreaks: []
         };
         console.log('🧹 文脈追跡メモリクリア完了');
+    }
+
+    /**
+     * ★ 要約された対話履歴全体を分析し、長期的な文脈を抽出する
+     * @param {Array<Object>} summarizedHistory - 要約オブジェクトの配列
+     * @returns {Object} 長期的な文脈の分析結果
+     */
+    _analyzeSummarizedHistory(summarizedHistory) {
+        if (!summarizedHistory || summarizedHistory.length === 0) {
+            return {
+                frequentTopics: [],
+                dominantIntents: [],
+                coreKeywords: [],
+                historyExists: false,
+            };
+        }
+
+        const topicFrequency = new Map();
+        const intentFrequency = new Map();
+        const keywordFrequency = new Map();
+
+        for (const summary of summarizedHistory) {
+            if (summary.topic && summary.topic !== 'unknown') {
+                topicFrequency.set(summary.topic, (topicFrequency.get(summary.topic) || 0) + 1);
+            }
+            if (summary.intent && summary.intent !== 'unknown') {
+                intentFrequency.set(summary.intent, (intentFrequency.get(summary.intent) || 0) + 1);
+            }
+            if (summary.keywords && Array.isArray(summary.keywords)) {
+                for (const keyword of summary.keywords) {
+                    keywordFrequency.set(keyword, (keywordFrequency.get(keyword) || 0) + 1);
+                }
+            }
+        }
+
+        const sortMap = (map) => [...map.entries()].sort((a, b) => b[1] - a[1]);
+
+        return {
+            frequentTopics: sortMap(topicFrequency).slice(0, 5),
+            dominantIntents: sortMap(intentFrequency).slice(0, 3),
+            coreKeywords: sortMap(keywordFrequency).slice(0, 10),
+            historyExists: true,
+        };
     }
 }
 

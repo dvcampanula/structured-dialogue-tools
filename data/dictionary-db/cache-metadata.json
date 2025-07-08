@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "createdAt": "2025-07-07T12:22:52.212Z",
+  "createdAt": "2025-07-07T13:03:40.492Z",
   "sourceHashes": {
     "jmdict": "3eed2710202db5d65b7358ebd9c33803",
     "wiktionary": "02ca09df6122bba2e90edef94c2b9dac"
@@ -12,7 +12,7 @@
       "JMdict_optimized"
     ],
     "memoryUsage": 0,
-    "lastUpdated": 1751890969003
+    "lastUpdated": 1751893416568
   },
   "config": {
     "enableCompression": true,

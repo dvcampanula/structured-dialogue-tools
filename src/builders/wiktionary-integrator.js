@@ -386,8 +386,8 @@ export class WiktionaryIntegrator {
                     const entryData = JSON.parse(line);
                     const entry = new WiktionaryEntry(entryData);
                     
-                    // 言語フィルタリング（lang使用、English→en対応）
-                    const normalizedLang = entry.lang === 'English' ? 'en' : entry.lang;
+                    // 言語フィルタリング（lang_code使用、English→en対応）
+                    const normalizedLang = entry.lang_code || (entry.lang === 'English' ? 'en' : entry.lang);
                     if (this.config.targetLanguages.includes(normalizedLang)) {
                         processingBatch.push(entry);
                         processedCount++;

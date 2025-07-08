@@ -68,15 +68,15 @@ export class MetaCognitiveController {
     /**
      * メタ認知制御メイン処理
      */
-    async executeMetaCognition(interaction, systemPerformance, userFeedback = null) {
+    async executeMetaCognition(controlResult, responseResult, userFeedback = null) {
         console.log(`🧠 メタ認知制御実行開始`);
         
         try {
             // Step 1: 自己反省実行
-            const selfReflection = await this.performSelfReflection(interaction, systemPerformance, userFeedback);
+            const selfReflection = await this.performSelfReflection(controlResult, responseResult, userFeedback);
             
             // Step 2: 品質監視・評価
-            const qualityAssessment = await this.monitorQuality(interaction, systemPerformance);
+            const qualityAssessment = await this.monitorQuality(controlResult, responseResult);
             
             // Step 3: 学習最適化
             const learningOptimization = await this.optimizeLearning(selfReflection, qualityAssessment);
@@ -110,7 +110,7 @@ export class MetaCognitiveController {
             };
             
             // メタ認知履歴更新
-            await this.updateMetaCognitionHistory(interaction, result);
+            await this.updateMetaCognitionHistory(controlResult, result);
             
             this.metacognitionStats.totalReflections++;
             console.log(`✅ メタ認知制御完了: システム健全性${this.calculateSystemHealth().toFixed(2)}`);
@@ -119,14 +119,14 @@ export class MetaCognitiveController {
             
         } catch (error) {
             console.error('❌ メタ認知制御エラー:', error);
-            return this.generateFallbackMetaCognition(interaction, systemPerformance);
+            return this.generateFallbackMetaCognition(controlResult, responseResult);
         }
     }
 
     /**
      * 自己反省システム
      */
-    async performSelfReflection(interaction, performance, feedback) {
+    async performSelfReflection(controlResult, responseResult, userFeedback = null) {
         console.log(`🤔 自己反省実行開始`);
         
         const reflection = {
@@ -141,7 +141,7 @@ export class MetaCognitiveController {
         };
 
         // パフォーマンス分析
-        reflection.performanceAnalysis = await this.analyzePerformance(interaction, performance);
+        reflection.performanceAnalysis = await this.analyzePerformance(controlResult, responseResult);
         
         // 強み特定
         reflection.strengthsIdentification = this.identifyStrengths(reflection.performanceAnalysis);
@@ -172,7 +172,7 @@ export class MetaCognitiveController {
     /**
      * 応答品質監視システム
      */
-    async monitorQuality(interaction, performance) {
+    async monitorQuality(controlResult, responseResult) {
         console.log(`📊 品質監視実行開始`);
         
         const qualityAssessment = {
@@ -186,7 +186,7 @@ export class MetaCognitiveController {
         };
 
         // リアルタイム品質評価
-        qualityAssessment.realTimeQuality = await this.assessRealTimeQuality(interaction);
+        qualityAssessment.realTimeQuality = await this.assessRealTimeQuality(controlResult, responseResult);
         
         // 品質トレンド分析
         qualityAssessment.qualityTrends = this.analyzeQualityTrends();
@@ -420,7 +420,7 @@ export class MetaCognitiveController {
     }
 
     // 分析・評価メソッド群
-    async analyzePerformance(interaction, performance) {
+    async analyzePerformance(controlResult, responseResult) {
         const analysis = {
             responseQuality: this.evaluateResponseQuality(interaction),
             processingEfficiency: this.evaluateProcessingEfficiency(performance),
@@ -489,7 +489,7 @@ export class MetaCognitiveController {
         return opportunities.sort((a, b) => a.priority - b.priority);
     }
 
-    async extractLearningInsights(interaction, performance) {
+    async extractLearningInsights(controlResult, responseResult) {
         const insights = [];
         
         // パフォーマンスパターンからの洞察
@@ -502,7 +502,7 @@ export class MetaCognitiveController {
         })));
         
         // 対話パターンからの洞察
-        const dialogueInsights = await this.extractDialogueInsights(interaction);
+        const dialogueInsights = await this.extractDialogueInsights(controlResult, responseResult);
         insights.push(...dialogueInsights);
         
         // 適応効果からの洞察
@@ -707,26 +707,42 @@ export class MetaCognitiveController {
     }
 
     // ヘルパーメソッド群（簡略実装）
-    evaluateResponseQuality(interaction) {
+    evaluateResponseQuality(controlResult, responseResult) {
         // 簡略実装 - 実際の応答品質評価
-        return 0.85;
+        // controlResultとresponseResultを活用してより詳細な評価を行う
+        const relevanceScore = controlResult.intentAnalysis?.confidence || 0.7;
+        const completenessScore = responseResult?.analysis?.completeness || 0.7;
+        const personalizationScore = responseResult?.analysis?.personalizationLevel || 0.7;
+
+        return (relevanceScore + completenessScore + personalizationScore) / 3;
     }
 
     evaluateProcessingEfficiency(performance) {
         return performance?.processingTime ? Math.max(0, 1 - performance.processingTime / 1000) : 0.8;
     }
 
-    evaluateAdaptationAccuracy(interaction) {
-        return 0.82;
-    }
+    evaluateAdaptationAccuracy(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して適応精度を評価
+        const flowAdaptation = controlResult.flowControl?.flowStrategy === 'adaptive' ? 0.9 : 0.7;
+        const personalAdaptation = responseResult?.analysis?.personalizationLevel || 0.7;
+        return (flowAdaptation + personalAdaptation) / 2;
 
-    evaluateUserEngagement(interaction) {
-        return 0.78;
-    }
+    evaluateUserEngagement(controlResult, responseResult) {
+        // controlResultとresponseResultを活用してユーザーエンゲージメントを評価
+        const intentConfidence = controlResult.intentAnalysis?.confidence || 0.5;
+        const responseClarity = responseResult?.analysis?.clarity || 0.7;
+        return (intentConfidence + responseClarity) / 2;
 
-    evaluateGoalAchievement(interaction, performance) {
-        return 0.88;
-    }
+    evaluateGoalAchievement(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して目標達成度を評価
+        const primaryIntentType = controlResult.intentAnalysis?.primaryIntent?.type;
+        const responseContent = responseResult?.response || '';
+
+        let score = 0.5;
+        if (primaryIntentType === 'question' && responseContent.length > 50) score += 0.2;
+        if (primaryIntentType === 'problem' && responseContent.includes('解決策')) score += 0.3;
+        
+        return score;
 
     evaluateResourceUtilization(performance) {
         return 0.75;
@@ -786,16 +802,30 @@ export class MetaCognitiveController {
         ];
     }
 
-    async extractDialogueInsights(interaction) {
-        return [
-            {
+    async extractDialogueInsights(controlResult, responseResult) {
+        const insights = [];
+        
+        // controlResultから対話パターンを分析
+        if (controlResult.contextAnalysis?.contextDepth > 3) {
+            insights.push({
                 type: 'dialogue_pattern',
-                insight: '多段階対話での文脈保持が効果的',
+                insight: '深い文脈での対話が成功',
                 actionable: true,
-                confidence: 0.8
-            }
-        ];
-    }
+                confidence: 0.85
+            });
+        }
+
+        // responseResultから応答の質に関する洞察
+        if (responseResult?.analysis?.qualityScore > 0.8) {
+            insights.push({
+                type: 'response_quality',
+                insight: '高品質な応答が生成された',
+                actionable: false,
+                confidence: 0.9
+            });
+        }
+        
+        return insights;
 
     extractAdaptationInsights(performance) {
         return [
@@ -809,12 +839,40 @@ export class MetaCognitiveController {
     }
 
     // 品質評価メソッド
-    assessResponseRelevance(interaction) { return 0.88; }
-    assessResponseClarity(interaction) { return 0.85; }
-    assessResponseCompleteness(interaction) { return 0.82; }
-    assessResponseAccuracy(interaction) { return 0.90; }
-    assessResponseEngagement(interaction) { return 0.78; }
-    assessResponsePersonalization(interaction) { return 0.85; }
+    assessResponseRelevance(controlResult, responseResult) {
+        // controlResultの意図とresponseResultの関連性を評価
+        const intent = controlResult.intentAnalysis?.primaryIntent?.type;
+        const response = responseResult?.response || '';
+        
+        if (intent === 'question' && response.includes('?')) return 0.9;
+        if (intent === 'problem' && response.includes('解決策')) return 0.85;
+        return 0.7;
+    assessResponseClarity(controlResult, responseResult) {
+        // responseResultの分析結果から明瞭度を評価
+        return responseResult?.analysis?.clarity || 0.8;
+    }
+    assessResponseCompleteness(controlResult, responseResult) {
+        // responseResultの分析結果から完全性を評価
+        return responseResult?.analysis?.completeness || 0.8;
+    }
+    assessResponseAccuracy(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して精度を評価
+        const contextAccuracy = controlResult.contextAnalysis?.semanticContinuity || 0.7;
+        const factualAccuracy = responseResult?.analysis?.factualAccuracy || 0.7;
+        return (contextAccuracy + factualAccuracy) / 2;
+    }
+    assessResponseEngagement(controlResult, responseResult) {
+        // controlResultとresponseResultを活用してエンゲージメントを評価
+        const emotionalAlignment = controlResult.intentAnalysis?.emotionalIntent?.dominantEmotion === 'positive' ? 0.9 : 0.7;
+        const responseCreativity = responseResult?.analysis?.creativity || 0.7;
+        return (emotionalAlignment + responseCreativity) / 2;
+    }
+    assessResponsePersonalization(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して個人化を評価
+        const personalAdaptationScore = controlResult.personalizedStrategy?.personalAdaptations?.adapted ? 0.9 : 0.7;
+        const userProfileMatch = responseResult?.analysis?.userProfileMatch || 0.7;
+        return (personalAdaptationScore + userProfileMatch) / 2;
+    }
 
     calculateTrend(scores) {
         if (scores.length < 3) return { direction: 'stable', magnitude: 0, confidence: 0.1 };
@@ -947,10 +1005,10 @@ export class MetaCognitiveController {
         };
     }
 
-    async updateMetaCognitionHistory(interaction, result) {
+    async updateMetaCognitionHistory(controlResult, result) {
         this.learningHistory.push({
             timestamp: new Date().toISOString(),
-            interaction_summary: interaction?.input?.substring(0, 50) || 'system_reflection',
+            interaction_summary: controlResult.input?.substring(0, 50) || 'system_reflection',
             metacognition_result: {
                 system_health: result.systemHealth,
                 decision_confidence: result.decision.confidenceLevel,
@@ -965,7 +1023,7 @@ export class MetaCognitiveController {
         }
     }
 
-    generateFallbackMetaCognition(interaction, performance) {
+    generateFallbackMetaCognition(controlResult, responseResult) {
         return {
             metacognition: {
                 selfReflection: { basic_analysis: true },
@@ -986,13 +1044,22 @@ export class MetaCognitiveController {
     }
 
     // その他のメソッド（簡略実装）
-    evaluateGoalAlignment(performance) {
-        return { goal_achievement: 0.85, alignment_score: 0.88 };
-    }
+    evaluateGoalAlignment(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して目標整合性を評価
+        const primaryIntentType = controlResult.intentAnalysis?.primaryIntent?.type;
+        const responseContent = responseResult?.response || '';
 
-    async evaluateAdaptationEffectiveness(interaction) {
-        return { effectiveness: 0.82, improvement_areas: ['個人化精度'] };
-    }
+        let score = 0.5;
+        if (primaryIntentType === 'question' && responseContent.length > 50) score += 0.2;
+        if (primaryIntentType === 'problem' && responseContent.includes('解決策')) score += 0.3;
+        
+        return { goal_achievement: score, alignment_score: score };
+
+    async evaluateAdaptationEffectiveness(controlResult, responseResult) {
+        // controlResultとresponseResultを活用して適応効果を評価
+        const flowAdaptation = controlResult.flowControl?.flowStrategy === 'adaptive' ? 0.9 : 0.7;
+        const personalAdaptation = responseResult?.analysis?.personalizationLevel || 0.7;
+        return { effectiveness: (flowAdaptation + personalAdaptation) / 2, improvement_areas: ['個人化精度'] };
 
     assessFuturePreparation(reflection) {
         return { preparedness: 0.80, readiness_areas: ['新技術対応', '学習効率'] };

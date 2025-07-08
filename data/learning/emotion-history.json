@@ -1,12 +1,12 @@
 {
   "": [
     {
-      "timestamp": "2025-07-07T12:35:39.104Z",
-      "dominantEmotion": "joy",
+      "timestamp": "2025-07-08T08:44:33.695Z",
+      "dominantEmotion": "neutral",
       "intensity": 0.5,
       "complexity": 0,
-      "confidence": 0.38,
-      "inputSample": "素晴らしい提案をありがとうございます。"
+      "confidence": 0.42000000000000004,
+      "inputSample": "システム清浄化テスト"
     }
   ]
 }

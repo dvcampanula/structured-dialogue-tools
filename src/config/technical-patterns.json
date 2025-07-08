@@ -10,7 +10,10 @@
         "javascript.*コード",
         "API.*使い方",
         "React.*教えて",
-        "useState.*教えて"
+        "useState.*教えて",
+        "React.*最適化",
+        "最適化.*教えて",
+        "最適化.*最適化"
       ]
     },
     {
@@ -225,9 +228,9 @@
     "learningThreshold": 3,
     "confidenceThreshold": 0.7,
     "maxPatternsPerCategory": 20,
-    "lastPatternUpdate": 1751856750652
+    "lastPatternUpdate": 1751948134678
   },
   "version": "1.0.0",
-  "lastUpdated": "2025-07-07T02:52:30.652Z",
+  "lastUpdated": "2025-07-08T04:15:34.678Z",
   "description": "技術パターン設定 - 動的学習対応型技術質問検出パターン"
 }
