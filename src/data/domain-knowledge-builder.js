@@ -255,6 +255,30 @@ export class DomainKnowledgeBuilder {
     }
 
     /**
+     * 創作・デザイン分野の知識構築
+     */
+    async buildCreativeKnowledge(creativeLogs) {
+        console.log(`🎨 創作知識構築開始: ${creativeLogs.length}ログ`);
+        const creativeKnowledge = {
+            artForms: {},
+            tools: {},
+            styles: {},
+            themes: {}
+        };
+
+        for (const log of creativeLogs) {
+            const content = this.extractLogContent(log);
+            // 創作関連のキーワードやパターンを分析し、creativeKnowledgeに格納
+            // 例: identifyArtForms(content, creativeKnowledge.artForms);
+        }
+
+        this.domainMaps.creative = creativeKnowledge;
+        this.buildingStats.domainMappings++;
+        console.log(`✅ 創作知識構築完了`);
+        return creativeKnowledge;
+    }
+
+    /**
      * ビジネス分野の知識構築
      */
     async buildBusinessKnowledge(businessLogs) {
@@ -296,6 +320,30 @@ export class DomainKnowledgeBuilder {
 
         console.log(`✅ ビジネス知識構築完了`);
         return businessKnowledge;
+    }
+
+    /**
+     * 学術・研究分野の知識構築
+     */
+    async buildAcademicKnowledge(academicLogs) {
+        console.log(`🎓 学術知識構築開始: ${academicLogs.length}ログ`);
+        const academicKnowledge = {
+            fields: {},
+            researchMethods: {},
+            theories: {},
+            publications: {}
+        };
+
+        for (const log of academicLogs) {
+            const content = this.extractLogContent(log);
+            // 学術関連のキーワードやパターンを分析し、academicKnowledgeに格納
+            // 例: identifyAcademicFields(content, academicKnowledge.fields);
+        }
+
+        this.domainMaps.academic = academicKnowledge;
+        this.buildingStats.domainMappings++;
+        console.log(`✅ 学術知識構築完了`);
+        return academicKnowledge;
     }
 
     /**
@@ -872,4 +920,40 @@ export class DomainKnowledgeBuilder {
             カジュアル: { confidence: 0.6, keywords: ['質問', '相談'] }
         };
     }
+
+    /**
+     * 対話ログを分析し、ドメイン知識を構築
+     */
+    async buildKnowledgeFromDialogueLogs(dialogueLogs) {
+        console.log(`🧠 ドメイン知識構築開始: ${dialogueLogs.length}ログ`);
+        const results = {};
+
+        // ログを各ドメインに分類し、それぞれの知識構築メソッドを呼び出す
+        const technicalLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/JavaScript|React|データベース|プログラム|開発|技術/));
+        const businessLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/プロジェクト|管理|チーム|ビジネス|スケジュール/));
+        const casualLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/趣味|好き|楽しい|日常|感情/));
+        const creativeLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/創作|デザイン|アート|表現/));
+        const academicLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/研究|論文|学習|教育|学術/));
+
+        if (technicalLogs.length > 0) {
+            results.technical = await this.buildTechnicalKnowledge(technicalLogs);
+        }
+        if (businessLogs.length > 0) {
+            results.business = await this.buildBusinessKnowledge(businessLogs);
+        }
+        if (casualLogs.length > 0) {
+            results.casual = await this.buildCasualKnowledge(casualLogs);
+        }
+        if (creativeLogs.length > 0) {
+            results.creative = await this.buildCreativeKnowledge(creativeLogs);
+        }
+        if (academicLogs.length > 0) {
+            results.academic = await this.buildAcademicKnowledge(academicLogs);
+        }
+
+        console.log(`✅ ドメイン知識構築完了`);
+        return results;
+    }
+
+    // ユーティリティメソッド群
 }

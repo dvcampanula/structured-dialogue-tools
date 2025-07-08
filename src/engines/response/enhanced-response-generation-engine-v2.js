@@ -12,6 +12,7 @@ import { PersonalResponseAdapter } from '../../systems/adapters/personal-respons
 import { DynamicTechnicalPatterns } from './dynamic-technical-patterns.js';
 import { VocabularyDiversifier } from '../language/vocabulary-diversifier.js';
 import { persistentLearningDB } from '../../data/persistent-learning-db.js';
+import { configLoader } from '../../data/config-loader.js';
 
 /**
  * 統合分析結果データ構造
@@ -364,6 +365,21 @@ export class EnhancedResponseGenerationEngineV2 {
             maxProcessingTime: 5000,
             ...options
         };
+
+        this.responseStrategyMapping = {}; // 応答戦略マッピング
+        this.responsePhrases = {}; // 応答フレーズ
+        this.politenessIntensityPatterns = {}; // 丁寧度・感情強度パターン
+        this.emotionDictionary = {}; // 感情辞書
+        this.intentPatterns = {}; // 意図パターン
+        this.keywordExtractionPatterns = {}; // キーワード抽出パターン
+        this.learningEnhancementPatterns = {}; // 学習強化パターン
+        this.loadResponseStrategyMapping();
+        this.loadResponsePhrases();
+        this.loadPolitenessIntensityPatterns();
+        this.loadEmotionDictionary();
+        this.loadIntentPatterns();
+        this.loadKeywordExtractionPatterns();
+        this.loadLearningEnhancementPatterns();
         
         // 統計
         this.stats = {
@@ -384,6 +400,80 @@ export class EnhancedResponseGenerationEngineV2 {
     setPersonalAdapter(personalAdapter) {
         this.personalAdapter = personalAdapter;
         console.log('✅ PersonalResponseAdapter統合完了');
+    }
+
+    async loadResponseStrategyMapping() {
+        try {
+            this.responseStrategyMapping = await configLoader.getResponseStrategyMapping();
+            console.log('✅ 応答戦略マッピング読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 応答戦略マッピング読み込み失敗、デフォルト設定を使用:', error.message);
+            this.responseStrategyMapping = {
+                topicToStrategyMapping: [],
+                intentToStrategyMapping: [],
+                defaultStrategy: 'general'
+            };
+        }
+    }
+
+    async loadResponsePhrases() {
+        try {
+            this.responsePhrases = await configLoader.getResponsePhrases();
+            console.log('✅ 応答フレーズ読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 応答フレーズ読み込み失敗、デフォルト設定を使用:', error.message);
+            this.responsePhrases = {};
+        }
+    }
+
+    async loadPolitenessIntensityPatterns() {
+        try {
+            this.politenessIntensityPatterns = await configLoader.getPolitenessIntensityPatterns();
+            console.log('✅ 丁寧度・感情強度パターン読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 丁寧度・感情強度パターン読み込み失敗、デフォルト設定を使用:', error.message);
+            this.politenessIntensityPatterns = { politenessPatterns: [], intensityPatterns: [] };
+        }
+    }
+
+    async loadEmotionDictionary() {
+        try {
+            this.emotionDictionary = await configLoader.getEmotionDictionary();
+            console.log('✅ 感情辞書読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 感情辞書読み込み失敗、デフォルト設定を使用:', error.message);
+            this.emotionDictionary = {};
+        }
+    }
+
+    async loadIntentPatterns() {
+        try {
+            this.intentPatterns = await configLoader.getIntentPatterns();
+            console.log('✅ 意図パターン読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 意図パターン読み込み失敗、デフォルト設定を使用:', error.message);
+            this.intentPatterns = {};
+        }
+    }
+
+    async loadKeywordExtractionPatterns() {
+        try {
+            this.keywordExtractionPatterns = await configLoader.getKeywordExtractionPatterns();
+            console.log('✅ キーワード抽出パターン読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ キーワード抽出パターン読み込み失敗、デフォルト設定を使用:', error.message);
+            this.keywordExtractionPatterns = { keyTopicTechTerms: [], comparisonPatterns: [], actionPatterns: [] };
+        }
+    }
+
+    async loadLearningEnhancementPatterns() {
+        try {
+            this.learningEnhancementPatterns = await configLoader.getLearningEnhancementPatterns();
+            console.log('✅ 学習強化パターン読み込み完了');
+        } catch (error) {
+            console.warn('⚠️ 学習強化パターン読み込み失敗、デフォルト設定を使用:', error.message);
+            this.learningEnhancementPatterns = { relatedConceptKeywords: [], conversationContextKeywords: [], personalizedResponsePhrases: {}, contextualResponsePhrases: {}, continuityResponsePhrases: {}, relatedConceptThreshold: 0.5, conversationHistoryLimit: 3 };
+        }
     }
     
     /**
@@ -664,8 +754,35 @@ export class EnhancedResponseGenerationEngineV2 {
         if (longTermContext?.frequentTopics?.length > 0) {
             const dominantTopic = longTermContext.frequentTopics[0].word; // 修正: wordプロパティを参照
             console.log(`🧠 長期記憶活用: 頻出トピック「${dominantTopic}」を考慮`);
-            // ここで、dominantTopicに基づいてprimaryStrategyを調整するロジックを追加することも可能
-            // 例: if (dominantTopic === 'React') strategy.primary = 'technical';
+            
+            // トピックに基づく戦略マッピング
+            for (const mapping of this.responseStrategyMapping.topicToStrategyMapping) {
+                if (mapping.keywords.some(keyword => dominantTopic.toLowerCase().includes(keyword.toLowerCase()))) {
+                    strategy.primary = mapping.strategy;
+                    strategy.reasoning.push(`長期記憶: 頻出トピック「${dominantTopic}」に基づき「${mapping.strategy}」戦略に調整`);
+                    break;
+                }
+            }
+        }
+
+        if (longTermContext?.dominantIntents?.length > 0) {
+            const dominantIntent = longTermContext.dominantIntents[0].word; // 修正: wordプロパティを参照
+            console.log(`🧠 長期記憶活用: 主要意図「${dominantIntent}」を考慮`);
+            
+            // 意図に基づく戦略マッピング
+            for (const mapping of this.responseStrategyMapping.intentToStrategyMapping) {
+                if (dominantIntent === mapping.intent) {
+                    strategy.primary = mapping.strategy;
+                    strategy.reasoning.push(`長期記憶: 主要意図「${dominantIntent}」に基づき「${mapping.strategy}」戦略に調整`);
+                    break;
+                }
+            }
+        }
+
+        // デフォルト戦略
+        if (!strategy.primary) {
+            strategy.primary = this.responseStrategyMapping.defaultStrategy;
+            strategy.reasoning.push(`デフォルト戦略「${strategy.primary}」を適用`);
         }
 
         // 戦略に基づく応答生成
@@ -739,44 +856,104 @@ export class EnhancedResponseGenerationEngineV2 {
 
     // ★ 応答調整のためのヘルパーメソッド (簡易実装)
     restructureStepByStep(response) {
-        // 例: 箇条書きにする
         const sentences = response.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
+        if (sentences.length === 0) return response;
+
+        let structuredResponse = "";
         if (sentences.length > 1) {
-            return "\n" + sentences.map((s, i) => `${i + 1}. ${s.trim()}`).join("\n");
+            structuredResponse += "\n**ステップバイステップ:**\n";
+            sentences.forEach((s, i) => {
+                structuredResponse += `${i + 1}. ${s.trim()}\n`;
+            });
+        } else {
+            structuredResponse = response; // 単一の文はそのまま
         }
-        return response;
+        return structuredResponse;
     }
 
     summarizeResponse(response) {
-        // 例: 最初の2文に要約
         const sentences = response.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
-        return sentences.slice(0, 2).join("。") + (sentences.length > 2 ? "。..." : "");
+        if (sentences.length <= 1) return response;
+
+        // 最初の2文を基本とし、重要なキーワードを抽出して補強
+        let summary = sentences.slice(0, Math.min(2, sentences.length)).join("。");
+        if (sentences.length > 2) summary += "...\n";
+
+        // キーワード抽出（簡易版）
+        const keywords = [...new Set(response.match(/([\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]{2,}|[a-zA-Z]{3,})/g) || [])];
+        if (keywords.length > 0) {
+            summary += `\n**主要ポイント**: ${keywords.slice(0, 3).join('、')}`;
+        }
+        return summary;
     }
 
     formalizeResponse(response) {
-        // 例: 語尾を「です・ます」調に
-        return response.replace(/だ|である/g, 'です').replace(/だよ|だね/g, 'ですね');
+        let formalResponse = response;
+        // 語尾を「です・ます」調に
+        formalResponse = formalResponse.replace(/だ(?![な])/g, 'です');
+        formalResponse = formalResponse.replace(/である/g, 'であります');
+        formalResponse = formalResponse.replace(/する/g, 'いたします');
+        formalResponse = formalResponse.replace(/た(?![め])/g, 'ました');
+        formalResponse = formalResponse.replace(/ない/g, 'ません');
+        formalResponse = formalResponse.replace(/だろう/g, 'でしょう');
+        formalResponse = formalResponse.replace(/かな/g, 'でしょうか');
+
+        // より丁寧な表現への置換
+        formalResponse = formalResponse.replace(/〜してね/g, '〜してください');
+        formalResponse = formalResponse.replace(/〜してあげる/g, '〜させていただきます');
+        formalResponse = formalResponse.replace(/〜だよ/g, '〜でございます');
+
+        return formalResponse;
     }
 
     casualizeResponse(response) {
-        // 例: 語尾を「だ・である」調に
-        return response.replace(/です|ます/g, 'だ').replace(/ですね/g, 'だね');
+        let casualResponse = response;
+        // 語尾を「だ・である」調に
+        casualResponse = casualResponse.replace(/です/g, 'だ');
+        casualResponse = casualResponse.replace(/ます/g, '');
+        casualResponse = casualResponse.replace(/であります/g, 'だ');
+        casualResponse = casualResponse.replace(/ました/g, 'た');
+        casualResponse = casualResponse.replace(/ません/g, 'ない');
+        casualResponse = casualResponse.replace(/でしょう/g, 'だろう');
+        casualResponse = casualResponse.replace(/でしょうか/g, 'かな');
+
+        // よりカジュアルな表現への置換
+        casualResponse = casualResponse.replace(/〜してください/g, '〜してね');
+        casualResponse = casualResponse.replace(/〜させていただきます/g, '〜してあげる');
+        casualResponse = casualResponse.replace(/〜でございます/g, '〜だよ');
+
+        return casualResponse;
     }
 
     condenseResponse(response) {
-        // 例: 長い応答を短くする
-        if (response.length > 200) {
-            return response.substring(0, 200) + "...";
+        if (response.length < 100) return response; // 短い場合はそのまま
+
+        // 重要なキーワードやフレーズを抽出して再構成
+        const keywords = [...new Set(response.match(/([\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf]{2,}|[a-zA-Z]{3,})/g) || [])];
+        const sentences = response.split(/[。！？.!?]/).filter(s => s.trim().length > 0);
+
+        let condensed = sentences.filter(s => keywords.some(k => s.includes(k))).join("。");
+
+        if (condensed.length > 200) {
+            condensed = condensed.substring(0, 200) + "...";
+        } else if (condensed.length === 0 && sentences.length > 0) {
+            condensed = sentences[0] + "..."; // キーワードで抽出できない場合は最初の文
         }
-        return response;
+        return condensed || response.substring(0, Math.min(response.length, 100)) + "...";
     }
 
     expandResponse(response) {
-        // 例: 短い応答を長くする (ここではプレースホルダー)
-        if (response.length < 50) {
-            return response + "\n\n詳細については、さらに掘り下げて説明することも可能です。";
-        }
-        return response;
+        if (response.length > 500) return response; // 長すぎる場合はそのまま
+
+        const expansions = [
+            "\n\nさらに詳細な情報が必要な場合は、お気軽にお尋ねください。",
+            "\n\nこの点について、具体的な事例や応用例を挙げて説明することも可能です。",
+            "\n\nもしよろしければ、関連する別の側面についても掘り下げてみましょうか？",
+            "\n\nご不明な点がございましたら、遠慮なくお申し付けください。"
+        ];
+
+        const randomExpansion = expansions[Math.floor(Math.random() * expansions.length)];
+        return response + randomExpansion;
     }
     
     async generateGeneralResponse(analysisResult) {
@@ -862,35 +1039,9 @@ export class EnhancedResponseGenerationEngineV2 {
         const emotion = analysisResult.emotionAnalysis;
         const userInput = analysisResult.userInput;
         const dominantEmotion = emotion?.dominantEmotion || 'neutral';
-        let baseResponse;
-        
-        // 感謝応答の具体化
-        if (userInput.includes('ありがとう') || userInput.includes('参考になり') || userInput.includes('助かり')) {
-            baseResponse = "お役に立てて嬉しいです！他にもご質問がございましたら、いつでもお聞かせください。どのような技術的な課題でもサポートいたします。";
-        }
-        // ヘルプ要求の具体化
-        else if (userInput.includes('困って') || userInput.includes('助けて') || userInput.includes('エラー') || userInput.includes('動かない')) {
-            baseResponse = "お困りの状況をお察しします。具体的なエラー内容や発生している状況を教えていただければ、解決策をご提案できます。どのような問題が発生していますか？";
-        }
-        // 感情別応答の具体化
-        else {
-            switch (dominantEmotion) {
-                case 'excitement':
-                    baseResponse = `とても興味深いご質問ですね！「${this.extractKeyTopic(userInput)}」について詳しくお答えします。`;
-                    break;
-                case 'curiosity':
-                    baseResponse = `探求心溢れるご質問ですね。「${this.extractKeyTopic(userInput)}」について一緒に考えてみましょう。`;
-                    break;
-                case 'frustration':
-                    baseResponse = "お困りのようですね。問題解決に向けて一緒に取り組みましょう。具体的な状況を教えていただけますか？";
-                    break;
-                case 'satisfaction':
-                    baseResponse = "良い方向に進んでいるようですね。さらなる向上に向けてサポートします。";
-                    break;
-                default:
-                    baseResponse = await this.generateIntelligentFallback(userInput, { type: 'emotional', emotion: dominantEmotion });
-            }
-        }
+        const longTermContext = analysisResult.contextAnalysis?.longTermContext; // 長期記憶の分析結果
+
+        let baseResponse = this.selectPhrase('emotionalResponses', userInput, analysisResult.generalAnalysis, longTermContext);
         
         // 語彙多様化処理（感情応答対応）
         if (this.config.enableVocabularyDiversification && baseResponse) {
@@ -908,24 +1059,18 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generatePersonalizedResponse(analysisResult) {
-        let baseResponse;
-        
-        if (this.personalAdapter && this.personalAdapter.generatePersonalizedResponse) {
-            baseResponse = await this.personalAdapter.generatePersonalizedResponse(
-                analysisResult.userInput,
-                analysisResult.personalAnalysis
-            );
-        } else {
-            baseResponse = "あなたの特性に合わせて回答いたします。";
-        }
+        const userInput = analysisResult.userInput;
+        const longTermContext = analysisResult.contextAnalysis?.longTermContext; // 長期記憶の分析結果
+
+        let baseResponse = this.selectPhrase('personalizedResponses', userInput, analysisResult.generalAnalysis, longTermContext);
         
         // 語彙多様化処理（個人適応対応）
         if (this.config.enableVocabularyDiversification && baseResponse) {
             const context = {
                 category: 'personalized_response',
                 personalAnalysis: analysisResult.personalAnalysis,
-                politeness: this.determinePoliteness(analysisResult.userInput, {}),
-                intensity: this.determineIntensity(analysisResult.userInput),
+                politeness: this.determinePoliteness(userInput, {}),
+                intensity: this.determineIntensity(userInput),
                 conversationHistory: analysisResult.conversationHistory || []
             };
             baseResponse = await this.vocabularyDiversifier.diversifyResponse(baseResponse, context);
@@ -937,23 +1082,9 @@ export class EnhancedResponseGenerationEngineV2 {
     async generateBalancedResponse(analysisResult) {
         const userInput = analysisResult.userInput;
         const contextScore = analysisResult.contextEnrichment?.overallContextScore || 0.5;
-        let baseResponse;
-        
-        // 天気等の一般質問への具体的対応
-        if (userInput.includes('天気')) {
-            baseResponse = "申し訳ございませんが、リアルタイムの天気情報は提供できません。天気予報は気象庁のWebサイトや天気アプリをご利用ください。他の技術的なご質問でしたらお答えできます。";
-        }
-        // 挨拶への対応
-        else if (userInput.includes('こんに') || userInput.includes('おはよう') || userInput.includes('こんばん')) {
-            baseResponse = "こんにちは！技術的なご質問やプログラミングに関するお困りごとがございましたら、お気軽にお聞かせください。";
-        }
-        // 文脈スコアに基づく応答
-        else if (contextScore > 0.7) {
-            const keyTopic = this.extractKeyTopic(userInput);
-            baseResponse = `文脈を踏まえて、「${keyTopic}」について詳しくお答えします。どの側面について特に知りたいでしょうか？`;
-        } else {
-            baseResponse = await this.generateIntelligentFallback(userInput, { type: 'balanced', contextScore });
-        }
+        const longTermContext = analysisResult.contextAnalysis?.longTermContext; // 長期記憶の分析結果
+
+        let baseResponse = this.selectPhrase('balancedResponses', userInput, analysisResult.generalAnalysis, longTermContext);
         
         // 語彙多様化処理（バランス応答対応）
         if (this.config.enableVocabularyDiversification && baseResponse) {
@@ -1066,7 +1197,7 @@ export class EnhancedResponseGenerationEngineV2 {
      */
     
     async generateGratitudeResponse(userInput, general, longTermContext) {
-        let baseResponse = "お役に立てて嬉しいです！😊\n\n他にもご質問やお手伝いできることがございましたら、いつでもお気軽にお声かけください。どのようなことでもサポートいたします。";
+        let baseResponse = this.selectPhrase('gratitudeResponses', userInput, general);
         
         // 長期記憶の活用例: ユーザーがよく使うキーワードを応答に含める
         if (longTermContext?.coreKeywords?.length > 0) {
@@ -1089,14 +1220,7 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generateEmotionalSupportResponse(userInput, general, longTermContext) {
-        let baseResponse;
-        if (userInput.includes('落ち込') || userInput.includes('つらい')) {
-            baseResponse = "お疲れ様です。落ち込むこともありますよね。\n\n一人で抱え込まずに、お話しいただけて良かったです。どのようなことでお困りですか？具体的な状況を教えていただければ、一緒に解決策を考えましょう。";
-        } else if (userInput.includes('困って') || userInput.includes('不安')) {
-            baseResponse = "お困りの状況をお察しします。不安な気持ち、よく分かります。\n\n解決に向けて一緒に取り組みましょう。具体的にどのような問題が発生していますか？詳しく教えていただければ、適切なアドバイスをご提案できます。";
-        } else {
-            baseResponse = "大変そうですね。お疲れ様です。\n\nどのようなことでお悩みでしょうか？お聞かせください。一緒に解決策を考えましょう。";
-        }
+        let baseResponse = this.selectPhrase('emotionalSupportResponses', userInput, general, longTermContext);
 
         // 長期記憶の活用例: ユーザーの主要な意図を考慮したサポート
         if (longTermContext?.dominantIntents?.length > 0) {
@@ -1123,16 +1247,7 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generateGreetingResponse(userInput, general, longTermContext) {
-        let baseResponse;
-        if (userInput.includes('おはよう')) {
-            baseResponse = "おはようございます！☀️\n\n今日も良い一日になりますように。何かお手伝いできることがあれば、お気軽にお声かけくださいね。";
-        } else if (userInput.includes('こんにちは') || userInput.includes('こんに')) {
-            baseResponse = "こんにちは！😊\n\nお疲れ様です。今日はどのようなことでお手伝いできるでしょうか？";
-        } else if (userInput.includes('はじめまして')) {
-            baseResponse = "はじめまして！お会いできて嬉しいです。😊\n\n私はあなたの学習や相談をサポートするAIアシスタントです。どのようなことでもお気軽にご相談ください。よろしくお願いします！";
-        } else {
-            baseResponse = "こんにちは！\n\n今日はどのようなことでお手伝いできるでしょうか？何でもお気軽にお聞かせください。";
-        }
+        let baseResponse = this.selectPhrase('greetingResponses', userInput, general, longTermContext);
 
         // 長期記憶の活用例: ユーザーがよく話すトピックを挨拶に含める
         if (longTermContext?.frequentTopics?.length > 0) {
@@ -1155,14 +1270,7 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generateLearningSupportResponse(userInput, general, longTermContext) {
-        let baseResponse;
-        if (userInput.includes('初心者') || userInput.includes('始め')) {
-            baseResponse = "学習を始められるのですね！素晴らしいです！🌟\n\n初心者の方には、基本から一歩ずつ確実に進むことをおすすめします。あなたのペースに合わせて、分かりやすくサポートします。\n\nどの分野の学習をお考えですか？具体的な目標があれば教えてください。";
-        } else if (userInput.includes('勉強方法') || userInput.includes('学習方法')) {
-            baseResponse = "効果的な学習方法についてお答えします！📚\n\n一人ひとりに最適な学習スタイルがありますので、あなたに合った方法を一緒に見つけましょう。どのような分野を学習されたいのか、現在のレベルや目標を教えてください。";
-        } else {
-            baseResponse = "学習についてのご質問ですね！📝\n\nあなたの目標達成をサポートします。どの分野について学びたいか、どのようなことで困っているかを詳しく教えてください。";
-        }
+        let baseResponse = this.selectPhrase('learningSupportResponses', userInput, general, longTermContext);
 
         // 長期記憶の活用例: ユーザーの主要な意図が学習関連であれば、より踏み込んだ提案
         if (longTermContext?.dominantIntents?.length > 0) {
@@ -1187,12 +1295,7 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generateTechnicalInquiryResponse(userInput, general, longTermContext) {
-        let baseResponse;
-        if (userInput.includes('初心者') && userInput.includes('プログラミング')) {
-            baseResponse = "プログラミング学習を始められるのですね！素晴らしいです！💻\n\n初心者の方には、まず基本的な概念から始めることをおすすめします。あなたの興味や目標に合わせて、最適な学習パスをご提案できます。\n\nどのような分野に興味がありますか？Webサイト作成、アプリ開発、データ分析など、目指したい方向があれば教えてください。";
-        } else {
-            baseResponse = "技術的なご質問ですね！🔧\n\nあなたのレベルや目的に合わせて、分かりやすく説明いたします。具体的にどのような技術や課題についてお聞きしたいでしょうか？";
-        }
+        let baseResponse = this.selectPhrase('technicalInquiryResponses', userInput, general, longTermContext);
 
         // 長期記憶の活用例: ユーザーがよく使う技術キーワードを応答に含める
         if (longTermContext?.coreKeywords?.length > 0) {
@@ -1217,7 +1320,7 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     async generateGeneralConversationResponse(userInput, general, longTermContext) {
-        let baseResponse = `「${this.extractKeyTopic(userInput)}」についてお話ししましょう！\n\n何でもお気軽にお聞かせください。あなたのお役に立てるよう、できる限りサポートいたします。どのような点について詳しく知りたいでしょうか？`;
+        let baseResponse = this.selectPhrase('generalConversationResponses', userInput, general, longTermContext);
 
         // 長期記憶の活用例: ユーザーの頻出トピックを会話のきっかけにする
         if (longTermContext?.frequentTopics?.length > 0) {
@@ -1243,14 +1346,15 @@ export class EnhancedResponseGenerationEngineV2 {
      * 丁寧度判定
      */
     determinePoliteness(userInput, general) {
-        // 深い感謝表現
-        if (userInput.includes('心より') || userInput.includes('深く') || userInput.includes('本当に')) {
-            return 'formal';
-        }
-        
-        // カジュアルな表現
-        if (/！|!|😊|😄|すごく|めっちゃ/.test(userInput)) {
-            return 'casual';
+        const politenessPatterns = this.politenessIntensityPatterns.politenessPatterns || [];
+
+        for (const pattern of politenessPatterns) {
+            if (pattern.keywords.some(kw => userInput.includes(kw))) {
+                return pattern.level;
+            }
+            if (pattern.regex.some(rgx => new RegExp(rgx).test(userInput))) {
+                return pattern.level;
+            }
         }
         
         return 'standard';
@@ -1260,14 +1364,15 @@ export class EnhancedResponseGenerationEngineV2 {
      * 感情強度判定
      */
     determineIntensity(userInput) {
-        // 高強度表現
-        if (userInput.includes('とても') || userInput.includes('すごく') || userInput.includes('本当に')) {
-            return 'high';
-        }
-        
-        // 低強度表現
-        if (userInput.includes('ちょっと') || userInput.includes('少し') || userInput.includes('まあ')) {
-            return 'low';
+        const intensityPatterns = this.politenessIntensityPatterns.intensityPatterns || [];
+
+        for (const pattern of intensityPatterns) {
+            if (pattern.keywords.some(kw => userInput.includes(kw))) {
+                return pattern.level;
+            }
+            if (pattern.regex.some(rgx => new RegExp(rgx).test(userInput))) {
+                return pattern.level;
+            }
         }
         
         return 'medium';
@@ -1402,26 +1507,7 @@ export class EnhancedResponseGenerationEngineV2 {
      * インテリジェントフォールバック生成
      */
     async generateIntelligentFallback(userInput, context) {
-        let baseResponse;
-        
-        // 質問タイプの推定
-        if (userInput.includes('どう') || userInput.includes('方法') || userInput.includes('やり方')) {
-            const topic = this.extractKeyTopic(userInput);
-            baseResponse = `「${topic}」の方法についてお答えします。より具体的な状況や目的を教えていただければ、詳細なアドバイスをご提供できます。`;
-        }
-        else if (userInput.includes('比較') || userInput.includes('違い')) {
-            const targets = this.extractComparisonTargets(userInput);
-            baseResponse = `${targets}の比較についてお答えします。どの観点での比較をお求めでしょうか？性能、使いやすさ、学習コスト等、ご希望をお聞かせください。`;
-        }
-        else if (userInput.includes('とは') || userInput.includes('について')) {
-            const topic = this.extractKeyTopic(userInput);
-            baseResponse = `「${topic}」について詳しく解説します。基本概念から実践的な応用まで、どの側面について特に知りたいでしょうか？`;
-        }
-        else {
-            // デフォルト（大幅改善）
-            const topic = this.extractKeyTopic(userInput);
-            baseResponse = `「${topic}」についてお答えします。より詳しい回答のために、具体的な状況や目的をお聞かせください。技術的な課題解決をサポートいたします。`;
-        }
+        let baseResponse = this.selectPhrase('intelligentFallbackResponses', userInput, context.general, context.longTermContext);
         
         // 語彙多様化処理（フォールバック応答対応）
         if (this.config.enableVocabularyDiversification && baseResponse) {
@@ -1443,14 +1529,7 @@ export class EnhancedResponseGenerationEngineV2 {
      */
     
     getEmotionDictionary() {
-        return {
-            positive: ['ありがとう', 'うれしい', '感謝', '助かり', '良い', 'よかった', '嬉しい', '満足', '素晴らしい'],
-            negative: ['困って', '落ち込', 'つらい', '不安', 'わからない', '疲れ', '悩み', '心配', 'だめ'],
-            greeting: ['おはよう', 'こんに', 'はじめまして', 'お疲れ', 'いらっしゃい', '最近どう', '元気', '調子', 'どうですか'],
-            learning: ['教えて', '学習', '勉強', '覚え', 'わかりやすく', '知りたい', '理解', '習得'],
-            support: ['手伝って', 'サポート', '支援', '相談', 'アドバイス', '解決'],
-            technical: ['プログラミング', 'Python', 'JavaScript', 'React', 'データサイエンス', 'コード', '開発']
-        };
+        return this.emotionDictionary;
     }
     
     calculateEmotionScore(userInput) {
@@ -1476,19 +1555,11 @@ export class EnhancedResponseGenerationEngineV2 {
         return { emotion: dominantEmotion, score: maxScore, allScores: scores };
     }
     
-    calculateIntentSimilarity(userInput, knownPatterns) {
-        // 簡単なコサイン類似度の代替：キーワード重複スコア
+    calculateIntentSimilarity(userInput) {
         const inputWords = userInput.toLowerCase().split(/\s+/);
         const similarities = {};
         
-        const patterns = {
-            daily_conversation: ['おはよう', 'こんに', '元気', '今日', '昨日', '明日', '最近どう', '調子', 'どうですか'],
-            emotional_support: ['困って', '不安', '落ち込', 'つらい', '悩み', '心配'],
-            learning_request: ['教えて', '学習', '勉強', '覚え', '知りたい', '方法'],
-            technical_inquiry: ['プログラミング', 'コード', '開発', 'Python', 'JavaScript'],
-            gratitude: ['ありがとう', '感謝', '助かり', 'よかった'],
-            general_question: ['何', 'どう', 'どの', 'いつ', 'どこ', 'なぜ']
-        };
+        const patterns = this.intentPatterns;
         
         for (const [intent, keywords] of Object.entries(patterns)) {
             const overlap = inputWords.filter(word => 
@@ -1526,8 +1597,7 @@ export class EnhancedResponseGenerationEngineV2 {
      * ヘルパーメソッド群
      */
     extractKeyTopic(input) {
-        // 技術用語の抽出
-        const techTerms = ['Python', 'JavaScript', 'React', 'データサイエンス', 'SQL', 'TensorFlow', 'PyTorch', 'AI', 'Machine Learning'];
+        const techTerms = this.keywordExtractionPatterns.keyTopicTechTerms || [];
         for (const term of techTerms) {
             if (input.toLowerCase().includes(term.toLowerCase())) {
                 return term;
@@ -1541,14 +1611,10 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     extractComparisonTargets(input) {
-        const patterns = [
-            /(.+?)と(.+?)の?比較/,
-            /(.+?)と(.+?)の?違い/,
-            /(.+?)vs\.?(.+)/i
-        ];
+        const patterns = this.keywordExtractionPatterns.comparisonPatterns || [];
         
         for (const pattern of patterns) {
-            const match = input.match(pattern);
+            const match = input.match(new RegExp(pattern));
             if (match) {
                 return `${match[1].trim()}と${match[2].trim()}`;
             }
@@ -1558,9 +1624,15 @@ export class EnhancedResponseGenerationEngineV2 {
     }
     
     extractActionFromHowTo(input) {
-        const actionPattern = /(.+?)(の?方法|やり方|どう)/;
-        const match = input.match(actionPattern);
-        return match ? match[1].trim() : '実装・設定';
+        const patterns = this.keywordExtractionPatterns.actionPatterns || [];
+        
+        for (const pattern of patterns) {
+            const match = input.match(new RegExp(pattern));
+            if (match) {
+                return match[1].trim();
+            }
+        }
+        return '実装・設定';
     }
 
     /**
@@ -1609,6 +1681,7 @@ export class EnhancedResponseGenerationEngineV2 {
     extractRelatedConcepts(userInput, userRelations) {
         const inputWords = userInput.toLowerCase().split(/\s+/);
         const relatedConcepts = [];
+        const relatedConceptThreshold = this.learningEnhancementPatterns.relatedConceptThreshold || 0.5;
 
         for (const relation of userRelations || []) {
             for (const word of inputWords) {
@@ -1627,11 +1700,12 @@ export class EnhancedResponseGenerationEngineV2 {
     }
 
     extractConversationContext(pastConversations) {
+        const conversationHistoryLimit = this.learningEnhancementPatterns.conversationHistoryLimit || 3;
         if (!pastConversations || pastConversations.length === 0) {
             return { themes: [], patterns: [], recentTopics: [] };
         }
 
-        const recentTopics = pastConversations.slice(-3).map(conv => conv.topic || conv.userMessage?.substring(0, 50));
+        const recentTopics = pastConversations.slice(-conversationHistoryLimit).map(conv => conv.topic || conv.userMessage?.substring(0, 50));
         const themes = [...new Set(pastConversations.map(conv => conv.category || 'general'))];
         
         return {
@@ -1651,24 +1725,32 @@ export class EnhancedResponseGenerationEngineV2 {
     }
 
     async generatePersonalizedBaseResponse(userInput, general, relatedConcepts, conversationContext, personalPreferences) {
+        const personalizedResponsePhrases = this.learningEnhancementPatterns.personalizedResponsePhrases || {};
+
         // 関連概念がある場合の個人化応答
         if (relatedConcepts.length > 0) {
             const mainConcept = relatedConcepts[0];
-            const personalizedResponse = `「${userInput}」についてですね。`;
+            const phrase = personalizedResponsePhrases.relatedConceptBase || "";
             
-            if (mainConcept.concept1 && mainConcept.concept2) {
-                return personalizedResponse + `以前お話しした「${mainConcept.concept1}」と「${mainConcept.concept2}」の関連性を踏まえて、さらに詳しくお話ししましょう。
-
-${this.generateContextualResponse(userInput, mainConcept, general)}`;
+            if (mainConcept.concept1 && mainConcept.concept2 && phrase) {
+                const contextualResponse = this.generateContextualResponse(userInput, mainConcept, general);
+                return phrase.replace(/{userInput}/g, userInput)
+                             .replace(/{concept1}/g, mainConcept.concept1)
+                             .replace(/{concept2}/g, mainConcept.concept2)
+                             .replace(/{contextualResponse}/g, contextualResponse);
             }
         }
 
         // 過去の会話履歴がある場合の継続性応答
         if (conversationContext.recentTopics.length > 0) {
             const recentTopic = conversationContext.recentTopics[0];
-            return `「${userInput}」についてですね。以前の「${recentTopic}」に関するお話も踏まえて、お答えしますね。
-
-${this.generateContinuityResponse(userInput, recentTopic, general)}`;
+            const phrase = personalizedResponsePhrases.conversationContextBase || "";
+            if (recentTopic && phrase) {
+                const continuityResponse = this.generateContinuityResponse(userInput, recentTopic, general);
+                return phrase.replace(/{userInput}/g, userInput)
+                             .replace(/{recentTopic}/g, recentTopic)
+                             .replace(/{continuityResponse}/g, continuityResponse);
+            }
         }
 
         return null; // 学習データが活用できない場合
@@ -1676,19 +1758,24 @@ ${this.generateContinuityResponse(userInput, recentTopic, general)}`;
 
     generateContextualResponse(userInput, concept, general) {
         const category = general?.category || 'general';
+        const contextualResponsePhrases = this.learningEnhancementPatterns.contextualResponsePhrases || {};
+        let phrase = contextualResponsePhrases[category] || contextualResponsePhrases.default;
         
-        switch (category) {
-            case 'technical_inquiry':
-                return `「${concept.concept1}」と「${concept.concept2}」の関係性から考えると、この技術的な課題にはいくつかのアプローチが考えられます。あなたの過去の学習パターンを考慮して、最適な解決方法をご提案します。`;
-            case 'learning_support':
-                return `これまでの学習内容を振り返ると、「${concept.concept1}」での経験が今回の「${concept.concept2}」の理解に活かせそうです。段階的に進めていきましょう。`;
-            default:
-                return `「${concept.concept1}」と「${concept.concept2}」のつながりを意識しながら、あなたに最適な情報をお伝えします。`;
-        }
+        if (!phrase) return "";
+
+        return phrase.replace(/{concept1}/g, concept.concept1)
+                     .replace(/{concept2}/g, concept.concept2)
+                     .replace(/{userInput}/g, userInput);
     }
 
     generateContinuityResponse(userInput, recentTopic, general) {
-        return `前回の「${recentTopic}」から発展して、今回のテーマも深く探求していきましょう。あなたの学習の流れを大切にしながら、新しい視点も加えてお答えします。`;
+        const continuityResponsePhrases = this.learningEnhancementPatterns.continuityResponsePhrases || {};
+        const phrase = continuityResponsePhrases.default || "";
+        
+        if (!phrase) return "";
+
+        return phrase.replace(/{recentTopic}/g, recentTopic)
+                     .replace(/{userInput}/g, userInput);
     }
 
     /**
@@ -1701,6 +1788,65 @@ ${this.generateContinuityResponse(userInput, recentTopic, general)}`;
             config: this.config,
             uptime: Date.now() - this.stats.lastProcessingTime
         };
+    }
+
+    /**
+     * 応答フレーズを選択するヘルパーメソッド
+     */
+    selectPhrase(category, userInput, general, longTermContext = null) {
+        const phrases = this.responsePhrases[category];
+        if (!phrases || phrases.length === 0) return "";
+
+        // 条件に合致するフレーズを選択
+        for (const item of phrases) {
+            if (item.condition === 'default') continue; // defaultは最後に処理
+
+            if (item.condition.startsWith('includes_')) {
+                const keywords = item.condition.substring('includes_'.length).split('_');
+                if (keywords.some(kw => userInput.includes(kw))) {
+                    return this.replacePlaceholders(item.phrases[0], userInput, general, longTermContext);
+                }
+            } else if (item.condition.startsWith('dominantEmotion_')) {
+                const emotion = item.condition.substring('dominantEmotion_'.length);
+                if (general?.emotionAnalysis?.dominantEmotion === emotion) {
+                    return this.replacePlaceholders(item.phrases[0], userInput, general, longTermContext);
+                }
+            } else if (item.condition.startsWith('contextScore_gt_')) {
+                const threshold = parseFloat(item.condition.substring('contextScore_gt_'.length));
+                if (general?.contextEnrichment?.overallContextScore > threshold) {
+                    return this.replacePlaceholders(item.phrases[0], userInput, general, longTermContext);
+                }
+            }
+            // 他の条件を追加可能
+        }
+
+        // どの条件にも合致しない場合はdefaultを返す
+        const defaultItem = phrases.find(item => item.condition === 'default');
+        if (defaultItem) {
+            return this.replacePlaceholders(defaultItem.phrases[0], userInput, general, longTermContext);
+        }
+
+        return "";
+    }
+
+    /**
+     * 応答フレーズ内のプレースホルダーを置換するヘルパーメソッド
+     */
+    replacePlaceholders(phrase, userInput, general, longTermContext) {
+        let replaced = phrase;
+        replaced = replaced.replace(/{keyTopic}/g, this.extractKeyTopic(userInput));
+        replaced = replaced.replace(/{targets}/g, this.extractComparisonTargets(userInput));
+        // longTermContextからの情報も置換可能
+        if (longTermContext?.frequentTopics?.length > 0) {
+            replaced = replaced.replace(/{frequentTopic}/g, longTermContext.frequentTopics[0].word);
+        }
+        if (longTermContext?.dominantIntents?.length > 0) {
+            replaced = replaced.replace(/{dominantIntent}/g, longTermContext.dominantIntents[0].word);
+        }
+        if (longTermContext?.coreKeywords?.length > 0) {
+            replaced = replaced.replace(/{coreKeyword}/g, longTermContext.coreKeywords[0].word);
+        }
+        return replaced;
     }
 }
 

@@ -1,37 +1,32 @@
-# 🤝 次回セッション引き継ぎ: メタ認知制御システム統合完了
+# 🤝 次回セッション引き継ぎ: 応答フレーズの外部化完了
 
 ## 📅 **引き継ぎ情報**
 - **作成日**: 2025-07-08
-- **前回成果**: `EnhancedResponseGenerationEngineV2`の強化完了
-- **今回成果**: ✅ **`MetaCognitiveController`のシステム統合完了**
-- **システム状態**: 安定稼働中。司令塔からの指示と長期記憶が応答に反映され、メタ認知コントローラーへのデータ連携も確立された。
+- **前回成果**: 残りAPIエンドポイントの再実装と不要ファイル削除完了
+- **今回成果**: ✅ **`EnhancedResponseGenerationEngineV2`の応答フレーズ外部化完了**
+- **システム状態**: 安定稼働中。応答生成ロジックのハードコードが外部化され、より柔軟で拡張性の高いシステムへと進化。
 
 ---
 
 ## 🏆 **今回セッションの主要成果**
 
-### **1. `MetaCognitiveController`のシステムへの統合**
-- **目的**: システムの自己監視・自己改善能力の核となるメタ認知制御システムの基盤を確立する。
-- **実装**: 
-    - `minimal-ai-server.js`の`initializeAI`関数内で`MetaCognitiveController`をインスタンス化し、`AdvancedDialogueController`のコンストラクタに注入。
-    - `AdvancedDialogueController`に`processDialogueResultsForMetaCognition`メソッドを追加し、`controlResult`と`responseResult`を受け取るように変更。
-    - `minimal-ai-server.js`の`/api/v2/dialogue/chat`エンドポイントで、`EnhancedResponseGenerationEngineV2`からの応答生成後に、`dialogueController.processDialogueResultsForMetaCognition`を呼び出すように修正。
-- **効果**: 司令塔が生成した詳細な対話制御結果と、応答生成エンジンが生成した応答結果が、メタ認知コントローラーに一元的に渡されるようになり、分析基盤が強化された。
+### **1. 応答フレーズの外部設定化**
+- **目的**: 応答フレーズの管理をコードから分離し、柔軟性と拡張性を向上させる。
+- **実装**: `src/config/response-phrases.json`を作成し、全てのカテゴリの応答フレーズと選択条件を定義。`EnhancedResponseGenerationEngineV2`がこの設定ファイルを読み込むように修正。
+- **効果**: 応答フレーズの更新・追加が容易になり、応答のバリエーションと柔軟性が向上した。
 
-### **2. `MetaCognitiveController`内のメソッド引数とロジックの調整**
-- **目的**: `MetaCognitiveController`内の既存の分析・評価メソッドが、新しい`controlResult`と`responseResult`の構造に対応できるようにする。
-- **実装**: 
-    - `MetaCognitiveController.js`内の`executeMetaCognition`メソッドの引数を`controlResult`と`responseResult`に変更。
-    - `performSelfReflection`, `monitorQuality`, `evaluateResponseQuality`, `evaluateAdaptationAccuracy`, `evaluateUserEngagement`, `evaluateGoalAchievement`, `extractDialogueInsights`, `assessResponseRelevance`, `assessResponseClarity`, `assessResponseCompleteness`, `assessResponseAccuracy`, `assessResponseEngagement`, `assessResponsePersonalization`, `evaluateGoalAlignment`, `evaluateAdaptationEffectiveness`, `updateMetaCognitionHistory`, `generateFallbackMetaCognition`などの関連メソッドの引数を調整し、`controlResult`と`responseResult`のデータ構造を活用するようにロジックを修正。
-- **効果**: メタ認知コントローラーが、より具体的で詳細な対話データに基づいて自己分析を行えるようになり、将来的な機能拡張が容易になった。
+### **2. `selectPhrase`ヘルパーメソッドの導入**
+- **目的**: 応答フレーズの選択ロジックを一元化し、コードの重複を排除する。
+- **実装**: `selectPhrase`と`replacePlaceholders`メソッドを導入し、各応答生成メソッドがこれらを通じてフレーズを取得するように修正。
+- **効果**: 応答生成メソッドの可読性と保守性が向上し、将来的な応答選択ロジックの複雑化にも対応しやすくなった。
 
 ---
 
 ## 🎯 **現在のシステム状態と最優先課題**
 
-**現状**: メタ認知制御システムの基盤が確立され、対話の制御結果と応答結果が適切に連携されるようになりました。これにより、システムが自身のパフォーマンスを分析し、改善するための重要なステップが完了しました。
+**現状**: `EnhancedResponseGenerationEngineV2`の応答生成ロジックから主要なハードコードが外部化され、より柔軟で拡張性の高いシステムへと進化しました。これにより、応答の品質と管理の容易さが向上しました。
 
-**最優先課題**: **`MetaCognitiveController`内のメソッドの正当性検証**
+**最優先課題**: **`MetaCognitiveController`内のメソッドの正当性検証**（残りの部分）
 
 ---
 
@@ -45,6 +40,6 @@
     3.  特に、簡略化された実装（`// 簡略実装`とコメントされている部分）を持つメソッドについて、その将来的な必要性や、現在のシステムにおける役割を評価する。
     4.  冗長なロジックや、ほとんど機能していないメソッドを特定し、削除またはリファクタリングの提案を行う。
 
-### **優先度B: コメントアウトされたAPIの再実装**
-- **目的**: 既存のWebUIや外部ツールとの互換性を回復し、システム全体の機能性を向上させる。
-- **アクション**: `minimal-ai-server.js`でコメントアウトされたAPIエンドポイント（統計情報、バックアップなど）を、`AdvancedDialogueController`を介して再実装する。
+### **優先度B: システム全体のE2E (End-to-End) テストの実施**
+- **目的**: 全てのコンポーネントが連携して期待通りに動作することを確認する。
+- **アクション**: `minimal-ai-server.js`を起動し、再実装されたAPIエンドポイントを呼び出すテストシナリオを作成・実行する。特に、`AdvancedDialogueController`を介したデータフローと、`EnhancedResponseGenerationEngineV2`、`MetaCognitiveController`の連携を確認する。

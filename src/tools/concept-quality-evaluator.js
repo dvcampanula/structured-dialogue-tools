@@ -10,8 +10,8 @@
 
 import fs from 'fs';
 import path from 'path';
-import { EnhancedHybridLanguageProcessor } from '../core/enhanced-hybrid-processor.js';
-import { DialogueLogLearnerAdapter } from '../core/dialogue-log-learner-adapter.js';
+import { EnhancedHybridLanguageProcessor } from '../engines/processing/enhanced-hybrid-processor.js';
+import { DialogueLogLearnerAdapter } from '../engines/learning/dialogue-log-learner-adapter.js';
 
 export class ConceptQualityEvaluator {
     constructor() {

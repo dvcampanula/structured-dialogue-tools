@@ -683,6 +683,13 @@ export class EnhancedHybridLanguageProcessor {
             relationshipOptimizerStats: this.relationshipOptimizer.getStatistics()
         };
     }
+
+    /**
+     * 統計情報取得 (getStatsとして公開)
+     */
+    getStats() {
+        return this.getStatistics();
+    }
 }
 
 /**

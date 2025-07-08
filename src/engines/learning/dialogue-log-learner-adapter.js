@@ -6,7 +6,7 @@
  * 📊 互換性を保ちながら段階的な品質向上を実現
  */
 
-import { EnhancedHybridLanguageProcessor } from './enhanced-hybrid-processor.js';
+import { EnhancedHybridLanguageProcessor } from '../processing/enhanced-hybrid-processor.js';
 import { DialogueLogLearner } from './dialogue-log-learner.js';
 
 export class DialogueLogLearnerAdapter {

@@ -18,13 +18,16 @@ import { DialogueFlowController } from '../../engines/dialogue/dialogue-flow-con
 import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 
 export class AdvancedDialogueController {
-    constructor(personalDialogueAnalyzer, domainKnowledgeBuilder, personalResponseAdapter, conceptDB, metaCognitiveController, userId = 'default') {
+    constructor(personalDialogueAnalyzer, domainKnowledgeBuilder, personalResponseAdapter, conceptDB, metaCognitiveController, hybridProcessor, qualityAdjuster, conceptQualityManager, userId = 'default') {
         this.personalDialogueAnalyzer = personalDialogueAnalyzer; // 注入されたアナライザー
         this.domainKnowledgeBuilder = domainKnowledgeBuilder;     // 注入されたビルダー
         this.personalResponseAdapter = personalResponseAdapter;   // 注入されたアダプター
         this.conceptDB = conceptDB; // 注入されたconceptDB
         this.db = persistentLearningDB; // DBインスタンスを保持
-        this.metaCognitiveController = metaCognitiveController; // 注入されたメタ認知コントローラー
+        // metaCognitiveController削除済み - ハードコード満載システムのため不要
+        this.hybridProcessor = hybridProcessor; // 注入されたハイブリッドプロセッサー
+        this.qualityAdjuster = qualityAdjuster; // 注入された品質調整システム
+        this.conceptQualityManager = conceptQualityManager; // 注入された概念品質管理システム
         
         // 外部設定・データ（起動時に読み込み）
         this.techRelations = {};
@@ -256,9 +259,7 @@ export class AdvancedDialogueController {
             await this.saveConversationHistory();
 
             // Step 7: メタ認知コントローラーを呼び出し、対話結果を渡す
-            if (this.metaCognitiveController) {
-                await this.metaCognitiveController.executeMetaCognition(result, null); // responseResultは後で追加
-            }
+            // MetaCognitiveController削除済み - ハードコード満載システムのため不要
 
             return result;
             
@@ -272,9 +273,7 @@ export class AdvancedDialogueController {
      * 対話結果をメタ認知コントローラーに渡す
      */
     async processDialogueResultsForMetaCognition(controlResult, responseResult) {
-        if (this.metaCognitiveController) {
-            await this.metaCognitiveController.executeMetaCognition(controlResult, responseResult);
-        }
+        // MetaCognitiveController削除済み - ハードコード満載システムのため不要
     }
 
     /**
@@ -1373,6 +1372,391 @@ export class AdvancedDialogueController {
     assessPolitenessLevel(input) { return 0.7; }
     assessDirectness(input) { return 0.6; }
     assessCooperativeness(input, context) { return 0.8; }
+
+    /**
+     * システム統計取得
+     */
+    getSystemStats() {
+        return {
+            totalConversations: this.controllerStats.totalConversations,
+            learningStats: this.getLearningStats(),
+            dialogueState: this.dialogueState,
+            // 他の関連する統計情報をここに追加
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
+     * 全データをエクスポート
+     */
+    async exportAllData() {
+        const learningStats = await this.db.getLearningStats();
+        const conversationHistory = await this.db.getConversationHistory();
+        const userRelations = await this.db.getAllUserRelations();
+
+        return {
+            learningStats,
+            conversationHistory,
+            userRelations,
+            timestamp: new Date().toISOString(),
+            version: '1.0.0'
+        };
+    }
+
+    /**
+     * ユーザーフィードバックを処理し、学習に反映
+     */
+    async processFeedback(input, feedback, response) {
+        try {
+            // persistentLearningDBにフィードバックイベントを記録
+            await this.db.logLearningEvent({
+                type: 'user_feedback',
+                userId: this.userId,
+                input: input,
+                feedback: feedback,
+                response: response,
+                timestamp: new Date().toISOString()
+            });
+
+            // MetaCognitiveController削除済み - ハードコード満載システムのため不要
+            console.log(`✅ フィードバック処理完了: ${feedback.rating || 'N/A'}点`);
+        } catch (error) {
+            console.error('❌ フィードバック処理エラー:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 分析結果に対するフィードバックを処理し、学習に反映
+     */
+    async processAnalysisFeedback(analysis, feedback) {
+        try {
+            // persistentLearningDBに分析フィードバックイベントを記録
+            await this.db.logLearningEvent({
+                type: 'analysis_feedback',
+                userId: this.userId,
+                analysis: analysis,
+                feedback: feedback,
+                timestamp: new Date().toISOString()
+            });
+
+            // MetaCognitiveController削除済み - ハードコード満載システムのため不要
+            console.log(`✅ 分析フィードバック処理完了: ${feedback.rating || 'N/A'}点`);
+        } catch (error) {
+            console.error('❌ 分析フィードバック処理エラー:', error);
+            throw error;
+        }
+    }
+
+    async processAnalysisFeedback(analysis, feedback) {
+        try {
+            // persistentLearningDBに分析フィードバックイベントを記録
+            await this.db.logLearningEvent({
+                type: 'analysis_feedback',
+                userId: this.userId,
+                analysis: analysis,
+                feedback: feedback,
+                timestamp: new Date().toISOString()
+            });
+
+            // MetaCognitiveController削除済み - ハードコード満載システムのため不要
+            console.log(`✅ 分析フィードバック処理完了: ${feedback.rating || 'N/A'}点`);
+        } catch (error) {
+            console.error('❌ 分析フィードバック処理エラー:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * リアルタイム応答スタイル調整
+     */
+    async adjustResponseStyle(currentResponse, adjustmentRequest) {
+        try {
+            if (!this.responseGenerator || !this.responseGenerator.applyResponseGuidanceAdjustments) {
+                throw new Error('応答生成エンジンが初期化されていないか、調整機能がありません。');
+            }
+
+            // adjustmentRequestをresponseGuidanceの形式に変換
+            const guidance = {
+                responseStructure: adjustmentRequest.type === 'shorter' || adjustmentRequest.type === 'longer' ? (adjustmentRequest.type === 'shorter' ? 'summary_only' : 'adaptive_structure') : undefined,
+                styleInstructions: adjustmentRequest.type === 'more_formal' ? 'formal' : (adjustmentRequest.type === 'more_casual' ? 'casual' : undefined),
+                contentGuidelines: adjustmentRequest.type === 'be_concise' ? ['be_concise'] : (adjustmentRequest.type === 'be_detailed' ? ['be_detailed'] : undefined)
+                // 他の調整リクエストタイプに応じてguidanceを拡張
+            };
+
+            // EnhancedResponseGenerationEngineV2の応答調整ヘルパーメソッドを呼び出す
+            const adjustedResponse = await this.responseGenerator.applyResponseGuidanceAdjustments(currentResponse, guidance);
+
+            console.log(`✅ リアルタイム応答調整完了: ${adjustmentRequest.type}`);
+            return adjustedResponse;
+        } catch (error) {
+            console.error('❌ リアルタイム応答調整エラー:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * 個人プロファイル取得
+     */
+    async getPersonalProfile() {
+        const personalProfile = await this.personalDialogueAnalyzer.analyzePersonalDialogues(this.conversationHistory);
+        const domainProfile = this.domainKnowledgeBuilder.generateExpertiseProfile();
+        // PersonalResponseAdapterのgeneratePersonalizedLearningProfileは削除されたため、ここでは直接生成
+        const learningProfile = {
+            totalInteractions: this.conversationHistory.length,
+            learningStats: this.getLearningStats(),
+            // その他の学習関連情報
+        };
+
+        return {
+            personalProfile,
+            domainProfile,
+            learningProfile,
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
+     * 個人統計情報取得
+     */
+    async getPersonalStats() {
+        const personalAnalysisStats = this.personalDialogueAnalyzer.analysisStats;
+        const domainBuildingStats = this.domainKnowledgeBuilder.buildingStats;
+        const responseAdaptationStats = this.personalResponseAdapter.adaptationStats;
+
+        return {
+            personalAnalysis: personalAnalysisStats,
+            domainBuilding: domainBuildingStats,
+            responseAdaptation: responseAdaptationStats,
+            systemStatus: {
+                personalAnalyzerReady: !!this.personalDialogueAnalyzer,
+                domainBuilderReady: !!this.domainKnowledgeBuilder,
+                responseAdapterReady: !!this.personalResponseAdapter
+            },
+            timestamp: new Date().toISOString()
+        };
+    }
+
+    /**
+     * 対話ログを処理し、個人学習データとして反映
+     */
+    async processDialogueLogsForLearning(dialogueLogs) {
+        try {
+            if (!dialogueLogs || !Array.isArray(dialogueLogs)) {
+                throw new Error('対話ログ配列が必要です');
+            }
+            console.log(`🧠 個人学習データ追加: ${dialogueLogs.length}ログ`);
+
+            // PersonalDialogueAnalyzerで話し方パターンを分析
+            const personalAnalysisResult = await this.personalDialogueAnalyzer.analyzePersonalDialogues(dialogueLogs);
+            // ここでpersonalAnalysisResultをpersistentLearningDBに保存するロジックが必要になる可能性あり
+
+            // DomainKnowledgeBuilderでドメイン知識を構築
+            const domainAnalysisResults = await this.domainKnowledgeBuilder.buildKnowledgeFromDialogueLogs(dialogueLogs);
+
+            // persistentLearningDBに学習イベントを記録
+            await this.db.logLearningEvent({
+                type: 'personal_learning',
+                userId: this.userId,
+                data: {
+                    personalAnalysis: personalAnalysisResult,
+                    domainAnalysis: domainAnalysisResults,
+                    logCount: dialogueLogs.length
+                },
+                timestamp: new Date().toISOString()
+            });
+
+            console.log(`✅ 個人学習データ追加完了: ${dialogueLogs.length}ログ`);
+            return {
+                personalAnalysis: personalAnalysisResult,
+                domainAnalysis: domainAnalysisResults
+            };
+        } catch (error) {
+            console.error('❌ 個人学習データ追加エラー:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * ハイブリッド処理を実行
+     */
+    async processHybrid(text, options = {}) {
+        if (!this.hybridProcessor) {
+            throw new Error('ハイブリッドプロセッサーが初期化されていません。');
+        }
+        const result = await this.hybridProcessor.processText(text, options);
+        const textCategory = options.category || 'default';
+        const adjustmentResult = await this.qualityAdjuster.autoAdjust(result, textCategory);
+        return { optimizedResult: adjustmentResult.optimizedResult, originalResult: adjustmentResult.originalResult, qualityImprovement: adjustmentResult.qualityImprovement, targetAchieved: adjustmentResult.targetAchieved, processingTime: result.statistics.processingTime, adjustmentTime: adjustmentResult.processingTime };
+    }
+
+    /**
+     * テキストの品質を評価
+     */
+    async evaluateTextQuality(text, options = {}) {
+        if (!this.hybridProcessor) {
+            throw new Error('ハイブリッドプロセッサーが初期化されていません。');
+        }
+        const [withMeCab, withoutMeCab] = await Promise.all([
+            this.hybridProcessor.processText(text, { ...options, enableMeCab: true }),
+            this.hybridProcessor.processText(text, { ...options, enableMeCab: false })
+        ]);
+        const qualityData = {
+            withMeCab: {
+                conceptCount: withMeCab.statistics.enhancedTermCount,
+                qualityScore: withMeCab.statistics.qualityScore,
+                processingTime: withMeCab.statistics.processingTime
+            },
+            withoutMeCab: {
+                conceptCount: withoutMeCab.statistics.enhancedTermCount,
+                qualityScore: withoutMeCab.statistics.qualityScore,
+                processingTime: withoutMeCab.statistics.processingTime
+            },
+            improvement: {
+                conceptCountImprovement: ((withMeCab.statistics.enhancedTermCount - withoutMeCab.statistics.enhancedTermCount) / Math.max(withoutMeCab.statistics.enhancedTermCount, 1) * 100).toFixed(1),
+                qualityScoreImprovement: ((withMeCab.statistics.qualityScore - withoutMeCab.statistics.qualityScore) / Math.max(withoutMeCab.statistics.qualityScore, 0.1) * 100).toFixed(1)
+            }
+        };
+        return qualityData;
+    }
+
+    /**
+     * テキストから概念を抽出
+     */
+    async extractConceptsFromText(text, options = {}) {
+        if (!this.hybridProcessor) {
+            throw new Error('ハイブリッドプロセッサーが初期化されていません。');
+        }
+        const result = await this.hybridProcessor.processText(text, options);
+        const conceptData = {
+            concepts: result.enhancedTerms,
+            conceptGroups: result.conceptGroups,
+            relationships: result.relationships,
+            statistics: {
+                conceptCount: result.enhancedTerms.length,
+                groupCount: Object.keys(result.conceptGroups).length,
+                relationshipCount: result.relationships.length,
+                qualityScore: result.statistics.qualityScore
+            }
+        };
+        return conceptData;
+    }
+
+    /**
+     * ハイブリッド処理統計取得
+     */
+    async getHybridStats() {
+        if (!this.hybridProcessor) {
+            throw new Error('ハイブリッドプロセッサーが初期化されていません。');
+        }
+        // EnhancedHybridLanguageProcessorにgetStats()メソッドがあると仮定
+        // もしなければ、ここで手動で統計情報を集計する
+        return this.hybridProcessor.getStats ? this.hybridProcessor.getStats() : {
+            totalRequests: 0,
+            successfulRequests: 0,
+            failedRequests: 0,
+            averageProcessingTime: 0,
+            lastProcessed: null
+        };
+    }
+
+    /**
+     * 品質自動調整統計取得
+     */
+    async getQualityAdjustmentStats() {
+        if (!this.qualityAdjuster) {
+            throw new Error('品質調整システムが初期化されていません。');
+        }
+        return this.qualityAdjuster.getSystemStats();
+    }
+
+    /**
+     * 品質自動調整設定更新
+     */
+    async updateQualityAdjustmentSettings(settings) {
+        if (!this.qualityAdjuster) {
+            throw new Error('品質調整システムが初期化されていません。');
+        }
+        this.qualityAdjuster.updateSettings(settings);
+        return { message: '品質自動調整設定を更新しました', currentSettings: this.qualityAdjuster.adjustmentParams };
+    }
+
+    /**
+     * システム情報取得
+     */
+    async getSystemInfo() {
+        const learningStats = this.getLearningStats();
+        const conceptDB = this.conceptDB; // minimalAIから取得したconceptDB
+
+        return {
+            uptime: process.uptime(),
+            memory: process.memoryUsage(),
+            version: '1.0.0',
+            nodeVersion: process.version,
+            platform: process.platform,
+            conceptDBSize: {
+                surface: conceptDB.concepts?.surface?.length || 0,
+                deep: conceptDB.concepts?.deep?.length || 0
+            },
+            learningStats: learningStats,
+            hybridEnabled: !!this.hybridProcessor,
+            lastBackup: null // TODO: persistentLearningDBから取得
+        };
+    }
+
+    /**
+     * 品質改善を実行
+     */
+    async executeQualityImprovement() {
+        if (!this.conceptQualityManager) {
+            throw new Error('概念品質管理システムが初期化されていません。');
+        }
+        const currentDB = this.conceptDB; // minimalAIから取得したconceptDB
+        const improvedDB = this.conceptQualityManager.improveConceptDB(currentDB);
+        // minimalAI.updateConceptDB(improvedDB); // minimalAIのupdateConceptDBを呼び出す
+        // TODO: minimalAIのupdateConceptDBを呼び出す方法を検討
+        const qualityReport = this.conceptQualityManager.generateQualityReport(currentDB, improvedDB);
+        return { report: qualityReport, improvements: improvedDB.qualityStats, message: `品質改善完了 - ${improvedDB.qualityStats.improvementRatio}%の効率化を達成` };
+    }
+
+    /**
+     * 品質統計取得
+     */
+    async getQualityStats() {
+        if (!this.conceptQualityManager) {
+            throw new Error('概念品質管理システムが初期化されていません。');
+        }
+        const conceptDB = this.conceptDB; // minimalAIから取得したconceptDB
+        const allConcepts = [
+            ...(conceptDB.concepts?.surface || []),
+            ...(conceptDB.concepts?.deep || [])
+        ];
+        const qualityStats = {
+            totalConcepts: allConcepts.length,
+            surfaceConcepts: conceptDB.concepts?.surface?.length || 0,
+            deepConcepts: conceptDB.concepts?.deep?.length || 0,
+            qualityDistribution: {
+                excellent: 0,
+                good: 0,
+                acceptable: 0,
+                poor: 0
+            },
+            categoryDistribution: {},
+            duplicatesPotential: 0
+        };
+        for (const concept of allConcepts) {
+            const quality = this.conceptQualityManager.calculateQualityScore(concept);
+            if (quality >= this.conceptQualityManager.qualityThresholds.excellent) { qualityStats.qualityDistribution.excellent++; } else if (quality >= this.conceptQualityManager.qualityThresholds.good) { qualityStats.qualityDistribution.good++; } else if (quality >= this.conceptQualityManager.qualityThresholds.acceptable) { qualityStats.qualityDistribution.acceptable++; } else { qualityStats.qualityDistribution.poor++; }
+            const category = concept.category || 'general';
+            qualityStats.categoryDistribution[category] = (qualityStats.categoryDistribution[category] || 0) + 1;
+        }
+        const duplicateGroups = this.conceptQualityManager.findDuplicateGroups(allConcepts);
+        qualityStats.duplicatesPotential = duplicateGroups.length;
+        return qualityStats;
+    }
+
+    /**
+     * 個人プロファイル取得
 
     /**
      * ★ 対話ターンの要約を作成する

@@ -22,7 +22,14 @@ export class ConfigLoader {
             systemConfig: path.join(this.configDir, 'system-config.json'),
             learningConfig: path.join(this.configDir, 'learning-config.json'),
             technicalPatterns: path.join(this.configDir, 'technical-patterns.json'),
-            responseTemplates: path.join(this.configDir, 'response-templates.json')
+            responseTemplates: path.join(this.configDir, 'response-templates.json'),
+            responseStrategyMapping: path.join(this.configDir, 'response-strategy-mapping.json'),
+            responsePhrases: path.join(this.configDir, 'response-phrases.json'),
+            politenessIntensityPatterns: path.join(this.configDir, 'politeness-intensity-patterns.json'),
+            emotionDictionary: path.join(this.configDir, 'emotion-dictionary.json'),
+            intentPatterns: path.join(this.configDir, 'intent-patterns.json'),
+            keywordExtractionPatterns: path.join(this.configDir, 'keyword-extraction-patterns.json'),
+            learningEnhancementPatterns: path.join(this.configDir, 'learning-enhancement-patterns.json')
         };
     }
 
@@ -160,7 +167,7 @@ export class ConfigLoader {
     /**
      * 設定ファイル存在確認
      */
-    validateConfigFiles() {
+    async validateConfigFiles() {
         const results = {};
         
         for (const [name, path] of Object.entries(this.configPaths)) {
@@ -171,6 +178,62 @@ export class ConfigLoader {
         }
 
         return results;
+    }
+
+    /**
+     * 応答戦略マッピング取得
+     */
+    async getResponseStrategyMapping() {
+        const config = await this.loadConfig('responseStrategyMapping');
+        return config || { topicToStrategyMapping: [], intentToStrategyMapping: [], defaultStrategy: 'general' };
+    }
+
+    /**
+     * 応答フレーズ取得
+     */
+    async getResponsePhrases() {
+        const config = await this.loadConfig('responsePhrases');
+        return config || {};
+    }
+
+    /**
+     * 丁寧度・感情強度パターン取得
+     */
+    async getPolitenessIntensityPatterns() {
+        const config = await this.loadConfig('politenessIntensityPatterns');
+        return config || { politenessPatterns: [], intensityPatterns: [] };
+    }
+
+    /**
+     * 感情辞書取得
+     */
+    async getEmotionDictionary() {
+        const config = await this.loadConfig('emotionDictionary');
+        return config || {};
+    }
+
+    /**
+     * 意図パターン取得
+     */
+    async getIntentPatterns() {
+        const config = await this.loadConfig('intentPatterns');
+        return config || {};
+    }
+
+    /**
+     * キーワード抽出パターン取得
+     */
+    async getKeywordExtractionPatterns() {
+        const config = await this.loadConfig('keywordExtractionPatterns');
+        return config || { keyTopicTechTerms: [], comparisonPatterns: [], actionPatterns: [] };
+    }
+
+    /**
+     * 学習強化パターン取得
+     */
+    async getLearningEnhancementPatterns() {
+        const config = await this.loadConfig('learningEnhancementPatterns');
+        return config || { relatedConceptKeywords: [], conversationContextKeywords: [], personalizedResponsePhrases: {}, contextualResponsePhrases: {}, continuityResponsePhrases: {}, relatedConceptThreshold: 0.5, conversationHistoryLimit: 3 };
     }
 }
 

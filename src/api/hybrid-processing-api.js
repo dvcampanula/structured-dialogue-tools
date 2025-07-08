@@ -8,7 +8,7 @@
 
 import express from 'express';
 import cors from 'cors';
-import { EnhancedHybridLanguageProcessor } from '../core/enhanced-hybrid-processor.js';
+import { EnhancedHybridLanguageProcessor } from '../engines/processing/enhanced-hybrid-processor.js';
 import { DialogueLogLearnerAdapter } from '../core/dialogue-log-learner-adapter.js';
 
 export class HybridProcessingAPI {

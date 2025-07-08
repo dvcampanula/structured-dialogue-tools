@@ -461,6 +461,55 @@ export class PersistentLearningDB {
     }
 
     /**
+     * バックアップ一覧取得
+     */
+    async listBackups() {
+        const backupBaseDir = path.join(this.basePath, 'backups');
+        if (!fs.existsSync(backupBaseDir)) {
+            return [];
+        }
+
+        const backupDirs = fs.readdirSync(backupBaseDir, { withFileTypes: true })
+            .filter(dirent => dirent.isDirectory())
+            .map(dirent => dirent.name);
+
+        const backupList = [];
+        for (const dirName of backupDirs) {
+            const backupPath = path.join(backupBaseDir, dirName);
+            const statsPath = path.join(backupPath, 'learning-stats.json'); // バックアップ内の統計ファイル
+            let backupInfo = {
+                name: dirName,
+                path: backupPath,
+                createdAt: fs.statSync(backupPath).mtime.toISOString(),
+                size: 0, // 後で計算
+                totalConversations: 0,
+                totalConcepts: 0
+            };
+
+            try {
+                // バックアップ内のファイルを合計してサイズを計算
+                const filesInBackup = fs.readdirSync(backupPath);
+                for (const file of filesInBackup) {
+                    backupInfo.size += fs.statSync(path.join(backupPath, file)).size;
+                }
+
+                // 統計ファイルから詳細情報を取得
+                if (fs.existsSync(statsPath)) {
+                    const stats = JSON.parse(fs.readFileSync(statsPath, 'utf8'));
+                    backupInfo.totalConversations = stats.totalConversations || 0;
+                    backupInfo.totalConcepts = stats.totalConceptsLearned || 0;
+                }
+            } catch (error) {
+                console.warn(`⚠️ バックアップ情報読み込みエラー (${dirName}):`, error.message);
+            }
+            backupList.push(backupInfo);
+        }
+
+        // 作成日時でソート（新しいものが先頭）
+        return backupList.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    /**
      * データクリーンアップ
      */
     async cleanupOldData() {
