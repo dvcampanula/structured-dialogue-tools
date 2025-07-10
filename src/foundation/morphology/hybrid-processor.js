@@ -172,8 +172,8 @@ export class EnhancedHybridLanguageProcessor {
             engine: 'kuromoji',
             tokens: tokens.map(token => ({
                 surface: token.surface_form,
-                partOfSpeech: token.part_of_speech || 'unknown',
-                features: (token.part_of_speech || '').split(','),
+                partOfSpeech: token.pos || 'unknown',
+                features: (token.pos || '').split(','),
                 reading: token.reading || '',
                 pronunciation: token.pronunciation || ''
             }))
@@ -795,6 +795,29 @@ export class EnhancedHybridLanguageProcessor {
      */
     getStats() {
         return this.getStatistics();
+    }
+
+    /**
+     * キーワード抽出メソッド (AIVocabularyProcessor用)
+     * @param {string} text - 解析対象テキスト
+     * @returns {Promise<Array<string>>} 抽出されたキーワードの配列
+     */
+    async extractKeywords(text) {
+        if (!text || typeof text !== 'string') return [];
+        
+        try {
+            const result = await this.processText(text, {
+                enableMeCab: true,
+                enableSimilarity: false,
+                enableGrouping: false,
+            });
+            
+            // enhancedTermsからキーワードを抽出
+            return result.enhancedTerms ? result.enhancedTerms.map(term => term.term) : [];
+        } catch (error) {
+            console.warn('⚠️ キーワード抽出エラー:', error.message);
+            return [];
+        }
     }
 }
 

@@ -885,7 +885,202 @@
                                     "userRelations": {
                                       "userRelations": {
                                         "userRelations": {
-                                          "userRelations": {},
+                                          "userRelations": {
+                                            "userRelations": {
+                                              "userRelations": {
+                                                "userRelations": {
+                                                  "userRelations": {
+                                                    "userRelations": {
+                                                      "userRelations": {
+                                                        "userRelations": {
+                                                          "userRelations": {
+                                                            "userRelations": {
+                                                              "userRelations": {
+                                                                "userRelations": {
+                                                                  "userRelations": {
+                                                                    "userRelations": {},
+                                                                    "coOccurrenceData": {},
+                                                                    "learningConfig": {
+                                                                      "minCoOccurrence": 2,
+                                                                      "strengthThreshold": 0.3,
+                                                                      "maxRelationsPerTerm": 10,
+                                                                      "decayFactor": 0.95,
+                                                                      "learningRate": 0.1,
+                                                                      "forgettingThreshold": 0.1,
+                                                                      "maxMemorySize": 1000,
+                                                                      "batchSaveInterval": 5,
+                                                                      "qualityThreshold": 0.6
+                                                                    },
+                                                                    "lastSaved": 1751687832899
+                                                                  },
+                                                                  "coOccurrenceData": {},
+                                                                  "learningConfig": {
+                                                                    "minCoOccurrence": 2,
+                                                                    "strengthThreshold": 0.3,
+                                                                    "maxRelationsPerTerm": 10,
+                                                                    "decayFactor": 0.95,
+                                                                    "learningRate": 0.1,
+                                                                    "forgettingThreshold": 0.1,
+                                                                    "maxMemorySize": 1000,
+                                                                    "batchSaveInterval": 5,
+                                                                    "qualityThreshold": 0.6
+                                                                  },
+                                                                  "lastSaved": 1751688638509
+                                                                },
+                                                                "coOccurrenceData": {},
+                                                                "learningConfig": {
+                                                                  "minCoOccurrence": 2,
+                                                                  "strengthThreshold": 0.3,
+                                                                  "maxRelationsPerTerm": 10,
+                                                                  "decayFactor": 0.95,
+                                                                  "learningRate": 0.1,
+                                                                  "forgettingThreshold": 0.1,
+                                                                  "maxMemorySize": 1000,
+                                                                  "batchSaveInterval": 5,
+                                                                  "qualityThreshold": 0.6
+                                                                },
+                                                                "lastSaved": 1751689991027
+                                                              },
+                                                              "coOccurrenceData": {},
+                                                              "learningConfig": {
+                                                                "minCoOccurrence": 2,
+                                                                "strengthThreshold": 0.3,
+                                                                "maxRelationsPerTerm": 10,
+                                                                "decayFactor": 0.95,
+                                                                "learningRate": 0.1,
+                                                                "forgettingThreshold": 0.1,
+                                                                "maxMemorySize": 1000,
+                                                                "batchSaveInterval": 5,
+                                                                "qualityThreshold": 0.6
+                                                              },
+                                                              "lastSaved": 1751720954964
+                                                            },
+                                                            "coOccurrenceData": {},
+                                                            "learningConfig": {
+                                                              "minCoOccurrence": 2,
+                                                              "strengthThreshold": 0.3,
+                                                              "maxRelationsPerTerm": 10,
+                                                              "decayFactor": 0.95,
+                                                              "learningRate": 0.1,
+                                                              "forgettingThreshold": 0.1,
+                                                              "maxMemorySize": 1000,
+                                                              "batchSaveInterval": 5,
+                                                              "qualityThreshold": 0.6
+                                                            },
+                                                            "lastSaved": 1751755737716
+                                                          },
+                                                          "coOccurrenceData": {},
+                                                          "learningConfig": {
+                                                            "minCoOccurrence": 2,
+                                                            "strengthThreshold": 0.3,
+                                                            "maxRelationsPerTerm": 10,
+                                                            "decayFactor": 0.95,
+                                                            "learningRate": 0.1,
+                                                            "forgettingThreshold": 0.1,
+                                                            "maxMemorySize": 1000,
+                                                            "batchSaveInterval": 5,
+                                                            "qualityThreshold": 0.6
+                                                          },
+                                                          "lastSaved": 1751756062155
+                                                        },
+                                                        "coOccurrenceData": {},
+                                                        "learningConfig": {
+                                                          "minCoOccurrence": 2,
+                                                          "strengthThreshold": 0.3,
+                                                          "maxRelationsPerTerm": 10,
+                                                          "decayFactor": 0.95,
+                                                          "learningRate": 0.1,
+                                                          "forgettingThreshold": 0.1,
+                                                          "maxMemorySize": 1000,
+                                                          "batchSaveInterval": 5,
+                                                          "qualityThreshold": 0.6
+                                                        },
+                                                        "lastSaved": 1751785546822
+                                                      },
+                                                      "coOccurrenceData": {},
+                                                      "learningConfig": {
+                                                        "minCoOccurrence": 2,
+                                                        "strengthThreshold": 0.3,
+                                                        "maxRelationsPerTerm": 10,
+                                                        "decayFactor": 0.95,
+                                                        "learningRate": 0.1,
+                                                        "forgettingThreshold": 0.1,
+                                                        "maxMemorySize": 1000,
+                                                        "batchSaveInterval": 5,
+                                                        "qualityThreshold": 0.6
+                                                      },
+                                                      "lastSaved": 1751786159579
+                                                    },
+                                                    "coOccurrenceData": {},
+                                                    "learningConfig": {
+                                                      "minCoOccurrence": 2,
+                                                      "strengthThreshold": 0.3,
+                                                      "maxRelationsPerTerm": 10,
+                                                      "decayFactor": 0.95,
+                                                      "learningRate": 0.1,
+                                                      "forgettingThreshold": 0.1,
+                                                      "maxMemorySize": 1000,
+                                                      "batchSaveInterval": 5,
+                                                      "qualityThreshold": 0.6
+                                                    },
+                                                    "lastSaved": 1751788124065
+                                                  },
+                                                  "coOccurrenceData": {},
+                                                  "learningConfig": {
+                                                    "minCoOccurrence": 2,
+                                                    "strengthThreshold": 0.3,
+                                                    "maxRelationsPerTerm": 10,
+                                                    "decayFactor": 0.95,
+                                                    "learningRate": 0.1,
+                                                    "forgettingThreshold": 0.1,
+                                                    "maxMemorySize": 1000,
+                                                    "batchSaveInterval": 5,
+                                                    "qualityThreshold": 0.6
+                                                  },
+                                                  "lastSaved": 1751806362773
+                                                },
+                                                "coOccurrenceData": {},
+                                                "learningConfig": {
+                                                  "minCoOccurrence": 2,
+                                                  "strengthThreshold": 0.3,
+                                                  "maxRelationsPerTerm": 10,
+                                                  "decayFactor": 0.95,
+                                                  "learningRate": 0.1,
+                                                  "forgettingThreshold": 0.1,
+                                                  "maxMemorySize": 1000,
+                                                  "batchSaveInterval": 5,
+                                                  "qualityThreshold": 0.6
+                                                },
+                                                "lastSaved": 1751809245282
+                                              },
+                                              "coOccurrenceData": {},
+                                              "learningConfig": {
+                                                "minCoOccurrence": 2,
+                                                "strengthThreshold": 0.3,
+                                                "maxRelationsPerTerm": 10,
+                                                "decayFactor": 0.95,
+                                                "learningRate": 0.1,
+                                                "forgettingThreshold": 0.1,
+                                                "maxMemorySize": 1000,
+                                                "batchSaveInterval": 5,
+                                                "qualityThreshold": 0.6
+                                              },
+                                              "lastSaved": 1751930201843
+                                            },
+                                            "coOccurrenceData": {},
+                                            "learningConfig": {
+                                              "minCoOccurrence": 2,
+                                              "strengthThreshold": 0.3,
+                                              "maxRelationsPerTerm": 10,
+                                              "decayFactor": 0.95,
+                                              "learningRate": 0.1,
+                                              "forgettingThreshold": 0.1,
+                                              "maxMemorySize": 1000,
+                                              "batchSaveInterval": 5,
+                                              "qualityThreshold": 0.6
+                                            },
+                                            "lastSaved": 1751931360135
+                                          },
                                           "coOccurrenceData": {},
                                           "learningConfig": {
                                             "minCoOccurrence": 2,
@@ -898,7 +1093,7 @@
                                             "batchSaveInterval": 5,
                                             "qualityThreshold": 0.6
                                           },
-                                          "lastSaved": 1751687832899
+                                          "lastSaved": 1751947620143
                                         },
                                         "coOccurrenceData": {},
                                         "learningConfig": {
@@ -912,7 +1107,7 @@
                                           "batchSaveInterval": 5,
                                           "qualityThreshold": 0.6
                                         },
-                                        "lastSaved": 1751688638509
+                                        "lastSaved": 1751964403802
                                       },
                                       "coOccurrenceData": {},
                                       "learningConfig": {
@@ -926,7 +1121,7 @@
                                         "batchSaveInterval": 5,
                                         "qualityThreshold": 0.6
                                       },
-                                      "lastSaved": 1751689991027
+                                      "lastSaved": 1751965244598
                                     },
                                     "coOccurrenceData": {},
                                     "learningConfig": {
@@ -940,7 +1135,7 @@
                                       "batchSaveInterval": 5,
                                       "qualityThreshold": 0.6
                                     },
-                                    "lastSaved": 1751720954964
+                                    "lastSaved": 1752009772871
                                   },
                                   "coOccurrenceData": {},
                                   "learningConfig": {
@@ -954,7 +1149,7 @@
                                     "batchSaveInterval": 5,
                                     "qualityThreshold": 0.6
                                   },
-                                  "lastSaved": 1751755737716
+                                  "lastSaved": 1752010896738
                                 },
                                 "coOccurrenceData": {},
                                 "learningConfig": {
@@ -968,7 +1163,7 @@
                                   "batchSaveInterval": 5,
                                   "qualityThreshold": 0.6
                                 },
-                                "lastSaved": 1751756062155
+                                "lastSaved": 1752012126360
                               },
                               "coOccurrenceData": {},
                               "learningConfig": {
@@ -982,7 +1177,7 @@
                                 "batchSaveInterval": 5,
                                 "qualityThreshold": 0.6
                               },
-                              "lastSaved": 1751785546822
+                              "lastSaved": 1752016300852
                             },
                             "coOccurrenceData": {},
                             "learningConfig": {
@@ -996,7 +1191,7 @@
                               "batchSaveInterval": 5,
                               "qualityThreshold": 0.6
                             },
-                            "lastSaved": 1751786159579
+                            "lastSaved": 1752157475005
                           },
                           "coOccurrenceData": {},
                           "learningConfig": {
@@ -1010,7 +1205,7 @@
                             "batchSaveInterval": 5,
                             "qualityThreshold": 0.6
                           },
-                          "lastSaved": 1751788124065
+                          "lastSaved": 1752160007821
                         },
                         "coOccurrenceData": {},
                         "learningConfig": {
@@ -1024,7 +1219,7 @@
                           "batchSaveInterval": 5,
                           "qualityThreshold": 0.6
                         },
-                        "lastSaved": 1751806362773
+                        "lastSaved": 1752160102075
                       },
                       "coOccurrenceData": {},
                       "learningConfig": {
@@ -1038,7 +1233,7 @@
                         "batchSaveInterval": 5,
                         "qualityThreshold": 0.6
                       },
-                      "lastSaved": 1751809245282
+                      "lastSaved": 1752160198920
                     },
                     "coOccurrenceData": {},
                     "learningConfig": {
@@ -1052,7 +1247,7 @@
                       "batchSaveInterval": 5,
                       "qualityThreshold": 0.6
                     },
-                    "lastSaved": 1751930201843
+                    "lastSaved": 1752160226499
                   },
                   "coOccurrenceData": {},
                   "learningConfig": {
@@ -1066,7 +1261,7 @@
                     "batchSaveInterval": 5,
                     "qualityThreshold": 0.6
                   },
-                  "lastSaved": 1751931360135
+                  "lastSaved": 1752160254839
                 },
                 "coOccurrenceData": {},
                 "learningConfig": {
@@ -1080,7 +1275,7 @@
                   "batchSaveInterval": 5,
                   "qualityThreshold": 0.6
                 },
-                "lastSaved": 1751947620143
+                "lastSaved": 1752160309196
               },
               "coOccurrenceData": {},
               "learningConfig": {
@@ -1094,7 +1289,7 @@
                 "batchSaveInterval": 5,
                 "qualityThreshold": 0.6
               },
-              "lastSaved": 1751964403802
+              "lastSaved": 1752160356578
             },
             "coOccurrenceData": {},
             "learningConfig": {
@@ -1108,7 +1303,7 @@
               "batchSaveInterval": 5,
               "qualityThreshold": 0.6
             },
-            "lastSaved": 1751965244598
+            "lastSaved": 1752160389388
           },
           "coOccurrenceData": {},
           "learningConfig": {
@@ -1122,7 +1317,7 @@
             "batchSaveInterval": 5,
             "qualityThreshold": 0.6
           },
-          "lastSaved": 1752009772871
+          "lastSaved": 1752160423370
         },
         "coOccurrenceData": {},
         "learningConfig": {
@@ -1136,7 +1331,7 @@
           "batchSaveInterval": 5,
           "qualityThreshold": 0.6
         },
-        "lastSaved": 1752010896738
+        "lastSaved": 1752160452074
       },
       "coOccurrenceData": {},
       "learningConfig": {
@@ -1150,7 +1345,7 @@
         "batchSaveInterval": 5,
         "qualityThreshold": 0.6
       },
-      "lastSaved": 1752012126360
+      "lastSaved": 1752160499222
     },
     "coOccurrenceData": {},
     "learningConfig": {
@@ -1164,7 +1359,7 @@
       "batchSaveInterval": 5,
       "qualityThreshold": 0.6
     },
-    "lastSaved": 1752016300852
+    "lastSaved": 1752160866932
   },
   "user_anonymous": {
     "userRelations": {

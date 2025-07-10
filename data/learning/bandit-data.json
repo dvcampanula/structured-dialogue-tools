@@ -3,17 +3,94 @@
     [
       "プログラミング",
       {
-        "rewards": 0,
-        "selections": 2
+        "rewards": 0.9,
+        "selections": 5
       }
     ],
     [
       "データ",
       {
         "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "アルゴリズム",
+      {
+        "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "JavaScript",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "SQL",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "React",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "ニューラルネットワーク",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "データベース",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "RESTful",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "Git",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "TypeScript",
+      {
+        "rewards": 0.9,
+        "selections": 1
+      }
+    ],
+    [
+      "Web",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "あなた",
+      {
+        "rewards": 0,
         "selections": 1
       }
     ]
   ],
-  "totalSelections": 3
+  "totalSelections": 19
 }

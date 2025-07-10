@@ -10,9 +10,9 @@
 import fs from 'fs';
 import path from 'path';
 import { configLoader } from '../../data/config-loader.js';
-import { DynamicRelationshipLearner } from '../../engines/learning/dynamic-relationship-learner.js';
-import { SemanticSimilarityEngine } from '../../engines/processing/semantic-similarity-engine.js';
-import { IntentRecognitionEngine } from '../../engines/dialogue/intent-recognition-engine.js';
+import { DynamicRelationshipLearner } from '../../learning/cooccurrence/dynamic-relationship-learner.js';
+import { SemanticSimilarityEngine } from '../../foundation/morphology/hybrid-processor.js';
+
 import { ContextTrackingSystem } from '../../engines/dialogue/context-tracking-system.js';
 import { DialogueFlowController } from '../../engines/dialogue/dialogue-flow-controller.js';
 import { persistentLearningDB } from '../../data/persistent-learning-db.js';
@@ -40,7 +40,7 @@ export class AdvancedDialogueController {
         
         // モジュラーコンポーネント
         this.semanticEngine = new SemanticSimilarityEngine();
-        this.intentEngine = new IntentRecognitionEngine();
+        this.intentEngine = new AdvancedIntentClassifier();
         this.contextTracker = new ContextTrackingSystem();
         this.flowController = new DialogueFlowController();
         

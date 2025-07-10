@@ -90,14 +90,25 @@ export class AIVocabularyProcessor {
       enableGrouping: false,
     });
 
-    const keywords = processedResult.enhancedTerms.map(term => term.term);
+    // 安全性チェック: enhancedTermsが存在しない場合の対処
+    const enhancedTerms = processedResult?.enhancedTerms || [];
+    const keywords = enhancedTerms.map(term => term.term || term);
+
+    // キーワードが空の場合は基本的な形態素解析結果を使用
+    if (keywords.length === 0 && processedResult?.kuromojiAnalysis?.tokens) {
+      const fallbackKeywords = processedResult.kuromojiAnalysis.tokens
+        .filter(token => token.partOfSpeech && token.partOfSpeech.startsWith('名詞') && token.surface.length >= 2)
+        .map(token => token.surface);
+      keywords.push(...fallbackKeywords);
+    }
 
     // ベイジアンAIの適応結果を考慮して候補語彙に重み付け
     // adaptedContent.adaptedCategory を利用して、そのカテゴリに属するキーワードのスコアを上げるなど
-    return keywords.map(word => ({
+    const candidateVocabularies = keywords.map(word => ({
       word: word,
       score: 0.5, // 初期スコア。後で適応結果に基づいて調整
     }));
+    return candidateVocabularies;
   }
 
   /**
