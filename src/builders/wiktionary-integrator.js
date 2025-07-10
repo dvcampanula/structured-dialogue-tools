@@ -108,12 +108,12 @@ export class WiktionaryIntegrator {
         
         // 処理設定（Simple English Wiktionary用最適化）
         this.config = {
-            maxMemoryMB: 200,           // メモリ上限増加
-            batchSize: 500,             // バッチ処理サイズ調整
-            maxEntries: 60000,          // 最大6万エントリ対応
-            targetLanguages: ['en'],    // English専用
-            minDefinitionLength: 3,     // 最小定義文長（大幅緩和）
-            qualityThreshold: 0.1       // 品質閾値（大幅緩和）
+            maxMemoryMB: 512,           // メモリ上限をより汎用的な値に
+            batchSize: 1000,             // バッチ処理サイズを調整
+            maxEntries: 100000,          // 最大エントリ数をより汎用的な値に
+            targetLanguages: ['en'],    // English専用（現状維持、必要に応じて外部設定化）
+            minDefinitionLength: 1,     // 最小定義文長を緩和
+            qualityThreshold: 0.0       // 品質閾値を緩和
         };
         
         this.ensureDataDirectory();
@@ -194,62 +194,40 @@ export class WiktionaryIntegrator {
      * 拡張サンプルデータ生成（1000エントリ）
      */
     generateExtendedSampleData() {
-        const words = [
-            // 形容詞
-            'happy', 'sad', 'beautiful', 'ugly', 'fast', 'slow', 'big', 'small', 'hot', 'cold',
-            'intelligent', 'stupid', 'kind', 'mean', 'strong', 'weak', 'rich', 'poor', 'young', 'old',
-            'clean', 'dirty', 'easy', 'difficult', 'new', 'ancient', 'modern', 'fresh', 'stale', 'bright',
-            
-            // 動詞
-            'run', 'walk', 'jump', 'swim', 'fly', 'eat', 'drink', 'sleep', 'work', 'play',
-            'study', 'teach', 'learn', 'write', 'read', 'speak', 'listen', 'watch', 'see', 'hear',
-            'think', 'believe', 'know', 'understand', 'remember', 'forget', 'love', 'hate', 'like', 'dislike',
-            
-            // 名詞
-            'house', 'car', 'tree', 'flower', 'book', 'computer', 'phone', 'table', 'chair', 'bed',
-            'cat', 'dog', 'bird', 'fish', 'apple', 'banana', 'water', 'food', 'music', 'movie',
-            'friend', 'family', 'school', 'work', 'money', 'time', 'day', 'night', 'morning', 'evening'
-        ];
+        const words = []; // 空の配列に
         
-        const synonymMap = {
-            'happy': ['joyful', 'cheerful', 'glad', 'delighted', 'pleased', 'content'],
-            'sad': ['unhappy', 'depressed', 'melancholy', 'sorrowful', 'gloomy'],
-            'beautiful': ['gorgeous', 'stunning', 'lovely', 'attractive', 'pretty', 'handsome'],
-            'run': ['sprint', 'dash', 'jog', 'race', 'hurry', 'rush'],
-            'big': ['large', 'huge', 'enormous', 'gigantic', 'massive', 'immense'],
-            'smart': ['intelligent', 'clever', 'brilliant', 'wise', 'bright', 'sharp']
-        };
+        const synonymMap = {}; // 空のオブジェクトに
         
         const entries = [];
         
         // 基本語彙エントリ生成
-        for (const word of words) {
-            const synonyms = synonymMap[word] || [`${word}-synonym1`, `${word}-synonym2`];
-            const definitions = [
-                `Definition of ${word}`,
-                `Meaning related to ${word}`,
-                `Another sense of ${word}`
-            ];
+        // for (const word of words) {
+        //     const synonyms = synonymMap[word] || [`${word}-synonym1`, `${word}-synonym2`];
+        //     const definitions = [
+        //         `Definition of ${word}`,
+        //         `Meaning related to ${word}`,
+        //         `Another sense of ${word}`
+        //     ];
             
-            const entry = {
-                word: word,
-                lang: 'en',
-                pos: word.endsWith('ly') ? 'adv' : 
-                     ['run', 'walk', 'jump'].includes(word) ? 'verb' :
-                     ['happy', 'sad', 'big'].includes(word) ? 'adj' : 'noun',
-                senses: [
-                    {
-                        glosses: definitions,
-                        synonyms: synonyms.map(s => ({ word: s }))
-                    }
-                ]
-            };
+        //     const entry = {
+        //         word: word,
+        //         lang: 'en',
+        //         pos: word.endsWith('ly') ? 'adv' : 
+        //              ['run', 'walk', 'jump'].includes(word) ? 'verb' :
+        //              ['happy', 'sad', 'big'].includes(word) ? 'adj' : 'noun',
+        //         senses: [
+        //             {
+        //                 glosses: definitions,
+        //                 synonyms: synonyms.map(s => ({ word: s }))
+        //             }
+        //         ]
+        //     };
             
-            entries.push(JSON.stringify(entry));
-        }
+        //     entries.push(JSON.stringify(entry));
+        // }
         
         // 追加エントリ生成（合計1000エントリまで）
-        for (let i = words.length; i < 1000; i++) {
+        for (let i = 0; i < 1000; i++) {
             const word = `word${i}`;
             const entry = {
                 word: word,
@@ -275,87 +253,7 @@ export class WiktionaryIntegrator {
      * 開発用サンプルデータ生成
      */
     async generateSampleData(outputFile) {
-        const sampleEntries = [
-            {
-                word: "happy",
-                lang: "en",
-                pos: "adj",
-                senses: [
-                    {
-                        glosses: ["Feeling joy or pleasure"],
-                        synonyms: [
-                            { word: "joyful" },
-                            { word: "cheerful" },
-                            { word: "glad" },
-                            { word: "delighted" }
-                        ]
-                    }
-                ]
-            },
-            {
-                word: "run",
-                lang: "en", 
-                pos: "verb",
-                senses: [
-                    {
-                        glosses: ["To move rapidly on foot"],
-                        synonyms: [
-                            { word: "sprint" },
-                            { word: "dash" },
-                            { word: "jog" }
-                        ]
-                    }
-                ]
-            },
-            {
-                word: "beautiful",
-                lang: "en",
-                pos: "adj",
-                senses: [
-                    {
-                        glosses: ["Pleasing to the eye; aesthetically appealing"],
-                        synonyms: [
-                            { word: "gorgeous" },
-                            { word: "stunning" },
-                            { word: "lovely" },
-                            { word: "attractive" }
-                        ]
-                    }
-                ]
-            },
-            {
-                word: "intelligent",
-                lang: "en",
-                pos: "adj",
-                senses: [
-                    {
-                        glosses: ["Having high mental capacity"],
-                        synonyms: [
-                            { word: "smart" },
-                            { word: "clever" },
-                            { word: "brilliant" },
-                            { word: "wise" }
-                        ]
-                    }
-                ]
-            },
-            {
-                word: "fast",
-                lang: "en",
-                pos: "adj",
-                senses: [
-                    {
-                        glosses: ["Moving at high speed"],
-                        synonyms: [
-                            { word: "quick" },
-                            { word: "rapid" },
-                            { word: "speedy" },
-                            { word: "swift" }
-                        ]
-                    }
-                ]
-            }
-        ];
+        const sampleEntries = []; // 空の配列に
 
         const jsonContent = sampleEntries.map(entry => JSON.stringify(entry)).join('\n');
         await fs.writeFile(outputFile, jsonContent);

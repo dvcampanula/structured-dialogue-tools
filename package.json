@@ -1,29 +1,14 @@
 {
   "name": "structured-dialogue-tools",
   "version": "0.8.0",
-  "description": "4日間基盤構築完了: 外部AI統合・概念抽出・予測品質評価・セッション管理による構造的対話支援システム基盤",
+  "description": "軽量統計学習型日本語処理AI - 多腕バンディット・N-gram・ベイジアン・共起分析による完全ローカルAIシステム",
   "main": "src/web/minimal-ai-server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/web/minimal-ai-server.js",
-    "dev": "tsx --watch src/web/minimal-ai-server.js",
-    "test:split": "cd tests && tsx test-splitter.ts",
-    "test:multiple": "cd tests && tsx test-multiple-logs.ts",
-    "test:naming": "tsx src/core/naming-helper.ts",
-    "test:format": "tsx src/core/log-format-unifier.ts",
-    "analyze:logs": "tsx src/core/log-pattern-analyzer.ts",
-    "analyze:concepts": "tsx src/tools/concept-analyzer.ts",
-    "experiment:ai": "tsx src/experiments/ai-experiment.ts",
-    "demo:comparison": "tsx src/experiments/demo-comparison.ts",
+    "start": "node src/interfaces/web/minimal-ai-server.js",
     "build": "tsc",
-    "test": "npm run test:multiple",
-    "organize-logs": "bash scripts/organize-logs.sh",
-    "organize-logs-dry": "node --import tsx/esm scripts/organize-test-logs.ts",
-    "patterns:show": "node --import tsx/esm scripts/update-meta-patterns.ts show",
-    "patterns:add-pattern": "node --import tsx/esm scripts/update-meta-patterns.ts add-pattern",
-    "patterns:add-keyword": "node --import tsx/esm scripts/update-meta-patterns.ts add-keyword",
-    "patterns:backup": "node --import tsx/esm scripts/update-meta-patterns.ts backup",
-    "patterns:validate": "node --import tsx/esm scripts/update-meta-patterns.ts validate"
+    "test": "npm run test:new-ai",
+    "test:new-ai": "tsx workspace/test-new-ai-system.js"
   },
   "keywords": [
     "structured-dialogue",
@@ -41,19 +26,17 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.0.4",
     "cors": "^2.8.5",
-    "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "kuromoji": "^0.1.2",
     "multer": "^2.0.1",
-    "node-fetch": "^3.3.2",
-    "tsx": "^4.20.3",
-    "typescript": "^5.8.3",
-    "word2vec-loader-js": "^1.1.4"
+    "node-fetch": "^3.3.2"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "devDependencies": {
-    "@types/cors": "^2.8.19"
+    "@types/cors": "^2.8.19",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3"
   }
 }

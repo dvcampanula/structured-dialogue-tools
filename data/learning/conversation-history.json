@@ -40,5 +40,342 @@
       "semanticContinuity": 0,
       "strategy": "exploratory"
     }
+  },
+  {
+    "userInput": "こんにちは、今日は良い天気ですね",
+    "timestamp": "2025-07-08T21:15:28.860Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "今日",
+      "天気"
+    ],
+    "analysis": {
+      "contextDepth": 3,
+      "intentConfidence": 0
+    }
+  },
+  {
+    "userInput": "技術的な質問について分析して",
+    "timestamp": "2025-07-08T21:16:16.904Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "技術",
+      "分析",
+      "技術的",
+      "質問"
+    ],
+    "analysis": {
+      "contextDepth": 4.5,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "テスト",
+    "timestamp": "2025-07-08T21:16:45.150Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "テスト"
+    ],
+    "analysis": {
+      "contextDepth": 5,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "テスト",
+    "timestamp": "2025-07-08T21:23:08.973Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "テスト"
+    ],
+    "analysis": {
+      "contextDepth": 6,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "テスト",
+    "timestamp": "2025-07-08T21:29:36.299Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "テスト"
+    ],
+    "analysis": {
+      "contextDepth": 7,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "こんにちは",
+    "timestamp": "2025-07-08T21:31:33.004Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [],
+    "analysis": {
+      "contextDepth": 8,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "JavaScriptで配列を操作する方法を教えてください",
+    "timestamp": "2025-07-08T21:32:29.902Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "javascript",
+      "配列",
+      "操作",
+      "方法"
+    ],
+    "analysis": {
+      "contextDepth": 9,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "今日は疲れました",
+    "timestamp": "2025-07-08T21:32:37.716Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "今日"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "こんにちは！",
+    "timestamp": "2025-07-08T21:37:03.307Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "こんにちは！",
+    "timestamp": "2025-07-08T21:37:14.407Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "ReactでuseStateを使う方法を教えて",
+    "timestamp": "2025-07-08T21:37:24.287Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "方法",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "今日は疲れました。仕事が大変で...",
+    "timestamp": "2025-07-08T21:37:34.485Z",
+    "topic": "unknown",
+    "intent": "completion_request",
+    "keywords": [
+      "今日",
+      "仕事",
+      "大変"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.885
+    }
+  },
+  {
+    "userInput": "どうやってPythonでAPI作るの？",
+    "timestamp": "2025-07-08T21:37:45.635Z",
+    "topic": "unknown",
+    "intent": "question",
+    "keywords": [
+      "python",
+      "api"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.48000000000000004
+    }
+  },
+  {
+    "userInput": "こんにちは！",
+    "timestamp": "2025-07-08T21:45:44.670Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "ReactでuseStateを使う方法を教えて",
+    "timestamp": "2025-07-08T21:45:56.133Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "方法",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "今日は疲れました",
+    "timestamp": "2025-07-08T21:46:07.413Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [
+      "今日"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "こんにちは",
+    "timestamp": "2025-07-08T21:47:51.518Z",
+    "topic": "unknown",
+    "intent": "help_request",
+    "keywords": [],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 0.08000000000000002
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:48:13.859Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:48:44.839Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:49:37.329Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:51:30.343Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:54:57.041Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:55:28.951Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T21:56:48.845Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
+  },
+  {
+    "userInput": "ReactのuseStateについて教えてください",
+    "timestamp": "2025-07-08T22:02:20.799Z",
+    "topic": "unknown",
+    "intent": "learning",
+    "keywords": [
+      "react",
+      "usestate"
+    ],
+    "analysis": {
+      "contextDepth": 10,
+      "intentConfidence": 1
+    }
   }
 ]

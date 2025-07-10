@@ -1,0 +1,23 @@
+{
+  "version": "1.0.0",
+  "createdAt": "2025-07-10T08:56:07.044Z",
+  "sourceHashes": {
+    "jmdict": "3eed2710202db5d65b7358ebd9c33803",
+    "wiktionary": "02ca09df6122bba2e90edef94c2b9dac"
+  },
+  "stats": {
+    "totalEntries": 200014,
+    "loadedSources": [
+      "sample_enhanced_vocabulary",
+      "JMdict_optimized"
+    ],
+    "memoryUsage": 0,
+    "lastUpdated": 1752137765181
+  },
+  "config": {
+    "enableCompression": true,
+    "maxCacheAgeDays": 30,
+    "enableIntegrityCheck": true,
+    "chunkSize": 5000
+  }
+}

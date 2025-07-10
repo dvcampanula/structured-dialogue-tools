@@ -1,12 +1,12 @@
 {
   "": [
     {
-      "timestamp": "2025-07-08T08:44:33.695Z",
+      "timestamp": "2025-07-10T09:22:38.186Z",
       "dominantEmotion": "neutral",
-      "intensity": 0.5,
+      "intensity": 0.5333333333333333,
       "complexity": 0,
       "confidence": 0.42000000000000004,
-      "inputSample": "システム清浄化テスト"
+      "inputSample": "P≠NP問題について教えてください。"
     }
   ]
 }

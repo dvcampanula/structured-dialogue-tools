@@ -13,7 +13,9 @@ import path from 'path';
 export class PersistentLearningDB {
     constructor(basePath = './data/learning') {
         this.basePath = basePath;
+        this.userProfilesDir = path.join(this.basePath, 'user_profiles');
         this.ensureDataDirectory();
+        this.ensureUserProfilesDirectory();
         
         // データファイルパス
         this.userRelationsPath = path.join(this.basePath, 'user-relations.json');
@@ -21,12 +23,16 @@ export class PersistentLearningDB {
         this.conversationHistoryPath = path.join(this.basePath, 'conversation-history.json');
         this.learningStatsPath = path.join(this.basePath, 'learning-stats.json');
         this.conceptAnalysisDBPath = path.join(this.basePath, 'concept-analysis-db.json');
+        this.banditDataPath = path.join(this.basePath, 'bandit-data.json');
+        this.ngramDataPath = path.join(this.basePath, 'ngram-data.json');
         
         // インメモリキャッシュ
         this.userRelationsCache = new Map();
         this.conceptLearningCache = new Map();
         this.conversationCache = [];
         this.statsCache = {};
+        this.banditDataCache = null;
+        this.ngramDataCache = null;
         
         this.loadAllData();
         
@@ -45,6 +51,16 @@ export class PersistentLearningDB {
     }
 
     /**
+     * ユーザープロファイルディレクトリ確保
+     */
+    ensureUserProfilesDirectory() {
+        if (!fs.existsSync(this.userProfilesDir)) {
+            fs.mkdirSync(this.userProfilesDir, { recursive: true });
+            console.log(`📁 ユーザープロファイルディレクトリ作成: ${this.userProfilesDir}`);
+        }
+    }
+
+    /**
      * 全データ読み込み（起動時）
      */
     async loadAllData() {
@@ -53,7 +69,9 @@ export class PersistentLearningDB {
                 this.loadUserRelations(),
                 this.loadConceptLearning(),
                 this.loadConversationHistory(),
-                this.loadLearningStats()
+                this.loadLearningStats(),
+                this.loadBanditData(),
+                this.loadNgramData()
             ]);
             
             console.log(`💾 データ読み込み完了: 関係性${this.userRelationsCache.size}件, 概念${this.conceptLearningCache.size}件, 会話${this.conversationCache.length}件`);
@@ -62,6 +80,143 @@ export class PersistentLearningDB {
             console.warn('⚠️ データ読み込みエラー:', error.message);
             this.initializeEmptyData();
         }
+    }
+
+    /**
+     * N-gramデータ読み込み
+     */
+    async loadNgramData() {
+        if (fs.existsSync(this.ngramDataPath)) {
+            const data = JSON.parse(fs.readFileSync(this.ngramDataPath, 'utf8'));
+            this.ngramDataCache = data;
+            console.log(`📊 N-gramデータ読み込み完了`);
+            return data;
+        }
+        return null;
+    }
+
+    /**
+     * N-gramデータ保存
+     */
+    async saveNgramData(data) {
+        try {
+            fs.writeFileSync(this.ngramDataPath, JSON.stringify(data, null, 2));
+            this.ngramDataCache = data;
+            console.log(`💾 N-gramデータ保存完了`);
+        } catch (error) {
+            console.error('❌ N-gramデータ保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * バンディットデータ読み込み
+     */
+    async loadBanditData() {
+        if (fs.existsSync(this.banditDataPath)) {
+            const data = JSON.parse(fs.readFileSync(this.banditDataPath, 'utf8'));
+            this.banditDataCache = data;
+            console.log(`🎰 バンディットデータ読み込み完了`);
+            return data;
+        }
+        return null;
+    }
+
+    /**
+     * バンディットデータ保存
+     */
+    async saveBanditData(data) {
+        try {
+            fs.writeFileSync(this.banditDataPath, JSON.stringify(data, null, 2));
+            this.banditDataCache = data;
+            console.log(`💾 バンディットデータ保存完了`);
+        } catch (error) {
+            console.error('❌ バンディットデータ保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 特定ユーザープロファイル保存
+     */
+    async saveUserProfile(userId, profileData) {
+        const filePath = path.join(this.userProfilesDir, `${userId}.json`);
+        try {
+            fs.writeFileSync(filePath, JSON.stringify(profileData, null, 2));
+        } catch (error) {
+            console.error(`❌ ユーザープロファイル保存エラー (${userId}):`, error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 特定ユーザープロファイル読み込み
+     */
+    async loadUserProfile(userId) {
+        const filePath = path.join(this.userProfilesDir, `${userId}.json`);
+        try {
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf8');
+                return JSON.parse(data);
+            }
+        } catch (error) {
+            console.error(`❌ ユーザープロファイル読み込みエラー (${userId}):`, error.message);
+        }
+        return null;
+    }
+
+    /**
+     * 全てのユーザープロファイル読み込み
+     */
+    async loadAllUserProfiles() {
+        const allProfiles = {};
+        try {
+            const files = fs.readdirSync(this.userProfilesDir);
+            for (const file of files) {
+                if (file.endsWith('.json')) {
+                    const userId = file.replace('.json', '');
+                    const profile = await this.loadUserProfile(userId);
+                    if (profile) {
+                        allProfiles[userId] = profile;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('❌ 全ユーザープロファイル読み込みエラー:', error.message);
+        }
+        return allProfiles;
+    }
+
+    /**
+     * 特定ユーザープロファイル削除
+     */
+    async deleteUserProfile(userId) {
+        const filePath = path.join(this.userProfilesDir, `${userId}.json`);
+        try {
+            if (fs.existsSync(filePath)) {
+                fs.unlinkSync(filePath);
+                return true;
+            }
+        } catch (error) {
+            console.error(`❌ ユーザープロファイル削除エラー (${userId}):`, error.message);
+        }
+        return false;
+    }
+
+    /**
+     * 全てのユーザープロファイルをクリア
+     */
+    async clearAllUserProfiles() {
+        try {
+            const files = fs.readdirSync(this.userProfilesDir);
+            for (const file of files) {
+                if (file.endsWith('.json')) {
+                    fs.unlinkSync(path.join(this.userProfilesDir, file));
+                }
+            }
+            return true;
+        } catch (error) {
+            console.error('❌ 全ユーザープロファイルクリアエラー:', error.message);
+        }
+        return false;
     }
 
     /**

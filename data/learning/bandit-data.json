@@ -1,0 +1,19 @@
+{
+  "vocabularyStats": [
+    [
+      "プログラミング",
+      {
+        "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "データ",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ]
+  ],
+  "totalSelections": 3
+}

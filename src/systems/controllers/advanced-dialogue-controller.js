@@ -18,13 +18,12 @@ import { DialogueFlowController } from '../../engines/dialogue/dialogue-flow-con
 import { persistentLearningDB } from '../../data/persistent-learning-db.js';
 
 export class AdvancedDialogueController {
-    constructor(personalDialogueAnalyzer, domainKnowledgeBuilder, personalResponseAdapter, conceptDB, metaCognitiveController, hybridProcessor, qualityAdjuster, conceptQualityManager, userId = 'default') {
+    constructor(personalDialogueAnalyzer, domainKnowledgeBuilder, personalResponseAdapter, conceptDB, hybridProcessor, qualityAdjuster, conceptQualityManager, userId = 'default') {
         this.personalDialogueAnalyzer = personalDialogueAnalyzer; // 注入されたアナライザー
         this.domainKnowledgeBuilder = domainKnowledgeBuilder;     // 注入されたビルダー
         this.personalResponseAdapter = personalResponseAdapter;   // 注入されたアダプター
         this.conceptDB = conceptDB; // 注入されたconceptDB
         this.db = persistentLearningDB; // DBインスタンスを保持
-        // metaCognitiveController削除済み - ハードコード満載システムのため不要
         this.hybridProcessor = hybridProcessor; // 注入されたハイブリッドプロセッサー
         this.qualityAdjuster = qualityAdjuster; // 注入された品質調整システム
         this.conceptQualityManager = conceptQualityManager; // 注入された概念品質管理システム
@@ -1780,6 +1779,26 @@ export class AdvancedDialogueController {
                 flowStrategy: result.dialogueStrategy?.primaryStrategy,
             }
         };
+    }
+
+    /**
+     * 応答を生成します (簡易実装)
+     * @param {object} responseGuidance - 応答生成のためのガイダンス
+     * @returns {string} 生成された応答
+     */
+    generateResponse(responseGuidance) {
+        let response = "申し訳ありませんが、まだ完全な応答を生成できません。";
+
+        if (responseGuidance.responseStructure) {
+            response = `[構造: ${responseGuidance.responseStructure}]`;
+        }
+        if (responseGuidance.contentGuidelines && responseGuidance.contentGuidelines.length > 0) {
+            response += ` 内容: ${responseGuidance.contentGuidelines.join(', ')}.`;
+        }
+        if (responseGuidance.styleInstructions) {
+            response += ` スタイル: ${responseGuidance.styleInstructions}.`;
+        }
+        return response;
     }
 }
 

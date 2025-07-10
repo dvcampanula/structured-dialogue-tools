@@ -32,7 +32,40 @@ Node.js development environment with v22.17.0 available via NVM.
 3. **`docs/UNIFIED_ROADMAP.md`** - Technical development roadmap and project phases
 4. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Status**: 21万語辞書システム技術基盤完成 - WebUI実用性課題発見・語彙多様化統合修正必要
+**Current Status**: システム完全再設計完了 - 軽量統計学習型日本語処理AI設計仕様書完成
+
+## 🎯 **System Redesign - New Architecture (2025-07-10)**
+
+**Previous System Issues**: 偽装AI（ハードコード・固定ルール）を排除し、真の統計学習AIシステムに完全再設計
+
+### **新システム: 軽量統計学習型日本語処理AI**
+
+#### **保存された価値ある資産**
+- **JMDict 21万語辞書**: `data/dictionary-db/` - 完全活用 (211,692エントリ)
+- **kuromoji + MeCab**: `src/engines/processing/enhanced-hybrid-processor.js` - 実在の形態素解析
+- **統計的共起学習**: `src/engines/learning/dynamic-relationship-learner.js:100-121` - 本物の学習機能
+
+#### **新AI機能アーキテクチャ**
+1. **多腕バンディット学習** - UCBアルゴリズムによる語彙選択最適化
+2. **N-gram言語モデル** - Kneser-Neyスムージング文脈予測
+3. **ベイジアン個人適応** - ナイーブベイズ増分学習
+4. **線形回帰品質予測** - 統計的品質評価・改善提案
+
+#### **設計ドキュメント**
+- **`docs/REDESIGN_SPECIFICATION.md`** - システム全体設計仕様書
+- **`docs/TECHNICAL_ARCHITECTURE.md`** - 詳細技術実装仕様書
+
+#### **技術的特徴**
+- **完全ローカルAI**: プライバシー完全保護・データ送信なし
+- **日本語特化**: 形態素解析最適化・21万語知識ベース活用
+- **軽量高速**: 重いモデル不要・リアルタイム処理
+- **技術的誠実性**: 偽装要素ゼロ・実装と機能説明の完全一致
+
+#### **成功指標**
+- 語彙選択精度: 85%+
+- 文脈認識精度: 80%+
+- 処理速度: <1秒 (1000文字)
+- メモリ使用量: <500MB
 
 **Code References**: When referencing specific functions or pieces of code include the pattern `file_path:line_number` to allow the user to easily navigate to the source code location.
 
@@ -58,6 +91,26 @@ workspace/notes/          # Personal session notes
 ```
 
 **Reference**: See `docs/COMMIT_GUIDELINES.md` for detailed criteria.
+
+## 🚫 **Development Anti-Patterns (禁止事項)**
+
+### **避けるべき実装パターン**
+1. **ハードコード逃避**: 
+   - 問題の根本原因を分析せず、定数やハードコードで症状を隠蔽する
+   - 例外処理の積み重ねによる技術的負債の蓄積
+   
+2. **簡易実装への逃避**:
+   - 適切な設計パターンを避けて、その場しのぎの実装に逃げる
+   - 形態素解析が必要な場面でString.replace()等の粗雑な処理を選択
+
+3. **根本問題の回避**:
+   - 表面的な症状への対処療法に留まり、構造的問題を放置
+   - 持続可能性を無視した一時的な修正
+
+### **推奨アプローチ**
+- **根本原因分析**: 問題の本質的な原因を特定してから解決策を検討
+- **構造化設計**: 長期的な保守性を考慮したアーキテクチャ選択
+- **適切な技術選択**: 問題領域に適した技術・ライブラリの採用
 
 ---
 

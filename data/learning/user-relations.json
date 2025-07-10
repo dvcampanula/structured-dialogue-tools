@@ -881,7 +881,67 @@
                             "userRelations": {
                               "userRelations": {
                                 "userRelations": {
-                                  "userRelations": {},
+                                  "userRelations": {
+                                    "userRelations": {
+                                      "userRelations": {
+                                        "userRelations": {
+                                          "userRelations": {},
+                                          "coOccurrenceData": {},
+                                          "learningConfig": {
+                                            "minCoOccurrence": 2,
+                                            "strengthThreshold": 0.3,
+                                            "maxRelationsPerTerm": 10,
+                                            "decayFactor": 0.95,
+                                            "learningRate": 0.1,
+                                            "forgettingThreshold": 0.1,
+                                            "maxMemorySize": 1000,
+                                            "batchSaveInterval": 5,
+                                            "qualityThreshold": 0.6
+                                          },
+                                          "lastSaved": 1751687832899
+                                        },
+                                        "coOccurrenceData": {},
+                                        "learningConfig": {
+                                          "minCoOccurrence": 2,
+                                          "strengthThreshold": 0.3,
+                                          "maxRelationsPerTerm": 10,
+                                          "decayFactor": 0.95,
+                                          "learningRate": 0.1,
+                                          "forgettingThreshold": 0.1,
+                                          "maxMemorySize": 1000,
+                                          "batchSaveInterval": 5,
+                                          "qualityThreshold": 0.6
+                                        },
+                                        "lastSaved": 1751688638509
+                                      },
+                                      "coOccurrenceData": {},
+                                      "learningConfig": {
+                                        "minCoOccurrence": 2,
+                                        "strengthThreshold": 0.3,
+                                        "maxRelationsPerTerm": 10,
+                                        "decayFactor": 0.95,
+                                        "learningRate": 0.1,
+                                        "forgettingThreshold": 0.1,
+                                        "maxMemorySize": 1000,
+                                        "batchSaveInterval": 5,
+                                        "qualityThreshold": 0.6
+                                      },
+                                      "lastSaved": 1751689991027
+                                    },
+                                    "coOccurrenceData": {},
+                                    "learningConfig": {
+                                      "minCoOccurrence": 2,
+                                      "strengthThreshold": 0.3,
+                                      "maxRelationsPerTerm": 10,
+                                      "decayFactor": 0.95,
+                                      "learningRate": 0.1,
+                                      "forgettingThreshold": 0.1,
+                                      "maxMemorySize": 1000,
+                                      "batchSaveInterval": 5,
+                                      "qualityThreshold": 0.6
+                                    },
+                                    "lastSaved": 1751720954964
+                                  },
                                   "coOccurrenceData": {},
                                   "learningConfig": {
                                     "minCoOccurrence": 2,
@@ -894,7 +954,7 @@
                                     "batchSaveInterval": 5,
                                     "qualityThreshold": 0.6
                                   },
-                                  "lastSaved": 1751687832899
+                                  "lastSaved": 1751755737716
                                 },
                                 "coOccurrenceData": {},
                                 "learningConfig": {
@@ -908,7 +968,7 @@
                                   "batchSaveInterval": 5,
                                   "qualityThreshold": 0.6
                                 },
-                                "lastSaved": 1751688638509
+                                "lastSaved": 1751756062155
                               },
                               "coOccurrenceData": {},
                               "learningConfig": {
@@ -922,7 +982,7 @@
                                 "batchSaveInterval": 5,
                                 "qualityThreshold": 0.6
                               },
-                              "lastSaved": 1751689991027
+                              "lastSaved": 1751785546822
                             },
                             "coOccurrenceData": {},
                             "learningConfig": {
@@ -936,7 +996,7 @@
                               "batchSaveInterval": 5,
                               "qualityThreshold": 0.6
                             },
-                            "lastSaved": 1751720954964
+                            "lastSaved": 1751786159579
                           },
                           "coOccurrenceData": {},
                           "learningConfig": {
@@ -950,7 +1010,7 @@
                             "batchSaveInterval": 5,
                             "qualityThreshold": 0.6
                           },
-                          "lastSaved": 1751755737716
+                          "lastSaved": 1751788124065
                         },
                         "coOccurrenceData": {},
                         "learningConfig": {
@@ -964,7 +1024,7 @@
                           "batchSaveInterval": 5,
                           "qualityThreshold": 0.6
                         },
-                        "lastSaved": 1751756062155
+                        "lastSaved": 1751806362773
                       },
                       "coOccurrenceData": {},
                       "learningConfig": {
@@ -978,7 +1038,7 @@
                         "batchSaveInterval": 5,
                         "qualityThreshold": 0.6
                       },
-                      "lastSaved": 1751785546822
+                      "lastSaved": 1751809245282
                     },
                     "coOccurrenceData": {},
                     "learningConfig": {
@@ -992,7 +1052,7 @@
                       "batchSaveInterval": 5,
                       "qualityThreshold": 0.6
                     },
-                    "lastSaved": 1751786159579
+                    "lastSaved": 1751930201843
                   },
                   "coOccurrenceData": {},
                   "learningConfig": {
@@ -1006,7 +1066,7 @@
                     "batchSaveInterval": 5,
                     "qualityThreshold": 0.6
                   },
-                  "lastSaved": 1751788124065
+                  "lastSaved": 1751931360135
                 },
                 "coOccurrenceData": {},
                 "learningConfig": {
@@ -1020,7 +1080,7 @@
                   "batchSaveInterval": 5,
                   "qualityThreshold": 0.6
                 },
-                "lastSaved": 1751806362773
+                "lastSaved": 1751947620143
               },
               "coOccurrenceData": {},
               "learningConfig": {
@@ -1034,7 +1094,7 @@
                 "batchSaveInterval": 5,
                 "qualityThreshold": 0.6
               },
-              "lastSaved": 1751809245282
+              "lastSaved": 1751964403802
             },
             "coOccurrenceData": {},
             "learningConfig": {
@@ -1048,7 +1108,7 @@
               "batchSaveInterval": 5,
               "qualityThreshold": 0.6
             },
-            "lastSaved": 1751930201843
+            "lastSaved": 1751965244598
           },
           "coOccurrenceData": {},
           "learningConfig": {
@@ -1062,7 +1122,7 @@
             "batchSaveInterval": 5,
             "qualityThreshold": 0.6
           },
-          "lastSaved": 1751931360135
+          "lastSaved": 1752009772871
         },
         "coOccurrenceData": {},
         "learningConfig": {
@@ -1076,7 +1136,7 @@
           "batchSaveInterval": 5,
           "qualityThreshold": 0.6
         },
-        "lastSaved": 1751947620143
+        "lastSaved": 1752010896738
       },
       "coOccurrenceData": {},
       "learningConfig": {
@@ -1090,7 +1150,7 @@
         "batchSaveInterval": 5,
         "qualityThreshold": 0.6
       },
-      "lastSaved": 1751964403802
+      "lastSaved": 1752012126360
     },
     "coOccurrenceData": {},
     "learningConfig": {
@@ -1104,7 +1164,7 @@
       "batchSaveInterval": 5,
       "qualityThreshold": 0.6
     },
-    "lastSaved": 1751965244598
+    "lastSaved": 1752016300852
   },
   "user_anonymous": {
     "userRelations": {

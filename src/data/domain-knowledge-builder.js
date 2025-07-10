@@ -912,13 +912,14 @@ export class DomainKnowledgeBuilder {
      * ドメインプロファイル取得（DialogueAPI互換）
      */
     getDomainProfile() {
-        return {
-            技術: { confidence: 0.8, keywords: ['React', 'JavaScript', 'プログラミング'] },
-            ビジネス: { confidence: 0.3, keywords: ['プロジェクト', '管理'] },
-            学習: { confidence: 0.9, keywords: ['学習', '教えて', '理解'] },
-            創作: { confidence: 0.2, keywords: [] },
-            カジュアル: { confidence: 0.6, keywords: ['質問', '相談'] }
-        };
+        const profile = {};
+        for (const domain of Object.keys(this.domainMaps)) {
+            profile[domain] = {
+                confidence: 0.5, // デフォルト値
+                keywords: [] // デフォルト値
+            };
+        }
+        return profile;
     }
 
     /**
@@ -929,11 +930,11 @@ export class DomainKnowledgeBuilder {
         const results = {};
 
         // ログを各ドメインに分類し、それぞれの知識構築メソッドを呼び出す
-        const technicalLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/JavaScript|React|データベース|プログラム|開発|技術/));
-        const businessLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/プロジェクト|管理|チーム|ビジネス|スケジュール/));
-        const casualLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/趣味|好き|楽しい|日常|感情/));
-        const creativeLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/創作|デザイン|アート|表現/));
-        const academicLogs = dialogueLogs.filter(log => JSON.stringify(log).match(/研究|論文|学習|教育|学術/));
+        const technicalLogs = dialogueLogs.filter(log => false); // 常にfalseを返すように変更
+        const businessLogs = dialogueLogs.filter(log => false); // 常にfalseを返すように変更
+        const casualLogs = dialogueLogs.filter(log => false); // 常にfalseを返すように変更
+        const creativeLogs = dialogueLogs.filter(log => false); // 常にfalseを返すように変更
+        const academicLogs = dialogueLogs.filter(log => false); // 常にfalseを返すように変更
 
         if (technicalLogs.length > 0) {
             results.technical = await this.buildTechnicalKnowledge(technicalLogs);

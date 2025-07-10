@@ -14,43 +14,13 @@
 export class JapaneseSynonymDict {
     constructor() {
         // 感情表現の同義語
-        this.emotionSynonyms = {
-            // ポジティブ感情
-            "嬉しい": ["喜ばしい", "幸せ", "満足", "安心"],
-            "楽しい": ["面白い", "愉快", "興味深い", "心地よい"],
-            "良い": ["素晴らしい", "優秀", "優れた", "立派", "見事", "素敵"],
-            "すごい": ["素晴らしい", "驚くべき", "見事", "立派", "感動的"],
-            
-            // 感謝表現
-            "ありがとう": ["感謝", "恐縮", "助かる", "恩に着る", "お礼"],
-            "感謝": ["ありがたい", "恩義", "御礼", "謝意"],
-            "助かる": ["支援される", "救われる", "恩恵を受ける"],
-            
-            // ネガティブ感情
-            "困る": ["悩む", "苦労する", "手こずる", "行き詰まる", "当惑する"],
-            "悲しい": ["辛い", "寂しい", "切ない", "哀しい", "憂鬱"],
-            "不安": ["心配", "懸念", "憂慮", "気がかり", "恐れ"],
-            
-            // サポート表現
-            "助ける": ["支援する", "サポートする", "援助する", "手伝う", "協力する"],
-            "教える": ["指導する", "説明する", "伝える", "案内する", "ガイドする"],
-            "解決": ["改善", "対処", "対応", "処理", "克服"]
-        };
+        this.emotionSynonyms = {};
         
         // 接続表現の同義語
-        this.connectionSynonyms = {
-            "そして": ["それから", "また", "さらに", "加えて", "その上"],
-            "しかし": ["けれども", "ただし", "一方で", "とはいえ", "もっとも"],
-            "だから": ["そのため", "従って", "よって", "ゆえに", "それで"],
-            "例えば": ["たとえば", "具体的には", "実際に", "要するに"]
-        };
+        this.connectionSynonyms = {};
         
         // 丁寧語・敬語バリエーション
-        this.politenessVariations = {
-            "です": ["でございます", "であります", "なのです"],
-            "ます": ["ております", "いたします", "させていただきます"],
-            "ください": ["くださいませ", "いただけますでしょうか", "お願いいたします"]
-        };
+        this.politenessVariations = {};
         
         console.log('📚 JapaneseSynonymDict初期化完了');
         console.log(`📊 語彙データ: 感情${Object.keys(this.emotionSynonyms).length}語, 接続${Object.keys(this.connectionSynonyms).length}語, 敬語${Object.keys(this.politenessVariations).length}語`);
@@ -95,26 +65,6 @@ export class JapaneseSynonymDict {
         const synonyms = this.getSynonyms(word, context.category);
         if (synonyms.length === 0) return word;
         
-        // 丁寧度に応じた選択
-        if (context.politeness === 'formal') {
-            const formalSynonyms = synonyms.filter(s => 
-                s.includes('ございま') || s.includes('いたしま') || s.length > word.length
-            );
-            if (formalSynonyms.length > 0) {
-                return formalSynonyms[Math.floor(Math.random() * formalSynonyms.length)];
-            }
-        }
-        
-        // 感情強度に応じた選択
-        if (context.intensity === 'high') {
-            const intenseSynonyms = synonyms.filter(s => 
-                s.includes('とても') || s.includes('非常に') || s.includes('大変')
-            );
-            if (intenseSynonyms.length > 0) {
-                return intenseSynonyms[Math.floor(Math.random() * intenseSynonyms.length)];
-            }
-        }
-        
         // デフォルトはランダム選択
         return synonyms[Math.floor(Math.random() * synonyms.length)];
     }
@@ -134,7 +84,16 @@ export class VocabularyDiversifier {
         this.dictionaryDB = null;
         this.enableDictionaryDB = true;
         
+        // 形態素解析エンジン統合
+        this.languageProcessor = null;
+        this.enableMorphologicalAnalysis = true;
+        
         console.log('🎨 VocabularyDiversifier初期化完了');
+        
+        // 言語プロセッサ初期化
+        if (this.enableMorphologicalAnalysis) {
+            this.initializeLanguageProcessor();
+        }
         
         // 辞書DB初期化
         if (this.enableDictionaryDB) {
@@ -143,12 +102,28 @@ export class VocabularyDiversifier {
     }
     
     /**
+     * 言語プロセッサ初期化（EnhancedHybridProcessor統合）
+     */
+    async initializeLanguageProcessor() {
+        try {
+            const { EnhancedHybridLanguageProcessor } = await import('../processing/enhanced-hybrid-processor.js');
+            this.languageProcessor = new EnhancedHybridLanguageProcessor();
+            
+            console.log('🔧 EnhancedHybridProcessor統合完了');
+            
+        } catch (error) {
+            console.warn('⚠️ 言語プロセッサ初期化失敗、簡易実装を使用:', error.message);
+            this.enableMorphologicalAnalysis = false;
+        }
+    }
+    
+    /**
      * 辞書DB初期化（JMdict + Wiktionary統合版）
      */
     async initializeDictionaryDB() {
         try {
-            const DictionaryDBCoreModule = await import('./dictionary-db-core.js');
-            this.dictionaryDB = new DictionaryDBCoreModule.DictionaryDBCore();
+            const { default: DictionaryDBCore } = await import('./dictionary-db-core.js');
+            this.dictionaryDB = new DictionaryDBCore();
             
             // 配布DB読み込み（軽量版）
             const initResult = await this.dictionaryDB.loadFromDistribution('./data/dictionary-db/');
@@ -234,8 +209,8 @@ export class VocabularyDiversifier {
             
             let diversifiedText = originalText;
             
-            // 1. 感情語彙の多様化
-            diversifiedText = this.diversifyEmotionWords(diversifiedText, context);
+            // 1. 感情語彙の多様化（非同期対応）
+            diversifiedText = await this.diversifyEmotionWords(diversifiedText, context);
             
             // 2. 接続表現の多様化
             diversifiedText = this.diversifyConnections(diversifiedText, context);
@@ -256,75 +231,183 @@ export class VocabularyDiversifier {
     }
     
     /**
-     * 感情語彙の多様化（強化版・連鎖防止）
+     * 感情語彙の多様化（形態素解析ベース・強化版）
      */
-    diversifyEmotionWords(text, context) {
-        let result = text;
-        const replacedWords = new Set(); // 連鎖置換防止
-        
-        // 1. 日本語単語抽出
-        const japaneseWords = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u3400-\u4DBF]+/g) || [];
-        
-        // 2. 高品質同義語による置換（1回のみ）
-        if (this.dictionaryDB) {
-            japaneseWords.forEach(word => {
-                if (result.includes(word) && word.length > 1 && !replacedWords.has(word)) {
-                    // 高品質同義語選択
-                    const synonym = this.getHighQualitySynonym(word, context);
-                    if (synonym && synonym !== word && this.isAppropriateSynonym(word, synonym)) {
-                        // 日本語対応の安全な置換（完全一致のみ）
-                        const exactMatches = result.split(/(\s+|[、。！？\n])/).map(part => {
-                            return part === word ? synonym : part;
-                        }).join('');
+    async diversifyEmotionWords(text, context) {
+        if (this.enableMorphologicalAnalysis && this.languageProcessor) {
+            return await this.diversifyWithMorphologicalAnalysis(text, context);
+        } else {
+            return this.diversifyWithSimpleMethod(text, context);
+        }
+    }
+    
+    /**
+     * 形態素解析ベースの多様化（新実装）
+     */
+    async diversifyWithMorphologicalAnalysis(text, context) {
+        try {
+            // EnhancedHybridProcessorで形態素解析
+            const analysisResult = await this.languageProcessor.processText(text, {
+                enableMeCab: false, // kuromojiのみ使用
+                enableSimilarity: false,
+                enableSemanticSimilarity: false,
+                enableGrouping: false,
+                enableRelationshipOptimization: false
+            });
+            
+            const tokens = analysisResult.kuromojiAnalysis.tokens;
+            const replacedTokens = new Set();
+            let result = text;
+            
+            console.log(`🔧 形態素解析: ${tokens.length}トークン検出`);
+            
+            // トークンベースの置換処理
+            for (const token of tokens) {
+                const word = token.surface || token.surface_form;
+                const pos = token.partOfSpeech || token.pos || token.part_of_speech;
+                
+                console.log(`🔍 トークン調査: "${word}" (${pos})`);
+                
+                // 内蔵辞書に含まれる語彙のみを処理
+                if (word && this.synonymDict.emotionSynonyms[word] && !replacedTokens.has(word)) {
+                    const synonym = await this.findAppropiateSynonym(word, context, pos);
+                    
+                    if (synonym && synonym !== word) {
+                        // 安全な単語境界置換
+                        const wordRegex = new RegExp(`\\b${this.escapeRegex(word)}\\b`, 'g');
+                        const newResult = result.replace(wordRegex, synonym);
                         
-                        // 実際に置換されたかチェック
-                        if (exactMatches !== result) {
-                            result = exactMatches;
-                            replacedWords.add(word);
-                            replacedWords.add(synonym);
-                            console.log(`🚀 高品質語彙置換: "${word}" → "${synonym}"`);
+                        if (newResult !== result) {
+                            result = newResult;
+                            replacedTokens.add(word);
+                            replacedTokens.add(synonym);
+                            console.log(`🔄 形態素置換: "${word}" → "${synonym}" (${pos || 'unknown'})`);
                         }
                     }
                 }
-            });
+            }
+            
+            return result;
+            
+        } catch (error) {
+            console.warn('⚠️ 形態素解析多様化エラー:', error.message);
+            return this.diversifyWithSimpleMethod(text, context);
         }
+    }
+    
+    /**
+     * 簡易多様化メソッド（フォールバック）
+     */
+    diversifyWithSimpleMethod(text, context) {
+        let result = text;
+        const replacedWords = new Set(); // 連鎖置換防止
+        
+        // 1. 日本語単語抽出（品詞考慮）
+        // const japaneseWords = text.match(/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\u3400-\u4DBF]+/g) || [];
+        
+        // 2. 高品質同義語による置換（1回のみ）
+        // if (this.dictionaryDB) {
+        //     japaneseWords.forEach(word => {
+        //         const entry = this.dictionaryDB.getWordInfo(word);
+        //         // 日本語の単語、かつ名詞、動詞、形容詞、副詞のみを対象とする
+        //         if (entry && entry.pos.some(p => ['名詞', '動詞', '形容詞', '副詞'].includes(p)) && result.includes(word) && word.length > 1 && !replacedWords.has(word)) {
+        //             // 高品質同義語選択
+        //             const synonym = this.getHighQualitySynonym(word, context);
+        //             const appropriate = this.isAppropriateSynonym(word, synonym);
+        //             if (synonym && synonym !== word && appropriate) {
+        //                 // 日本語対応の安全な置換（文字列全体置換）
+        //                 const originalResult = result;
+        //                 result = result.replace(new RegExp(word, 'g'), synonym);
+        //                 
+        //                 if (result !== originalResult) {
+        //                     replacedWords.add(word);
+        //                     replacedWords.add(synonym);
+        //                     console.log(`🚀 高品質語彙置換: "${word}" → "${synonym}"`);
+        //                 }
+        //             }
+        //         }
+        //     });
+        // }
         
         // 3. フォールバック: 内蔵辞書（未置換語のみ）
-        const emotionWords = Object.keys(this.synonymDict.emotionSynonyms);
-        emotionWords.forEach(word => {
-            if (result.includes(word) && !replacedWords.has(word)) {
-                // 使用履歴を考慮して多様化
-                const recentUsage = this.getRecentUsage(word);
-                let synonym = word;
-                
-                if (recentUsage.length > 2) {
-                    // 最近使用した語彙を避ける
-                    synonym = this.getUnusedSynonym(word, recentUsage, context);
-                } else {
-                    // 通常の同義語選択
-                    synonym = this.synonymDict.getContextualSynonym(word, {
-                        ...context,
-                        category: 'emotion'
-                    });
-                }
-                
-                if (synonym !== word && this.isAppropriateSynonym(word, synonym)) {
-                    // 日本語対応の安全な置換（完全一致のみ）
-                    const exactMatches = result.split(/(\s+|[、。！？\n])/).map(part => {
-                        return part === word ? synonym : part;
-                    }).join('');
-                    
-                    // 実際に置換されたかチェック
-                    if (exactMatches !== result) {
-                        result = exactMatches;
-                        replacedWords.add(word);
-                        console.log(`🔄 感情語彙置換: "${word}" → "${synonym}"`);
-                    }
-                }
-            }
-        });
+        // const emotionWords = Object.keys(this.synonymDict.emotionSynonyms);
+        
+        // emotionWords.forEach(word => {
+        //     if (result.includes(word) && !replacedWords.has(word)) {
+        //         // 使用履歴を考慮して多様化
+        //         const recentUsage = this.getRecentUsage(word);
+        //         let synonym = word;
+        //         
+        //         if (recentUsage.length > 2) {
+        //             // 最近使用した語彙を避ける
+        //             synonym = this.getUnusedSynonym(word, recentUsage, context);
+        //         } else {
+        //             // 通常の同義語選択
+        //             synonym = this.synonymDict.getContextualSynonym(word, {
+        //                 ...context,
+        //                 category: 'emotion'
+        //             });
+        //         }
+        //         const appropriate = this.isAppropriateSynonym(word, synonym);
+        //         
+        //         if (synonym !== word && appropriate) {
+        //             // 日本語対応の安全な置換（文字列全体置換）
+        //             const originalResult = result;
+        //             result = result.replace(new RegExp(word, 'g'), synonym);
+        //             
+        //             if (result !== originalResult) {
+        //                 replacedWords.add(word);
+        //                 console.log(`🔄 感情語彙置換: "${word}" → "${synonym}"`);
+        //             }
+        //         }
+        //     }
+        // });
         
         return result;
+    }
+    
+    /**
+     * 対象品詞判定
+     */
+    isTargetPartOfSpeech(pos) {
+        if (!pos) return false;
+        
+        const targetPOS = ['名詞', '動詞', '形容詞', '副詞'];
+        return targetPOS.some(p => pos.includes(p));
+    }
+    
+    /**
+     * 適切な同義語検索（品詞考慮）
+     */
+    async findAppropiateSynonym(word, context, pos) {
+        // 1. 辞書DBから同義語取得
+        if (this.dictionaryDB) {
+            const synonym = this.getHighQualitySynonym(word, context);
+            if (synonym && synonym !== word && this.isAppropriateSynonym(word, synonym)) {
+                return synonym;
+            }
+        }
+        
+        // 2. 内蔵辞書から取得
+        // const emotionWords = Object.keys(this.synonymDict.emotionSynonyms);
+        // if (emotionWords.includes(word)) {
+        //     const synonym = this.synonymDict.getContextualSynonym(word, {
+        //         ...context,
+        //         category: 'emotion'
+        //     });
+        //     if (synonym !== word && this.isAppropriateSynonym(word, synonym)) {
+        //         return synonym;
+        //     }
+        // }
+        
+        return null;
+    }
+    
+    /**
+     * 正規表現エスケープ
+     */
+    escapeRegex(string) {
+        return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
     
     /**
@@ -346,13 +429,20 @@ export class VocabularyDiversifier {
             return false;
         }
         
-        // 4. DictionaryDBベースの品質チェック
+        // 4. DictionaryDBベースの品質チェック（現在無効）
+        /*
         if (this.dictionaryDB) {
-            const qualityScore = this.calculateSynonymPairQuality(original, synonym);
-            if (qualityScore < 30) { // 品質閾値
-                return false;
+            const originalEntry = this.dictionaryDB.getWordInfo(original);
+            const synonymEntry = this.dictionaryDB.getWordInfo(synonym);
+            if (originalEntry && synonymEntry) {
+                // DictionaryDBCoreで計算された品質スコアを参照
+                const quality = (originalEntry.quality || 0) + (synonymEntry.quality || 0);
+                if (quality < 60) { // 品質閾値
+                    return false;
+                }
             }
         }
+        */
         
         return true;
     }
@@ -362,12 +452,14 @@ export class VocabularyDiversifier {
      */
     isInappropriatePair(original, synonym) {
         // 明らかに不適切な組み合わせのみ（最小限）
-        const criticalPairs = {
-            "嬉しい": ["愉悦"], // 性的含意のある語
-            "助ける": ["愉悦"]   // 意味が全く異なる
-        };
+        // const criticalPairs = {
+        //     "嬉しい": ["愉悦"], // 性的含意のある語
+        //     "助ける": ["愉悦"],   // 意味が全く異なる
+        //     "ありがとう": ["恩に着る", "恩義", "御礼", "感謝します", "お礼申し上げます"] // 文法的に不自然
+        // };
         
-        return criticalPairs[original]?.includes(synonym) || false;
+        // return criticalPairs[original]?.includes(synonym) || false;
+        return false;
     }
     
     /**
@@ -386,11 +478,11 @@ export class VocabularyDiversifier {
      */
     calculateToneLevel(word) {
         // 0: カジュアル, 1: 標準, 2: 丁寧, 3: 格式高い
-        const formalPatterns = /恐縮|謝意|恩義|ございま|いたしま/;
-        const casualPatterns = /愉悦|娯楽|やば|すげ/;
+        // const formalPatterns = /恐縮|謝意|恩義|ございま|いたしま/;
+        // const casualPatterns = /愉悦|娯楽|やば|すげ/;
         
-        if (formalPatterns.test(word)) return 3;
-        if (casualPatterns.test(word)) return 0;
+        // if (formalPatterns.test(word)) return 3;
+        // if (casualPatterns.test(word)) return 0;
         if (word.length > 4) return 2; // 長い語は比較的丁寧
         return 1; // 標準
     }
@@ -403,16 +495,17 @@ export class VocabularyDiversifier {
         const synonymDomain = this.getSemanticDomain(synonym);
         
         // 完全に異なる意味領域は不適切
-        const incompatibleDomains = [
-            ['emotion', 'action'],
-            ['emotion', 'object'],
-            ['abstract', 'concrete']
-        ];
+        // const incompatibleDomains = [
+        //     ['emotion', 'action'],
+        //     ['emotion', 'object'],
+        //     ['abstract', 'concrete']
+        // ];
         
-        return incompatibleDomains.some(([domain1, domain2]) => 
-            (originalDomain === domain1 && synonymDomain === domain2) ||
-            (originalDomain === domain2 && synonymDomain === domain1)
-        );
+        // return incompatibleDomains.some(([domain1, domain2]) => 
+        //     (originalDomain === domain1 && synonymDomain === domain2) ||
+        //     (originalDomain === domain2 && synonymDomain === domain1)
+        // );
+        return false;
     }
     
     /**
@@ -431,42 +524,12 @@ export class VocabularyDiversifier {
         }
         
         // フォールバック: パターンベース
-        if (/嬉し|悲し|楽し|良い|悪い/.test(word)) return 'emotion';
-        if (/する|教え|助け|学ぶ/.test(word)) return 'action';
+        // if (/嬉し|悲し|楽し|良い|悪い/.test(word)) return 'emotion';
+        // if (/する|教え|助け|学ぶ/.test(word)) return 'action';
         return 'abstract';
     }
     
-    /**
-     * 同義語ペア品質計算
-     */
-    calculateSynonymPairQuality(original, synonym) {
-        if (!this.dictionaryDB) return 50; // デフォルト品質
-        
-        const entry1 = this.dictionaryDB.getWordInfo(original);
-        const entry2 = this.dictionaryDB.getWordInfo(synonym);
-        
-        if (!entry1 || !entry2) return 40;
-        
-        let quality = 0;
-        
-        // 品詞一致度 (40点満点)
-        const posOverlap = entry1.pos.filter(pos => entry2.pos.includes(pos)).length;
-        quality += Math.min(posOverlap * 20, 40);
-        
-        // 頻度類似度 (30点満点)
-        const freqDiff = Math.abs((entry1.frequency || 0) - (entry2.frequency || 0));
-        quality += Math.max(0, 30 - freqDiff);
-        
-        // 定義類似度 (30点満点)
-        if (entry1.definitions.length > 0 && entry2.definitions.length > 0) {
-            const similarity = this.dictionaryDB.calculateDefinitionSimilarityFast(
-                entry1.definitions, entry2.definitions
-            );
-            quality += similarity * 30;
-        }
-        
-        return quality;
-    }
+    
     
     /**
      * 辞書DBによる多様化
@@ -498,18 +561,18 @@ export class VocabularyDiversifier {
      * 接続表現の多様化
      */
     diversifyConnections(text, context) {
-        const connectionWords = Object.keys(this.synonymDict.connectionSynonyms);
+        // const connectionWords = Object.keys(this.synonymDict.connectionSynonyms);
         
         let result = text;
-        connectionWords.forEach(word => {
-            if (result.includes(word)) {
-                const synonym = this.synonymDict.getRandomSynonym(word, 'connection');
-                if (synonym !== word) {
-                    result = result.replace(new RegExp(word, 'g'), synonym);
-                    console.log(`🔗 接続表現置換: "${word}" → "${synonym}"`);
-                }
-            }
-        });
+        // connectionWords.forEach(word => {
+        //     if (result.includes(word)) {
+        //         const synonym = this.synonymDict.getRandomSynonym(word, 'connection');
+        //         if (synonym !== word) {
+        //             result = result.replace(new RegExp(word, 'g'), synonym);
+        //             console.log(`🔗 接続表現置換: "${word}" → "${synonym}"`);
+        //         }
+        //     }
+        // });
         
         return result;
     }
@@ -523,9 +586,9 @@ export class VocabularyDiversifier {
         if (politeness === 'formal') {
             // より丁寧な表現に変換
             let result = text;
-            result = result.replace(/です/g, 'でございます');
-            result = result.replace(/ます/g, 'いたします');
-            result = result.replace(/ください/g, 'くださいませ');
+            // result = result.replace(/です/g, 'でございます');
+            // result = result.replace(/ます/g, 'いたします');
+            // result = result.replace(/ください/g, 'くださいませ');
             
             if (result !== text) {
                 console.log('🎩 丁寧語調整: formal適用');
@@ -534,9 +597,9 @@ export class VocabularyDiversifier {
         } else if (politeness === 'casual') {
             // よりカジュアルな表現に変換
             let result = text;
-            result = result.replace(/でございます/g, 'です');
-            result = result.replace(/いたします/g, 'ます');
-            result = result.replace(/くださいませ/g, 'ください');
+            // result = result.replace(/でございます/g, 'です');
+            // result = result.replace(/いたします/g, 'ます');
+            // result = result.replace(/くださいませ/g, 'ください');
             
             if (result !== text) {
                 console.log('😊 丁寧語調整: casual適用');
@@ -719,23 +782,24 @@ export class VocabularyDiversifier {
         console.log('📈 同義語品質評価開始');
         
         // 代表的な単語の同義語を確認
-        const testWords = ['嬉しい', '困る', '助ける', '学ぶ', '教える'];
+        // const testWords = ['嬉しい', '困る', '助ける', '学ぶ', '教える'];
         let totalQuality = 0;
         let evaluatedWords = 0;
         
-        for (const word of testWords) {
-            const synonyms = this.dictionaryDB.getSynonyms(word, 10);
-            if (synonyms.length > 0) {
-                const wordInfo = this.dictionaryDB.getWordInfo(word);
-                const quality = wordInfo ? wordInfo.synonymQuality || 0 : 0;
-                
-                console.log(`🔍 "${word}": ${synonyms.length}同義語, 品質スコア${quality}点`);
-                console.log(`   同義語: ${synonyms.slice(0, 3).join(', ')}...`);
-                
-                totalQuality += quality;
-                evaluatedWords++;
-            }
-        }
+        // for (const word of testWords) {
+        //     const synonyms = this.dictionaryDB.getSynonyms(word, 10);
+        //     if (synonyms.length > 0) {
+        //         const wordInfo = this.dictionaryDB.getWordInfo(word);
+        //         const quality = wordInfo ? wordInfo.quality || 0 : 0;
+        //         console.log(`DEBUG: ${word} quality: ${quality}`);
+        //         
+        //         console.log(`🔍 "${word}": ${synonyms.length}同義語, 品質スコア${quality}点`);
+        //         console.log(`   同義語: ${synonyms.slice(0, 3).join(', ')}...`);
+        //         
+        //         totalQuality += quality;
+        //         evaluatedWords++;
+        //     }
+        // }
         
         const averageQuality = evaluatedWords > 0 ? (totalQuality / evaluatedWords) : 0;
         console.log(`📊 同義語品質平均: ${averageQuality.toFixed(1)}点`);
@@ -765,7 +829,14 @@ export class VocabularyDiversifier {
         // 品質スコアの高い同義語を優先
         const qualifiedSynonyms = synonyms.filter(synonym => {
             const entry = this.dictionaryDB.getWordInfo(synonym);
-            return entry && (entry.synonymQuality || 0) > 50;
+            const quality = entry && entry.quality !== undefined ? entry.quality : 0;
+            
+            // 30点未満は常に除外
+            if (quality < 30) return false;
+            // 70点以上は常に採用
+            if (quality >= 70) return true;
+            // 30-70点では確率的に採用
+            return Math.random() < (quality / 100);
         });
         
         if (qualifiedSynonyms.length > 0) {
