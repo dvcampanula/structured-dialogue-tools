@@ -1,9 +1,9 @@
-# 軽量統計学習型日本語処理AI システム設計仕様書 v1.0
+# 軽量統計学習型日本語処理AI システム設計仕様書 v1.1
 
 **プロジェクト名**: JapaneseVocabularyAI  
 **作成日**: 2025-07-10  
-**最終更新**: 2025-07-10  
-**バージョン**: 1.0.0
+**最終更新**: 2025-07-11  
+**バージョン**: 1.1.0 (Phase 4追加)
 
 ---
 
@@ -46,17 +46,27 @@ interface JapaneseVocabularyAI {
   styleAdapter: PersonalStyleAdapter;               // 個人文体適応
   qualityPredictor: QualityPredictionModel;         // 品質予測AI
   
-  // Layer 4: インターフェース層
+  // Layer 4: 応答生成層 (Phase 4追加)
+  responseGenerator: StatisticalResponseGenerator; // 統計的応答生成AI
+  
+  // Layer 5: インターフェース層
   webInterface: VocabularyProcessingUI;             // Web UI
   apiGateway: VocabularyProcessingAPI;              // REST API
+  chatInterface: DialogueSystemAPI;                 // 対話システムAPI
 }
 ```
 
 ### **データフロー**
 ```
+// Phase 1-3: 分析フロー
 Input Text → Morphological Analysis → Dictionary Lookup → AI Learning → 
 Context Recognition → Personal Adaptation → Vocabulary Processing → 
-Quality Prediction → Output
+Quality Prediction → Analysis Output
+
+// Phase 4: 対話フロー (追加)
+User Input → 5AI Analysis → Response Strategy Selection → 
+Statistical Response Generation → Quality Evaluation → Self-Improvement → 
+AI Response → Learning Update
 ```
 
 ---
@@ -132,6 +142,90 @@ class QualityPredictionModel {
   trainModel(trainingData: QualityData[]): void;
   predictQuality(content: ProcessedContent): QualityScore;
   suggestImprovements(content: ProcessedContent): Improvement[];
+}
+```
+
+### **3. Phase 4: 統計的応答生成AI (新規追加)**
+
+#### **StatisticalResponseGenerator**
+```typescript
+class StatisticalResponseGenerator {
+  // 機能: 5AI統合システムを活用した統計的応答生成
+  
+  // コア依存関係
+  aiVocabularyProcessor: AIVocabularyProcessor;    // 5AI統合分析エンジン
+  learningDB: PersistentLearningDB;                // 学習データ永続化
+  
+  // 応答戦略管理
+  responseStrategies: Map<string, ResponseStrategy>; // 統計的応答戦略
+  contextHistory: ConversationHistory[];           // 対話履歴管理
+  qualityThresholds: QualityThresholds;           // 品質基準設定
+  
+  // 主要メソッド
+  generateResponse(userInput: string, userId: string): Promise<ResponseResult>;
+  selectResponseStrategy(analysis: AnalysisResult): ResponseStrategy;
+  evaluateAndImprove(response: string, analysis: AnalysisResult): Promise<QualityResult>;
+  updateLearningData(input: string, response: string, quality: QualityResult): Promise<void>;
+}
+
+// 応答戦略パターン定義
+enum ResponseStrategies {
+  NGRAM_CONTINUATION = 'ngram_continuation',      // N-gram統計継続型
+  COOCCURRENCE_EXPANSION = 'cooccurrence_expansion', // 共起関係拡張型
+  PERSONAL_ADAPTATION = 'personal_adaptation',    // ベイジアン個人適応型
+  VOCABULARY_OPTIMIZATION = 'vocabulary_optimization', // 多腕バンディット最適化型
+  QUALITY_FOCUSED = 'quality_focused'            // 品質予測重視型
+}
+
+// 応答生成結果インターフェース
+interface ResponseResult {
+  response: string;                              // 生成応答テキスト
+  confidence: number;                            // 応答信頼度 (0-1)
+  strategy: ResponseStrategies;                  // 使用した戦略
+  qualityScore: number;                          // 品質スコア (0-1)
+  improvements: ImprovementSuggestion[];         // 改善提案配列
+  analysisData: AnalysisResult;                  // 5AI分析結果
+}
+
+// 統計的応答生成アルゴリズム
+interface StatisticalGenerationMethods {
+  generateNgramBasedResponse(analysis: AnalysisResult): string;     // N-gram文脈継続
+  generateCooccurrenceResponse(analysis: AnalysisResult): string;   // 共起関係応答
+  generatePersonalizedResponse(analysis: AnalysisResult): string;   // 個人適応応答
+  generateVocabularyOptimizedResponse(analysis: AnalysisResult): string; // 語彙最適化応答
+}
+```
+
+#### **対話システム統合API**
+```typescript
+// WebUI対話エンドポイント
+interface DialogueSystemAPI {
+  // POST /api/chat - 基本対話機能
+  processDialogue(message: string, userId: string): Promise<DialogueResponse>;
+  
+  // GET /api/chat/history/:userId - 対話履歴取得
+  getChatHistory(userId: string, limit?: number): Promise<ConversationHistory[]>;
+  
+  // POST /api/chat/feedback - 応答品質フィードバック
+  submitFeedback(responseId: string, rating: number, comments?: string): Promise<void>;
+  
+  // GET /api/chat/status - 対話システム状態
+  getSystemStatus(): Promise<DialogueSystemStatus>;
+}
+
+// 対話レスポンス形式
+interface DialogueResponse {
+  success: boolean;
+  response: string;                              // AI応答テキスト
+  confidence: number;                            // 応答信頼度
+  strategy: ResponseStrategies;                  // 使用戦略
+  qualityMetrics: {
+    score: number;                               // 品質スコア
+    grade: 'excellent' | 'good' | 'acceptable' | 'poor';
+    improvements: ImprovementSuggestion[];
+  };
+  processingTime: number;                        // 応答生成時間(ms)
+  timestamp: string;                             // 応答生成時刻
 }
 ```
 

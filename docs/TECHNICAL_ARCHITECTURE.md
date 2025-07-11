@@ -1,9 +1,9 @@
-# 軽量統計学習型日本語処理AI 技術アーキテクチャ仕様書 v1.0
+# 軽量統計学習型日本語処理AI 技術アーキテクチャ仕様書 v1.1
 
 **プロジェクト名**: JapaneseVocabularyAI  
 **作成日**: 2025-07-10  
-**最終更新**: 2025-07-10  
-**バージョン**: 1.0.0
+**最終更新**: 2025-07-11  
+**バージョン**: 1.1.0 (Phase 4対話AI追加)
 
 ---
 
@@ -36,10 +36,19 @@ interface SystemArchitecture {
     adaptiveSelector: EpsilonGreedySelector;      // ε-greedy選択器
   };
   
-  // Layer 4: Interface (インターフェース層)
+  // Layer 4: Response Generation (応答生成層) - Phase 4追加
+  responseGeneration: {
+    statisticalGenerator: StatisticalResponseGenerator; // 統計的応答生成AI
+    strategySelector: ResponseStrategySelector;        // 応答戦略選択器
+    qualityEvaluator: ResponseQualityEvaluator;       // 応答品質評価器
+  };
+  
+  // Layer 5: Interface (インターフェース層)
   interfaces: {
     webUI: VocabularyProcessingWebUI;             // WebUI
+    chatUI: ConversationalInterface;              // 対話UI
     restAPI: VocabularyProcessingAPI;             // REST API
+    chatAPI: DialogueSystemAPI;                   // 対話API
     dataAPI: LearningDataAPI;                     // 学習データAPI
   };
 }
@@ -509,6 +518,211 @@ class VocabularyProcessingWebUI {
     });
   }
 }
+```
+
+---
+
+## 🗣️ Phase 4: 統計的応答生成システム詳細設計
+
+### **応答生成アーキテクチャ**
+
+```typescript
+// 統計的応答生成システム
+class StatisticalResponseGenerator {
+  constructor(
+    private aiVocabularyProcessor: AIVocabularyProcessor,
+    private learningDB: PersistentLearningDB,
+    private qualityPredictor: QualityPredictionModel
+  ) {
+    this.responseStrategies = new Map();
+    this.contextHistory = [];
+    this.initializeStrategies();
+  }
+
+  // コア応答生成フロー
+  async generateResponse(userInput: string, userId: string): Promise<ResponseResult> {
+    // 1. 5AI統合分析
+    const analysis = await this.aiVocabularyProcessor.processText(userInput, userId);
+    
+    // 2. 応答戦略選択 (統計的決定)
+    const strategy = this.selectResponseStrategy(analysis);
+    
+    // 3. 統計的応答生成
+    const response = await this.generateStatisticalResponse(analysis, strategy);
+    
+    // 4. 品質評価・改善
+    const qualityResult = await this.evaluateAndImprove(response, analysis);
+    
+    // 5. 学習データ更新
+    await this.updateLearningData(userInput, response, qualityResult);
+    
+    return {
+      response: qualityResult.improvedResponse || response,
+      confidence: qualityResult.confidence,
+      strategy: strategy,
+      qualityScore: qualityResult.qualityScore,
+      analysisData: analysis.result
+    };
+  }
+
+  // 統計的戦略選択アルゴリズム
+  private selectResponseStrategy(analysis: AnalysisResult): ResponseStrategy {
+    const { predictedContext, optimizedVocabulary, adaptedContent, qualityPrediction } = analysis.result;
+    
+    // 多腕バンディット型戦略選択
+    const strategies = [
+      { name: 'NGRAM_CONTINUATION', score: predictedContext.confidence * 1.2 },
+      { name: 'COOCCURRENCE_EXPANSION', score: optimizedVocabulary.length * 0.3 },
+      { name: 'PERSONAL_ADAPTATION', score: adaptedContent.adaptationScore * 1.1 },
+      { name: 'QUALITY_FOCUSED', score: qualityPrediction.confidence * 0.9 }
+    ];
+    
+    // UCBアルゴリズムで最適戦略選択
+    return this.selectStrategyUCB(strategies);
+  }
+}
+
+// 応答戦略実装
+interface ResponseGenerationStrategies {
+  // N-gram継続型応答生成
+  generateNgramBasedResponse(analysis: AnalysisResult): Promise<string> {
+    const contextTokens = this.extractContextTokens(analysis);
+    const ngramPredictions = await this.aiVocabularyProcessor.ngramAI.predictNextTokens(contextTokens);
+    return this.buildResponseFromNgrams(ngramPredictions);
+  }
+
+  // 共起関係拡張型応答生成
+  generateCooccurrenceResponse(analysis: AnalysisResult): Promise<string> {
+    const keywords = analysis.result.optimizedVocabulary;
+    const relatedTerms = await this.aiVocabularyProcessor.cooccurrenceAnalyzer.findRelatedTerms(keywords);
+    return this.buildResponseFromCooccurrence(keywords, relatedTerms);
+  }
+
+  // ベイジアン個人適応型応答生成
+  generatePersonalizedResponse(analysis: AnalysisResult): Promise<string> {
+    const userProfile = analysis.result.adaptedContent;
+    const personalizedVocab = await this.aiVocabularyProcessor.bayesianAI.adaptToUser(userProfile);
+    return this.buildPersonalizedResponse(personalizedVocab);
+  }
+
+  // 品質重視型応答生成
+  generateQualityFocusedResponse(analysis: AnalysisResult): Promise<string> {
+    const qualityFeatures = analysis.result.qualityPrediction.features;
+    const highQualityPatterns = await this.extractHighQualityPatterns(qualityFeatures);
+    return this.buildHighQualityResponse(highQualityPatterns);
+  }
+}
+```
+
+### **対話システムAPI設計**
+
+```typescript
+// 対話システムRESTfulAPI
+class DialogueSystemAPI {
+  // 基本対話エンドポイント
+  @Post('/api/chat')
+  async processDialogue(@Body() request: ChatRequest): Promise<ChatResponse> {
+    const { message, userId, sessionId } = request;
+    
+    try {
+      // 統計的応答生成
+      const result = await this.statisticalGenerator.generateResponse(message, userId);
+      
+      // 対話履歴保存
+      await this.saveChatHistory(userId, sessionId, message, result.response);
+      
+      return {
+        success: true,
+        response: result.response,
+        confidence: result.confidence,
+        strategy: result.strategy,
+        qualityMetrics: {
+          score: result.qualityScore,
+          grade: this.calculateQualityGrade(result.qualityScore),
+          improvements: result.analysisData.qualityPrediction.improvements
+        },
+        processingTime: Date.now() - startTime,
+        timestamp: new Date().toISOString()
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error.message,
+        fallbackResponse: await this.generateFallbackResponse(message)
+      };
+    }
+  }
+
+  // 対話履歴管理
+  @Get('/api/chat/history/:userId')
+  async getChatHistory(@Param('userId') userId: string, @Query('limit') limit = 50): Promise<ChatHistory[]> {
+    return await this.chatHistoryService.getHistory(userId, limit);
+  }
+
+  // 応答品質フィードバック
+  @Post('/api/chat/feedback')
+  async submitFeedback(@Body() feedback: FeedbackRequest): Promise<void> {
+    await this.learningService.updateFromFeedback(feedback);
+    await this.statisticalGenerator.updateStrategyWeights(feedback);
+  }
+}
+
+// リアルタイム対話WebSocket
+class ConversationWebSocket {
+  @WebSocketGateway()
+  class ChatGateway {
+    @SubscribeMessage('chat_message')
+    async handleMessage(client: Socket, payload: ChatPayload): Promise<void> {
+      const response = await this.dialogueAPI.processDialogue(payload);
+      client.emit('chat_response', response);
+      
+      // リアルタイム学習状況配信
+      const learningStatus = await this.getLearningStatus(payload.userId);
+      client.emit('learning_update', learningStatus);
+    }
+  }
+}
+```
+
+### **WebUI統合インターフェース**
+
+```html
+<!-- 対話システムUI拡張 -->
+<div class="dialogue-system-container">
+  <!-- チャット履歴 -->
+  <div id="chatHistory" class="chat-history">
+    <div class="chat-message user-message">
+      <div class="message-content">ユーザーメッセージ</div>
+      <div class="message-meta">2025-07-11 15:30</div>
+    </div>
+    <div class="chat-message ai-message">
+      <div class="message-content">AI応答</div>
+      <div class="message-meta">
+        信頼度: 0.85 | 戦略: N-gram継続 | 品質: excellent
+        <button onclick="provideFeedback(messageId, 'positive')">👍</button>
+        <button onclick="provideFeedback(messageId, 'negative')">👎</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- メッセージ入力 -->
+  <div class="chat-input-container">
+    <input type="text" id="messageInput" placeholder="メッセージを入力してください...">
+    <button onclick="sendMessage()" id="sendButton">送信</button>
+  </div>
+
+  <!-- リアルタイム統計 -->
+  <div class="real-time-stats">
+    <div class="stat-item">
+      <span class="stat-label">応答生成時間:</span>
+      <span class="stat-value" id="responseTime">-</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-label">学習データ蓄積:</span>
+      <span class="stat-value" id="learningProgress">-</span>
+    </div>
+  </div>
+</div>
 ```
 
 ---
