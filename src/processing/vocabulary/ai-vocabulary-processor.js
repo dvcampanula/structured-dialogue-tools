@@ -71,37 +71,46 @@ export class AIVocabularyProcessor {
     try {
       // 1. 形態素解析と辞書ルックアップ
       const processed = await this.hybridProcessor.processText(text);
-      result.processedTokens = processed.tokens;
       
-      const lookupResults = await Promise.all(
-        processed.tokens.map(token => this.dictionary.lookup(token.surface))
-      );
-      result.dictionaryLookups = lookupResults.filter(Boolean);
+      // enhancedTermsまたはtokensから統一的に処理
+      const tokens = processed.tokens || processed.enhancedTerms || [];
+      result.processedTokens = tokens;
       
-      // 2. 多腕バンディットによる語彙最適化
-      const candidateVocabularies = processed.tokens.map(t => t.surface);
-      result.optimizedVocabulary = await this.banditAI.selectVocabulary(candidateVocabularies);
-      
-      // 3. N-gramによる文脈予測
-      result.predictedContext = await this.ngramAI.predictContext(text);
-      
-      // 4. ベイジアン個人適応
-      const contentFeatures = this._extractFeaturesForBayesian(processed.tokens, result.predictedContext);
-      result.adaptedContent = await this.bayesianAI.adaptForUser(userId, { text: text, features: contentFeatures });
-      
-      // 5. 共起関係学習
-      // DynamicRelationshipLearnerのanalyzeメソッドを呼び出す
-      await this.cooccurrenceLearner.analyze(text, result.optimizedVocabulary);
-      result.cooccurrenceAnalysis = this.cooccurrenceLearner.getLearningStats();
-      
-      // 6. 品質予測
-      result.qualityPrediction = await this.qualityPredictor.predictQuality({
-        text: text,
-        metadata: {
-          frequency: result.optimizedVocabulary ? 1 : 0, // 仮の頻度
-          relevanceScore: result.predictedContext.confidence // 文脈予測の信頼度を関連性スコアとして利用
-        }
-      });
+      if (tokens.length > 0) {
+        const lookupResults = await Promise.all(
+          tokens.map(token => this.dictionary.lookup(token.surface || token.term))
+        );
+        result.dictionaryLookups = lookupResults.filter(Boolean);
+        
+        // 2. 多腕バンディットによる語彙最適化
+        const candidateVocabularies = tokens.map(t => t.surface || t.term);
+        result.optimizedVocabulary = await this.banditAI.selectVocabulary(candidateVocabularies);
+        
+        // 3. N-gramによる文脈予測
+        result.predictedContext = await this.ngramAI.predictContext(text);
+        
+        // 4. ベイジアン個人適応
+        const contentFeatures = this._extractFeaturesForBayesian(tokens, result.predictedContext);
+        result.adaptedContent = await this.bayesianAI.adaptForUser(userId, { text: text, features: contentFeatures });
+        
+        // 5. 共起関係学習
+        // DynamicRelationshipLearnerのanalyzeメソッドを呼び出す
+        await this.cooccurrenceLearner.analyze(text, result.optimizedVocabulary);
+        result.cooccurrenceAnalysis = this.cooccurrenceLearner.getLearningStats();
+        
+        // 6. 品質予測
+        result.qualityPrediction = await this.qualityPredictor.predictQuality({
+          text: text,
+          metadata: {
+            frequency: result.optimizedVocabulary ? 1 : 0, // 仮の頻度
+            relevanceScore: result.predictedContext?.confidence || 0.5 // 文脈予測の信頼度を関連性スコアとして利用
+          }
+        });
+        
+        result.success = true;
+      } else {
+        console.warn('⚠️ トークン解析結果が空です');
+      }
 
     } catch (error) {
       console.error('❌ AIVocabularyProcessor処理エラー:', error.message);

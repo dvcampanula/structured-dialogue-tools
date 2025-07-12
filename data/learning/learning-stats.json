@@ -2,41 +2,9 @@
   "totalConversations": 0,
   "totalRelationsLearned": 1,
   "totalConceptsLearned": 0,
-  "lastLearningDate": 1752290299528,
+  "lastLearningDate": 1752298404372,
   "qualityScore": 0.5,
   "learningEvents": [
-    {
-      "timestamp": 1752280602249,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "default",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1752280882929,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "default",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1752280882929,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "default",
-        "relationsCount": 4
-      }
-    },
-    {
-      "timestamp": 1752280882930,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "default",
-        "relationsCount": 4
-      }
-    },
     {
       "timestamp": 1752281161438,
       "type": "user_relations_update",
@@ -803,6 +771,38 @@
       "data": {
         "userId": "default",
         "relationsCount": 4
+      }
+    },
+    {
+      "timestamp": 1752298073420,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752298404244,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752298404312,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752298404372,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "default",
+        "relationsCount": 0
       }
     }
   ]

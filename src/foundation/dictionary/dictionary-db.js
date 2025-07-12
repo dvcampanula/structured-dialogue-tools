@@ -217,6 +217,80 @@ export class DictionaryDB {
         console.log(`✅ サンプル辞書データ読み込み完了: ${this.stats.totalEntries}エントリ`);
         console.log(`📊 メモリ使用量: ${this.estimateMemoryUsage()}MB`);
     }
+
+    /**
+     * 語彙ルックアップ
+     * @param {string} word - 検索する語彙
+     * @returns {Object|null} 辞書エントリまたはnull
+     */
+    async lookup(word) {
+        if (!word || typeof word !== 'string') return null;
+        
+        try {
+            // エントリから検索
+            const entry = this.entries.get(word);
+            if (entry) {
+                return {
+                    word: word,
+                    readings: entry.readings,
+                    meanings: entry.meanings,
+                    pos: entry.pos,
+                    source: 'dictionary'
+                };
+            }
+            
+            // 読みから検索
+            const readingEntries = this.readingMap.get(word);
+            if (readingEntries && readingEntries.size > 0) {
+                const firstWord = readingEntries.values().next().value;
+                const entry = this.entries.get(firstWord);
+                if (entry) {
+                    return {
+                        word: firstWord,
+                        readings: entry.readings,
+                        meanings: entry.meanings,
+                        pos: entry.pos,
+                        source: 'reading_lookup'
+                    };
+                }
+            }
+            
+            return null;
+        } catch (error) {
+            console.warn('⚠️ 辞書ルックアップエラー:', error.message);
+            return null;
+        }
+    }
+
+    /**
+     * 辞書エントリ追加
+     */
+    addEntry(entry) {
+        if (!entry.word) return false;
+        
+        this.entries.set(entry.word, entry);
+        
+        // 読みマップ更新
+        if (entry.readings && Array.isArray(entry.readings)) {
+            entry.readings.forEach(reading => {
+                if (!this.readingMap.has(reading)) {
+                    this.readingMap.set(reading, new Set());
+                }
+                this.readingMap.get(reading).add(entry.word);
+            });
+        }
+        
+        // 品詞マップ更新
+        if (entry.pos) {
+            if (!this.posMap.has(entry.pos)) {
+                this.posMap.set(entry.pos, new Set());
+            }
+            this.posMap.get(entry.pos).add(entry.word);
+        }
+        
+        this.stats.totalEntries++;
+        return true;
+    }
     
     /**
      * エントリをデータベースに追加

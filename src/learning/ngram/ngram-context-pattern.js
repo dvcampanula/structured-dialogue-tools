@@ -87,9 +87,10 @@ export class NgramContextPatternAI {
       }
     }
 
-    // 文脈頻度の学習
-    if (contextInfo && contextInfo.category) {
-      this.updateContextFrequency(contextInfo.category);
+    // 文脈頻度の統計学習: データ自身から文脈パターンを発見
+    const discoveredContext = this.discoverContextFromData(tokens);
+    if (discoveredContext) {
+      this.updateContextFrequency(discoveredContext);
     }
     await this._saveData();
   }
@@ -201,7 +202,8 @@ export class NgramContextPatternAI {
         confidence: Math.min(0.5, highestFreq / this.totalDocuments) 
       };
     } else if (bestContext === null) {
-      return { predictedCategory: 'general', confidence: 0 };
+      // 純粋統計学習: データ不足の場合は未知として返す
+      return { predictedCategory: 'unknown', confidence: 0 };
     }
 
     // 信頼度を統計的に計算
@@ -313,6 +315,58 @@ export class NgramContextPatternAI {
     const idf = docFreq > 0 ? Math.log(this.totalDocuments / docFreq) : 0;
     
     return tf * idf;
+  }
+
+  /**
+   * 統計学習ベース文脈発見
+   * データ自身から文脈パターンを自動発見
+   */
+  discoverContextFromData(tokens) {
+    if (!tokens || tokens.length === 0) return null;
+    
+    // 統計的特徴ベースの文脈分類
+    const stats = this.calculateTokenStatistics(tokens);
+    
+    // 語彙密度による分類
+    if (stats.uniqueTokenRatio > 0.8) {
+      return `diverse_vocabulary_${Math.round(stats.avgTokenLength)}`;
+    }
+    
+    // 長さパターンによる分類
+    if (stats.avgTokenLength > 5) {
+      return `long_tokens_${tokens.length}`;
+    }
+    
+    // 頻度パターンによる分類
+    if (stats.maxFrequency > 1) {
+      return `repetitive_pattern_${stats.maxFrequency}`;
+    }
+    
+    // デフォルト: 基本統計パターン
+    return `pattern_${tokens.length}_${Math.round(stats.avgTokenLength)}`;
+  }
+
+  /**
+   * トークン統計計算
+   */
+  calculateTokenStatistics(tokens) {
+    const uniqueTokens = new Set(tokens);
+    const tokenFreqs = new Map();
+    
+    tokens.forEach(token => {
+      tokenFreqs.set(token, (tokenFreqs.get(token) || 0) + 1);
+    });
+    
+    const lengths = tokens.map(t => t.length);
+    const avgTokenLength = lengths.reduce((a, b) => a + b, 0) / lengths.length;
+    const maxFrequency = Math.max(...tokenFreqs.values());
+    
+    return {
+      uniqueTokenRatio: uniqueTokens.size / tokens.length,
+      avgTokenLength: avgTokenLength,
+      maxFrequency: maxFrequency,
+      totalTokens: tokens.length
+    };
   }
 
   /**

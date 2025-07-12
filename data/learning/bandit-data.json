@@ -4,7 +4,7 @@
       "プログラミング",
       {
         "rewards": 0.9,
-        "selections": 10
+        "selections": 12
       }
     ],
     [
@@ -230,7 +230,21 @@
         "rewards": 0,
         "selections": 4
       }
+    ],
+    [
+      "天気",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "設計",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
     ]
   ],
-  "totalSelections": 80
+  "totalSelections": 84
 }
