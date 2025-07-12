@@ -249,8 +249,6 @@ export class VocabularyDiversifier {
             // EnhancedHybridProcessorで形態素解析
             const analysisResult = await this.languageProcessor.processText(text, {
                 enableMeCab: false, // kuromojiのみ使用
-                enableSimilarity: false,
-                enableSemanticSimilarity: false,
                 enableGrouping: false,
                 enableRelationshipOptimization: false
             });

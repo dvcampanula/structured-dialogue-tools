@@ -13,7 +13,8 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  * ナイーブベイズ分類器を用いてコンテンツを個人に最適化します。
  */
 export class BayesianPersonalizationAI {
-  constructor() {
+  constructor(persistentDB) {
+    this.persistentLearningDB = persistentDB || persistentLearningDB;
     this.userProfiles = new Map(); // Map<userId: string, UserProfile>
     this.isInitialized = false;
   }
@@ -22,7 +23,7 @@ export class BayesianPersonalizationAI {
     if (this.isInitialized) return;
     console.log('🧬 BayesianPersonalizationAI初期化中...');
     // 既存のユーザープロファイルをすべて読み込む
-    const allUserProfilesData = await persistentLearningDB.loadAllUserProfiles();
+    const allUserProfilesData = await this.persistentLearningDB.loadAllUserProfiles();
     for (const userId in allUserProfilesData) {
       const profileData = allUserProfilesData[userId];
       // Mapのキーを文字列に変換
@@ -197,7 +198,7 @@ export class BayesianPersonalizationAI {
         totalInteractions: userProfile.totalInteractions,
         preferences: Array.from(userProfile.preferences.entries()),
       };
-      await persistentLearningDB.saveUserProfile(userId, profileToSave);
+      await this.persistentLearningDB.saveUserProfile(userId, profileToSave);
       console.log(`💾 ユーザープロファイル保存完了: ${userId}`);
     }
   }
@@ -208,7 +209,7 @@ export class BayesianPersonalizationAI {
    */
   async deleteUserProfile(userId) {
     this.userProfiles.delete(userId);
-    await persistentLearningDB.deleteUserProfile(userId);
+    await this.persistentLearningDB.deleteUserProfile(userId);
     console.log(`🗑️ ユーザープロファイル削除完了: ${userId}`);
   }
 
@@ -217,7 +218,7 @@ export class BayesianPersonalizationAI {
    */
   async clearAllUserProfiles() {
     this.userProfiles.clear();
-    await persistentLearningDB.clearAllUserProfiles();
-    console('🗑️ 全てのユーザープロファイルをクリアしました。');
+    await this.persistentLearningDB.clearAllUserProfiles();
+    console.log('🗑️ 全てのユーザープロファイルをクリアしました。');
   }
 }

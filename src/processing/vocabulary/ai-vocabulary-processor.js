@@ -1,174 +1,192 @@
-/**
- * AIVocabularyProcessor - AI駆動語彙処理システム
- * 
- * 多腕バンディット、N-gram、ベイジアン、共起分析の各AI機能を統合し、
- * テキストの語彙処理を最適化します。
- */
 import { MultiArmedBanditVocabularyAI } from '../../learning/bandit/multi-armed-bandit-vocabulary.js';
 import { NgramContextPatternAI } from '../../learning/ngram/ngram-context-pattern.js';
 import { BayesianPersonalizationAI } from '../../learning/bayesian/bayesian-personalization.js';
 import { DynamicRelationshipLearner } from '../../learning/cooccurrence/dynamic-relationship-learner.js';
+import { QualityPredictionModel } from '../../learning/quality/quality-prediction-model.js';
 import { EnhancedHybridLanguageProcessor } from '../../foundation/morphology/hybrid-processor.js';
+import DictionaryDB from '../../foundation/dictionary/dictionary-db.js';
 
 export class AIVocabularyProcessor {
-  constructor() {
-    this.banditAI = new MultiArmedBanditVocabularyAI();
-    this.ngramAI = new NgramContextPatternAI();
-    this.bayesianAI = new BayesianPersonalizationAI();
-    this.cooccurrenceAI = new DynamicRelationshipLearner();
-    this.hybridProcessor = new EnhancedHybridLanguageProcessor();
+  constructor(banditAI, ngramAI, bayesianAI, cooccurrenceLearner, qualityPredictor, hybridProcessor, dictionary) {
+    this.banditAI = banditAI || new MultiArmedBanditVocabularyAI();
+    this.ngramAI = ngramAI || new NgramContextPatternAI();
+    this.bayesianAI = bayesianAI || new BayesianPersonalizationAI();
+    this.cooccurrenceLearner = cooccurrenceLearner || new DynamicRelationshipLearner();
+    this.qualityPredictor = qualityPredictor || new QualityPredictionModel();
+    this.hybridProcessor = hybridProcessor || new EnhancedHybridLanguageProcessor();
+    this.dictionary = dictionary || new DictionaryDB();
+    
     this.isInitialized = false;
+    console.log('🧠 AIVocabularyProcessor初期化中...');
   }
 
   async initialize() {
     if (this.isInitialized) return;
-    console.log('🧬 AIVocabularyProcessor初期化中...');
-    await Promise.all([
-      this.banditAI.initialize(),
-      this.ngramAI.initialize(),
-      this.bayesianAI.initialize(),
-      this.cooccurrenceAI.initializeLearner(),
-      this.hybridProcessor.initialize(),
-    ]);
-    this.isInitialized = true;
-    console.log('✅ AIVocabularyProcessor初期化完了');
+    
+    try {
+      await Promise.all([
+        this.banditAI.initialize(),
+        this.ngramAI.initialize(),
+        this.bayesianAI.initialize(),
+        this.cooccurrenceLearner.initializeLearner(),
+        this.qualityPredictor.initializeAIModules(),
+        this.hybridProcessor.initialize(),
+        this.dictionary.initialize()
+      ]);
+      this.isInitialized = true;
+      console.log('✅ AIVocabularyProcessor初期化完了。全AIモジュールがロードされました。');
+    } catch (error) {
+      console.error('❌ AIVocabularyProcessor初期化エラー:', error.message);
+      throw error;
+    }
   }
 
   /**
-   * テキストを処理し、最適な語彙選択を行います。
-   * @param {string} text - 処理対象のテキスト
-   * @param {object} options - 処理オプション (例: userId, contextInfo)
-   * @returns {Promise<object>} 処理結果
+   * ユーザー入力テキストを処理し、5つのAIモジュールを統合して分析結果を生成します。
+   * @param {string} text - ユーザー入力テキスト
+   * @param {string} userId - ユーザーID (個人適応用)
+   * @returns {Promise<Object>} 統合分析結果
    */
-  async processText(text, options = {}) {
+  async processText(text, userId = 'default') {
     if (!this.isInitialized) {
       await this.initialize();
     }
 
-    const { userId, contextInfo } = options;
+    console.log(`✨ AIVocabularyProcessor: テキスト処理開始 - "${text}"`);
+    const startTime = Date.now();
+    
+    let result = {
+      success: true,
+      originalText: text,
+      processedTokens: [],
+      dictionaryLookups: [],
+      optimizedVocabulary: null,
+      predictedContext: null,
+      adaptedContent: null,
+      cooccurrenceAnalysis: null,
+      qualityPrediction: null,
+      processingTime: 0
+    };
 
-    // 1. N-gram AIによる文脈予測
-    const predictedContext = await this.ngramAI.predictContext(text);
-    console.log('Predicted Context:', predictedContext);
+    try {
+      // 1. 形態素解析と辞書ルックアップ
+      const processed = await this.hybridProcessor.processText(text);
+      result.processedTokens = processed.tokens;
+      
+      const lookupResults = await Promise.all(
+        processed.tokens.map(token => this.dictionary.lookup(token.surface))
+      );
+      result.dictionaryLookups = lookupResults.filter(Boolean);
+      
+      // 2. 多腕バンディットによる語彙最適化
+      const candidateVocabularies = processed.tokens.map(t => t.surface);
+      result.optimizedVocabulary = await this.banditAI.selectVocabulary(candidateVocabularies);
+      
+      // 3. N-gramによる文脈予測
+      result.predictedContext = await this.ngramAI.predictContext(text);
+      
+      // 4. ベイジアン個人適応
+      const contentFeatures = this._extractFeaturesForBayesian(processed.tokens, result.predictedContext);
+      result.adaptedContent = await this.bayesianAI.adaptForUser(userId, { text: text, features: contentFeatures });
+      
+      // 5. 共起関係学習
+      // DynamicRelationshipLearnerのanalyzeメソッドを呼び出す
+      await this.cooccurrenceLearner.analyze(text, result.optimizedVocabulary);
+      result.cooccurrenceAnalysis = this.cooccurrenceLearner.getLearningStats();
+      
+      // 6. 品質予測
+      result.qualityPrediction = await this.qualityPredictor.predictQuality({
+        text: text,
+        metadata: {
+          frequency: result.optimizedVocabulary ? 1 : 0, // 仮の頻度
+          relevanceScore: result.predictedContext.confidence // 文脈予測の信頼度を関連性スコアとして利用
+        }
+      });
 
-    // 2. ベイジアン AIによる個人適応
-    let adaptedContent = { text: text, features: { category: predictedContext.predictedCategory } };
-    if (userId) {
-      adaptedContent = await this.bayesianAI.adaptForUser(userId, adaptedContent);
-      console.log('Adapted Content for User:', adaptedContent);
+    } catch (error) {
+      console.error('❌ AIVocabularyProcessor処理エラー:', error.message);
+      result.success = false;
+      result.error = error.message;
+    } finally {
+      result.processingTime = Date.now() - startTime;
+      console.log(`✅ AIVocabularyProcessor: 処理完了 (${result.processingTime}ms)`);
     }
 
-    // 3. 多腕バンディット AIによる語彙選択最適化 (例: 候補語彙を生成し、最適なものを選択)
-    const candidateVocabularies = await this._generateCandidateVocabularies(text, adaptedContent);
-    const optimizedVocabulary = await this.banditAI.selectVocabulary(candidateVocabularies.map(v => v.word));
-    console.log('Optimized Vocabulary:', optimizedVocabulary);
-
-    // 4. 共起分析
-    await this.cooccurrenceAI.analyze(text, optimizedVocabulary);
-
-    return {
-      originalText: text,
-      processedText: this._applyOptimizedVocabulary(text, optimizedVocabulary),
-      optimizedVocabulary: optimizedVocabulary,
-      predictedContext: predictedContext,
-      adaptedContent: adaptedContent,
-    };
+    return result;
   }
 
   /**
-   * 候補語彙を生成します。
-   * (これは簡易的な例であり、実際には形態素解析などを用いて生成します)
-   * @param {string} text - 元のテキスト
-   * @param {object} adaptedContent - 適応されたコンテンツ
-   * @returns {Array<object>} 候補語彙の配列 (例: [{ word: '単語', score: 0.8 }])
+   * ベイジアンAI用の特徴量を抽出します。
+   * @param {Array} tokens - 形態素解析されたトークン
+   * @param {Object} predictedContext - N-gramによる文脈予測結果
+   * @returns {Object} ベイジアンAI用の特徴量
+   * @private
    */
-  async _generateCandidateVocabularies(text, adaptedContent) {
-    // EnhancedHybridLanguageProcessor を使用してキーワードを抽出
-    const processedResult = await this.hybridProcessor.processText(text, {
-      enableMeCab: true,
-      enableSimilarity: false,
-      enableGrouping: false,
+  _extractFeaturesForBayesian(tokens, predictedContext) {
+    const features = {};
+    
+    // 例: 品詞の出現頻度を特徴量として追加
+    tokens.forEach(token => {
+      const posFeature = `pos_${token.pos}`;
+      features[posFeature] = (features[posFeature] || 0) + 1;
     });
 
-    // 安全性チェック: enhancedTermsが存在しない場合の対処
-    const enhancedTerms = processedResult?.enhancedTerms || [];
-    const keywords = enhancedTerms.map(term => term.term || term);
-
-    // キーワードが空の場合は基本的な形態素解析結果を使用
-    if (keywords.length === 0 && processedResult?.kuromojiAnalysis?.tokens) {
-      const fallbackKeywords = processedResult.kuromojiAnalysis.tokens
-        .filter(token => token.partOfSpeech && token.partOfSpeech.startsWith('名詞') && token.surface.length >= 2)
-        .map(token => token.surface);
-      keywords.push(...fallbackKeywords);
+    // 例: 文脈カテゴリを特徴量として追加
+    if (predictedContext && predictedContext.predictedCategory) {
+      features[`context_${predictedContext.predictedCategory}`] = 1;
     }
 
-    // ベイジアンAIの適応結果を考慮して候補語彙に重み付け
-    // adaptedContent.adaptedCategory を利用して、そのカテゴリに属するキーワードのスコアを上げるなど
-    const candidateVocabularies = keywords.map(word => ({
-      word: word,
-      score: 0.5, // 初期スコア。後で適応結果に基づいて調整
-    }));
-    return candidateVocabularies;
+    // その他の特徴量（例: 感情、キーワードなど）をここに追加可能
+    // features['sentiment_positive'] = 1; // 仮
+    // features['keyword_AI'] = 1; // 仮
+
+    return features;
   }
 
   /**
-   * 最適化された語彙をテキストに適用します。
-   * (これは簡易的な例であり、実際にはより複雑な置換ロジックが必要です)
-   * @param {string} originalText - 元のテキスト
-   * @param {string} optimizedVocabulary - 最適化された語彙
-   * @returns {string} 処理後のテキスト
-   */
-  _applyOptimizedVocabulary(originalText, optimizedVocabulary) {
-    // 例: 最適化された語彙を強調表示する
-    if (optimizedVocabulary) {
-      return originalText.replace(new RegExp(optimizedVocabulary, 'g'), `**${optimizedVocabulary}**`);
-    }
-    return originalText;
-  }
-
-  /**
-   * 語彙候補の中から最適なものを選択します。
-   * (これはprocessText内部で呼び出されるため、直接呼び出すことは稀です)
-   * @param {Array<object>} candidates - 語彙候補の配列
-   * @returns {object} 最適化された語彙
-   */
-  optimizeVocabulary(candidates) {
-    // 多腕バンディットAIを使用して最適な語彙を選択
-    const selectedWord = this.banditAI.selectVocabulary(candidates.map(c => c.word));
-    return candidates.find(c => c.word === selectedWord);
-  }
-
-  /**
-   * ユーザーフィードバックを各AIに伝播させます。
+   * ユーザーフィードバックを各AIモジュールに伝播します。
    * @param {string} userId - ユーザーID
    * @param {string} vocabulary - 評価された語彙
    * @param {number} rating - ユーザーからの評価
    * @param {string} contextText - 評価時の文脈テキスト
    */
-  async recordFeedback(userId, vocabulary, rating, contextText) {
+  async propagateFeedback(userId, vocabulary, rating, contextText) {
     if (!this.isInitialized) {
       await this.initialize();
     }
-
-    await this.banditAI.updateRewards(vocabulary, rating);
     
-    // N-gram AIに学習させる
-    const predictedContext = await this.ngramAI.predictContext(contextText); // ここで予測し直すのは、最新の学習状態を反映するため
-    await this.ngramAI.learnPattern(contextText, { category: predictedContext.predictedCategory });
-
-    // ベイジアンAIに学習させる
-    const features = {};
-    features[vocabulary] = 1; // 評価された語彙自体を特徴量とする
-    features.is_rated_positive = rating > 0.5 ? 1 : 0; // 評価がポジティブかどうかの特徴量
-    // contextText からキーワードを抽出し、特徴量として追加することも可能
-    const contextKeywords = await this.hybridProcessor.extractKeywords(contextText);
-    contextKeywords.forEach(kw => features[`keyword_${kw}`] = 1);
-
-    await this.bayesianAI.learnUserBehavior(userId, {
-      class: predictedContext.predictedCategory,
-      features: features,
-    });
+    console.log(`🔄 フィードバック伝播開始: ${vocabulary} (Rating: ${rating})`);
     
-    await this.cooccurrenceAI.learnFromFeedback(vocabulary, rating, contextText);
+    try {
+      await this.banditAI.updateRewards(vocabulary, rating);
+      
+      // N-gram AIに学習させる
+      const predictedContext = await this.ngramAI.predictContext(contextText); // ここで予測し直すのは、最新の学習状態を反映するため
+      await this.ngramAI.learnPattern(contextText, { category: predictedContext.predictedCategory });
+
+      // ベイジアンAIに学習させる
+      const features = {};
+      features[vocabulary] = 1; // 評価された語彙自体を特徴量とする
+      features.is_rated_positive = rating > 0.5 ? 1 : 0; // 評価がポジティブかどうかの特徴量
+      // contextText からキーワードを抽出し、特徴量として追加することも可能
+      const contextAnalysis = await this.processText(contextText);
+      const contextKeywords = contextAnalysis.enhancedTerms ? contextAnalysis.enhancedTerms.map(term => term.term) : [];
+      contextKeywords.forEach(kw => features[`keyword_${kw}`] = 1);
+
+      await this.bayesianAI.learnUserBehavior(userId, {
+        class: predictedContext.predictedCategory,
+        features: features,
+      });
+      
+      await this.cooccurrenceLearner.learnFromFeedback(vocabulary, rating, contextText);
+      
+      // QualityPredictionModelのlearnFromFeedbackは直接呼ばれないため、ここでは呼び出さない
+      // await this.qualityPredictor.learnFromFeedback(originalContent, appliedSuggestion, beforeScore, afterScore);
+
+      console.log('✅ フィードバック伝播完了。');
+      
+    } catch (error) {
+      console.error('❌ フィードバック伝播エラー:', error.message);
+    }
   }
 }

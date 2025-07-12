@@ -73,8 +73,14 @@ class StatisticalResponseGenerator {
       const startTime = Date.now();
 
       // 1. 既存5AIで分析
-      const analysis = await this.aiProcessor.processText(userInput, userId);
-      console.log('📊 5AI分析完了:', analysis.success ? '成功' : '失敗');
+      let analysis;
+      try {
+        analysis = await this.aiProcessor.processText(userInput, userId);
+        console.log('📊 5AI分析完了:', analysis.success ? '成功' : '失敗');
+      } catch (analysisError) {
+        console.error('❌ 5AI分析中にエラーが発生しました:', analysisError);
+        return this.generateFallbackResponse(userInput, `5AI分析エラー: ${analysisError.message}`);
+      }
 
       if (!analysis.success) {
         return this.generateFallbackResponse(userInput, '5AI分析エラー');
@@ -109,7 +115,7 @@ class StatisticalResponseGenerator {
         qualityScore: qualityResult.qualityScore,
         grade: qualityResult.grade,
         improvements: qualityResult.improvements || [],
-        analysisData: analysis.result,
+        analysisData: analysis,
         processingTime: processingTime,
         timestamp: new Date().toISOString()
       };
@@ -126,15 +132,20 @@ class StatisticalResponseGenerator {
    * @returns {string} 選択された戦略
    */
   selectResponseStrategy(analysis) {
-    const { predictedContext, optimizedVocabulary, adaptedContent, qualityPrediction } = analysis.result;
+    // AIVocabularyProcessorの返り値構造に合わせて修正
+    const { predictedContext, optimizedVocabulary, adaptedContent } = analysis;
     
     // 基本スコア計算
+    // optimizedVocabularyが文字列の場合は配列に変換してlength計算
+    const vocabLength = Array.isArray(optimizedVocabulary) ? optimizedVocabulary.length : 
+                       (optimizedVocabulary ? 1 : 0);
+    
     const baseScores = {
       [ResponseStrategies.NGRAM_CONTINUATION]: (predictedContext?.confidence || 0) * 1.2,
-      [ResponseStrategies.COOCCURRENCE_EXPANSION]: (optimizedVocabulary?.length || 0) * 0.3,
+      [ResponseStrategies.COOCCURRENCE_EXPANSION]: vocabLength * 0.3,
       [ResponseStrategies.PERSONAL_ADAPTATION]: (adaptedContent?.adaptationScore || 0) * 1.1,
-      [ResponseStrategies.VOCABULARY_OPTIMIZATION]: (optimizedVocabulary?.length || 0) * 0.4,
-      [ResponseStrategies.QUALITY_FOCUSED]: (qualityPrediction?.confidence || 0) * 0.9
+      [ResponseStrategies.VOCABULARY_OPTIMIZATION]: vocabLength * 0.4,
+      [ResponseStrategies.QUALITY_FOCUSED]: 0.9
     };
 
     // UCB (Upper Confidence Bound) 計算
@@ -201,7 +212,7 @@ class StatisticalResponseGenerator {
    * N-gram継続型応答生成
    */
   async generateNgramBasedResponse(analysis) {
-    const { predictedContext, originalText } = analysis.result;
+    const { predictedContext, originalText } = analysis;
     
     // 基本的な文脈継続応答
     const contextCategory = predictedContext?.predictedCategory || 'general';
@@ -220,10 +231,17 @@ class StatisticalResponseGenerator {
    * 共起関係拡張型応答生成
    */
   async generateCooccurrenceResponse(analysis) {
-    const { optimizedVocabulary, originalText } = analysis.result;
+    const { optimizedVocabulary, originalText } = analysis;
     
-    if (optimizedVocabulary && optimizedVocabulary.length > 0) {
-      const keyTerm = optimizedVocabulary[0];
+    // optimizedVocabularyが文字列の場合と配列の場合を処理
+    let keyTerm;
+    if (Array.isArray(optimizedVocabulary) && optimizedVocabulary.length > 0) {
+      keyTerm = optimizedVocabulary[0];
+    } else if (typeof optimizedVocabulary === 'string') {
+      keyTerm = optimizedVocabulary;
+    }
+    
+    if (keyTerm) {
       return `${keyTerm}に関連して、${originalText}の文脈では他にも重要な要素があります。具体的にどの点に興味がおありですか？`;
     }
     
@@ -234,7 +252,7 @@ class StatisticalResponseGenerator {
    * ベイジアン個人適応型応答生成
    */
   async generatePersonalizedResponse(analysis) {
-    const { adaptedContent, originalText } = analysis.result;
+    const { adaptedContent, originalText } = analysis;
     const adaptationScore = adaptedContent?.adaptationScore || 0;
     
     if (adaptationScore > 0.5) {
@@ -248,9 +266,18 @@ class StatisticalResponseGenerator {
    * 語彙最適化型応答生成
    */
   async generateVocabularyOptimizedResponse(analysis) {
-    const { optimizedVocabulary, originalText } = analysis.result;
+    const { optimizedVocabulary, originalText } = analysis;
     
-    const terms = optimizedVocabulary?.slice(0, 2).join('と') || '関連要素';
+    // optimizedVocabularyが文字列の場合と配列の場合を処理
+    let terms;
+    if (Array.isArray(optimizedVocabulary)) {
+      terms = optimizedVocabulary.slice(0, 2).join('と') || '関連要素';
+    } else if (optimizedVocabulary) {
+      terms = optimizedVocabulary;
+    } else {
+      terms = '関連要素';
+    }
+    
     return `${originalText}では、${terms}が重要なキーワードとなります。これらについて詳しく説明いたします。`;
   }
 
@@ -258,7 +285,7 @@ class StatisticalResponseGenerator {
    * 品質重視型応答生成
    */
   async generateQualityFocusedResponse(analysis) {
-    const { qualityPrediction, originalText } = analysis.result;
+    const { qualityPrediction, originalText } = analysis;
     const qualityScore = qualityPrediction?.qualityScore || 0.5;
     
     if (qualityScore > 0.7) {
@@ -275,8 +302,8 @@ class StatisticalResponseGenerator {
     try {
       // 生成応答の品質評価
       const responseAnalysis = await this.aiProcessor.processText(response);
-      const qualityScore = responseAnalysis.result?.qualityPrediction?.qualityScore || 0.5;
-      const confidence = responseAnalysis.result?.qualityPrediction?.confidence || 0.5;
+      const qualityScore = responseAnalysis.qualityPrediction?.qualityScore || analysis.qualityPrediction?.qualityScore || 0.5;
+      const confidence = responseAnalysis.qualityPrediction?.confidence || analysis.qualityPrediction?.confidence || 0.5;
       
       // 品質グレード決定
       let grade = 'poor';
@@ -288,7 +315,7 @@ class StatisticalResponseGenerator {
         qualityScore,
         confidence,
         grade,
-        improvements: responseAnalysis.result?.qualityPrediction?.improvements || []
+        improvements: responseAnalysis.qualityPrediction?.improvements || analysis.qualityPrediction?.improvements || []
       };
       
       // 品質が低い場合の改善試行
@@ -340,8 +367,10 @@ class StatisticalResponseGenerator {
       const strategyStats = this.strategyStats.get(strategy);
       const reward = qualityResult.qualityScore;
       
+      strategyStats.selections += 1;
       strategyStats.totalReward += reward;
       strategyStats.averageReward = strategyStats.totalReward / strategyStats.selections;
+      strategyStats.lastUsed = Date.now();
       
       // 学習データ保存 (今後実装)
       // await this.learningDB.saveDialogueData(userInput, response, qualityResult);

@@ -1,17 +1,24 @@
-import { EnhancedHybridLanguageProcessor, SemanticSimilarityEngine } from '../../foundation/morphology/hybrid-processor.js';
+import { EnhancedHybridLanguageProcessor } from '../../foundation/morphology/hybrid-processor.js';
 import fs from 'fs';
 import path from 'path';
-import { configLoader } from '../../data/config-loader.js';
-import { persistentLearningDB } from '../../data/persistent-learning-db.js';
+import { configLoader as defaultConfigLoader } from '../../data/config-loader.js';
+import { persistentLearningDB as defaultPersistentLearningDB } from '../../data/persistent-learning-db.js';
+import { NgramContextPatternAI as defaultNgramContextPatternAI } from '../ngram/ngram-context-pattern.js';
 
 export class DynamicRelationshipLearner {
-    constructor(userId = 'default') {
+    constructor(userId = 'default', dependencies = {}) {
         this.userId = userId;
         this.userRelations = {};
         this.coOccurrenceData = {};
         this.contextStrengths = {};
-        this.hybridProcessor = new EnhancedHybridLanguageProcessor();
-        this.semanticSimilarityEngine = new SemanticSimilarityEngine();
+        
+        this.persistentLearningDB = dependencies.persistentLearningDB || defaultPersistentLearningDB;
+        this.hybridProcessor = dependencies.hybridProcessor || new EnhancedHybridLanguageProcessor();
+        this.ngramAI = dependencies.ngramAI || new defaultNgramContextPatternAI(3, 0.75);
+        this.configLoader = dependencies.configLoader || defaultConfigLoader;
+
+        this.semanticCache = new Map(); // 意味類似度キャッシュ
+        this.tfIdfCache = new Map(); // TF-IDFキャッシュ
         
         // 学習パラメータ
         this.learningConfig = {
@@ -22,21 +29,28 @@ export class DynamicRelationshipLearner {
             learningRate: 0.1          // 学習率
         };
         
-        this.initializeLearner();
+        // initializeLearnerはコンストラクタで呼ばない。テストで制御するため。
+        // this.initializeLearner();
     }
 
     async initializeLearner() {
         try {
             // 永続化DBから既存の学習データ読み込み
-            this.userRelations = persistentLearningDB.getUserSpecificRelations(this.userId);
+            const loadedRelations = await this.persistentLearningDB.getUserSpecificRelations(this.userId);
+            if (loadedRelations) {
+                this.userRelations = loadedRelations.userRelations || {};
+                this.coOccurrenceData = loadedRelations.coOccurrenceData || {};
+                this.learningConfig = { ...this.learningConfig, ...loadedRelations.learningConfig };
+            }
             
             // 学習設定読み込み
-            const config = await configLoader.loadConfig('learningConfig');
+            const config = await this.configLoader.loadConfig('learningConfig');
             if (config) {
                 this.learningConfig = { ...this.learningConfig, ...config };
             }
             
             await this.hybridProcessor.initialize();
+            await this.ngramAI.initialize();
             console.log(`✅ DynamicRelationshipLearner初期化完了 (ユーザー: ${this.userId})`);
             console.log(`📊 既存関係数: ${Object.keys(this.userRelations).length}件`);
             
@@ -50,6 +64,7 @@ export class DynamicRelationshipLearner {
         } catch (error) {
             console.warn('⚠️ 学習データ読み込み失敗、新規作成:', error.message);
             this.userRelations = {};
+            this.coOccurrenceData = {};
         }
     }
 
@@ -73,8 +88,8 @@ export class DynamicRelationshipLearner {
             await this.analyzeCoOccurrence(inputKeywords, responseKeywords);
             await this.analyzeCoOccurrence(inputKeywords, historyKeywords);
             
-            // 文脈関係性分析
-            await this.analyzeContextualRelationships(input, history, response);
+            // 文脈関係性分析（既に抽出したキーワードを渡して重複回避）
+            await this.analyzeContextualRelationships(input, history, response, inputKeywords, responseKeywords);
             
             // 学習データ更新
             await this.updateRelationships();
@@ -85,7 +100,7 @@ export class DynamicRelationshipLearner {
             console.log(`📚 学習完了: ${inputKeywords.length}+${responseKeywords.length}キーワード分析`);
             
         } catch (error) {
-            console.error('❌ 学習エラー:', error.message);
+            
         }
     }
 
@@ -169,18 +184,18 @@ export class DynamicRelationshipLearner {
     /**
      * 文脈関係性分析
      */
-    async analyzeContextualRelationships(input, history, response) {
-        // 入力→応答の関係性
-        const inputKeywords = await this.extractKeywords(input);
-        const responseKeywords = await this.extractKeywords(response);
+    async analyzeContextualRelationships(input, history, response, inputKeywords, responseKeywords) {
+        // キーワードが未提供の場合のみ抽出（重複回避）
+        const finalInputKeywords = inputKeywords || await this.extractKeywords(input);
+        const finalResponseKeywords = responseKeywords || await this.extractKeywords(response);
         
-        for (const inputKw of inputKeywords) {
-            for (const responseKw of responseKeywords) {
+        for (const inputKw of finalInputKeywords) {
+            for (const responseKw of finalResponseKeywords) {
                 if (inputKw !== responseKw) {
                     const relationKey = `${inputKw}->${responseKw}`;
                     
-                    // 文脈強度計算
-                    const strength = this.calculateContextualStrength(
+                    // 文脈強度計算（非同期呼び出し）
+                    const strength = await this.calculateContextualStrength(
                         inputKw, responseKw, input, response
                     );
                     
@@ -199,12 +214,30 @@ export class DynamicRelationshipLearner {
     }
 
     /**
-     * 文脈強度計算
+     * 文脈強度計算 - 統計学習ベースの意味類似度評価
      */
-    calculateContextualStrength(term1, term2, text1, text2) {
+    async calculateContextualStrength(term1, term2, text1, text2) {
         let strength = 0;
 
-        // 1. 単語間の距離に基づく強度
+        // 1. 距離ベース強度（基本的な共起関係）
+        const distanceStrength = this.calculateDistanceStrength(term1, term2, text1, text2);
+        strength += distanceStrength * 0.3;
+
+        // 2. 統計的意味類似度（N-gramベース）
+        const semanticSimilarity = await this.calculateStatisticalSemanticSimilarity(term1, term2);
+        strength += semanticSimilarity * 0.4;
+
+        // 3. 文脈コサイン類似度（共使用文脈パターン）
+        const contextualSimilarity = await this.calculateContextualCosineSimilarity(term1, term2);
+        strength += contextualSimilarity * 0.3;
+        
+        return Math.min(strength, 1.0);
+    }
+
+    /**
+     * 距離ベース強度計算
+     */
+    calculateDistanceStrength(term1, term2, text1, text2) {
         const term1IndexesInText1 = this.findAllIndexes(text1, term1);
         const term2IndexesInText2 = this.findAllIndexes(text2, term2);
         
@@ -218,25 +251,88 @@ export class DynamicRelationshipLearner {
                     }
                 }
             }
-        } else {
-            // 片方または両方の単語が見つからない場合、距離ベース強度は0
-            minDistance = Infinity;
         }
 
-        // 距離が近いほど強度が高い (最大100文字の範囲で影響)
-        const distanceStrength = minDistance === Infinity ? 0 : Math.max(0, 1 - minDistance / 100);
-        strength += distanceStrength * 0.5; // 距離ベース強度を全体の50%の重みで加算
+        return minDistance === Infinity ? 0 : Math.max(0, 1 - minDistance / 100);
+    }
 
-        // 2. 意味的類似度に基づく強度
-        const semanticSimilarity = this.semanticSimilarityEngine.similarity(term1, term2);
-        strength += semanticSimilarity * 0.4; // 意味的類似度を全体の40%の重みで加算
-
-        // 3. 技術用語ペアの強度向上 (既存ロジックを維持しつつ重みを調整)
-        if (this.isTechnicalTerm(term1) && this.isTechnicalTerm(term2)) {
-            strength += 0.1; // 技術用語ペアにボーナス (全体の10%の重み)
+    /**
+     * 統計的意味類似度計算（N-gramベース）
+     */
+    async calculateStatisticalSemanticSimilarity(term1, term2) {
+        const cacheKey = `${term1}|${term2}`;
+        if (this.semanticCache.has(cacheKey)) {
+            return this.semanticCache.get(cacheKey);
         }
+
+        try {
+            // 各用語の文脈予測を取得
+            const context1 = await this.ngramAI.predictContext(term1);
+            const context2 = await this.ngramAI.predictContext(term2);
+            
+            // 文脈予測結果の類似度を計算
+            let similarity = 0;
+            
+            // 同じ文脈カテゴリーの場合、信頼度に基づいてスコア計算
+            if (context1.predictedCategory === context2.predictedCategory) {
+                const avgConfidence = (context1.confidence + context2.confidence) / 2;
+                similarity = avgConfidence * 0.8; // 同一文脈ボーナス
+            } else {
+                // 異なる文脈でも信頼度が低い場合は一定の類似度を付与
+                const minConfidence = Math.min(context1.confidence, context2.confidence);
+                if (minConfidence < 0.5) {
+                    similarity = 0.2; // 不確実性ボーナス
+                }
+            }
+            
+            // N-gram共有パターンを計算
+            const ngramSimilarity = await this.calculateNgramPatternSimilarity(term1, term2);
+            similarity = Math.max(similarity, ngramSimilarity);
+            
+            this.semanticCache.set(cacheKey, similarity);
+            return similarity;
+            
+        } catch (error) {
+            console.warn(`⚠️ 意味類似度計算エラー: ${error.message}`);
+            return 0;
+        }
+    }
+
+    /**
+     * N-gramパターン類似度計算
+     */
+    async calculateNgramPatternSimilarity(term1, term2) {
+        // 各用語を含むN-gramパターンを取得
+        const pattern1 = await this.extractNgramPatterns(term1);
+        const pattern2 = await this.extractNgramPatterns(term2);
         
-        return Math.min(strength, 1.0); // 強度を0から1の範囲にクランプ
+        if (pattern1.length === 0 || pattern2.length === 0) return 0;
+        
+        // コサイン類似度でパターン類似度を計算
+        const intersection = pattern1.filter(p => pattern2.includes(p));
+        const union = [...new Set([...pattern1, ...pattern2])];
+        
+        return union.length > 0 ? intersection.length / union.length : 0;
+    }
+
+    /**
+     * 文脈コサイン類似度計算
+     */
+    async calculateContextualCosineSimilarity(term1, term2) {
+        try {
+            // 各用語の共起ベクトルを構築
+            const vector1 = this.buildCooccurrenceVector(term1);
+            const vector2 = this.buildCooccurrenceVector(term2);
+            
+            if (vector1.length === 0 || vector2.length === 0) return 0;
+            
+            // コサイン類似度計算
+            return this.calculateCosineSimilarity(vector1, vector2);
+            
+        } catch (error) {
+            console.warn(`⚠️ コサイン類似度計算エラー: ${error.message}`);
+            return 0;
+        }
     }
 
     /**
@@ -359,7 +455,7 @@ export class DynamicRelationshipLearner {
             };
             
             // 永続化DBに保存
-            await persistentLearningDB.saveUserSpecificRelations(this.userId, dataToSave);
+            await this.persistentLearningDB.saveUserSpecificRelations(this.userId, dataToSave);
             
             console.log(`💾 学習データ永続化完了: ${Object.keys(this.userRelations).length}語の関係性`);
             
@@ -399,29 +495,103 @@ export class DynamicRelationshipLearner {
     }
 
     // ヘルパーメソッド
-    async extractKeywords(text) { // Make it async
+    /**
+     * 統計的キーワード抽出（TF-IDF強化版）
+     */
+    async extractKeywords(text) {
         if (!text || typeof text !== 'string') return [];
         
         try {
             const processedResult = await this.hybridProcessor.processText(text, {
                 enableMeCab: true,
-                enableSimilarity: false, // Not needed for keyword extraction
-                enableGrouping: false    // Not needed for keyword extraction
+                enableGrouping: false
             });
 
-            // 形態素解析結果から名詞を抽出
-            const keywords = processedResult.tokens
-                .filter(token => token.pos === '名詞') // 名詞のみを抽出
+            // 名詞と動詞を抽出（より幅広いキーワード抽出）
+            const candidates = processedResult.tokens
+                .filter(token => ['名詞', '動詞'].includes(token.pos))
                 .map(token => token.surface);
             
-            // 重複除去・フィルタリング
-            return [...new Set(keywords)]
-                .filter(word => word.length >= 2) // 2文字以上の単語に限定
-                .filter(word => !['こと', 'もの', 'ため', 'よう', 'そう', 'これ', 'それ', 'あれ', 'どれ'].includes(word)); // 一般的な助詞などを除外
+            // TF-IDFスコアでキーワードをランキング
+            const keywordsWithScore = await this.calculateKeywordTFIDF(candidates, text);
+            
+            // 高スコアのキーワードを選択
+            return keywordsWithScore
+                .sort((a, b) => b.score - a.score)
+                .slice(0, Math.min(20, keywordsWithScore.length)) // 上位20キーワード
+                .filter(item => item.score > 0.1) // 低スコアを除外
+                .map(item => item.word);
+                
         } catch (error) {
             console.error('❌ キーワード抽出エラー:', error.message);
-            return []; // エラー時は空の配列を返す
+            return [];
         }
+    }
+
+    /**
+     * TF-IDFスコア計算
+     */
+    async calculateKeywordTFIDF(candidates, text) {
+        const wordFreq = new Map();
+        const totalWords = candidates.length;
+        
+        // TF計算
+        candidates.forEach(word => {
+            wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
+        });
+        
+        const keywordsWithScore = [];
+        
+        for (const [word, freq] of wordFreq.entries()) {
+            if (word.length < 2 || this.isStopWord(word)) continue;
+            
+            // TF: 正規化された頻度
+            const tf = freq / totalWords;
+            
+            // IDF: N-gramモジュールから文書頻度を取得
+            const idf = await this.calculateIDF(word);
+            
+            const score = tf * idf;
+            if (score > 0) {
+                keywordsWithScore.push({ word, score, tf, idf });
+            }
+        }
+        
+        return keywordsWithScore;
+    }
+
+    /**
+     * IDF計算（N-gramモジュールと連携）
+     */
+    async calculateIDF(word) {
+        if (this.tfIdfCache.has(word)) {
+            return this.tfIdfCache.get(word);
+        }
+        
+        try {
+            // N-gramモジュールのドキュメント頻度情報を使用
+            const docFreq = this.ngramAI.documentFreqs.get(word) || 1;
+            const totalDocs = Math.max(this.ngramAI.totalDocuments, 1);
+            
+            const idf = Math.log(totalDocs / docFreq);
+            this.tfIdfCache.set(word, idf);
+            return idf;
+            
+        } catch (error) {
+            return 1; // フォールバック
+        }
+    }
+
+    /**
+     * ストップワード判定
+     */
+    isStopWord(word) {
+        const stopWords = [
+            'こと', 'もの', 'ため', 'よう', 'そう', 'これ', 'それ', 'あれ', 'どれ',
+            'できる', 'する', 'なる', 'いる', 'ある', 'ない', 'いう', '見る',
+            '今日', '今', 'とき', '時', '日', '年', '月', '分', '秒'
+        ];
+        return stopWords.includes(word);
     }
 
     createPairKey(term1, term2) {
@@ -438,9 +608,67 @@ export class DynamicRelationshipLearner {
         return (countStrength * 0.7 + contextDiversity * 0.3);
     }
 
-    isTechnicalTerm(term) {
-        const technicalTerms = ['プログラミング', '開発', '実装', 'react', 'javascript', 'ai', '機械学習'];
-        return technicalTerms.includes(term.toLowerCase());
+    
+
+    /**
+     * 文字列の全出現位置取得
+     */
+    /**
+     * N-gramパターン抽出
+     */
+    async extractNgramPatterns(term) {
+        // 用語を含むサンプル文を生成
+        const sampleText = `${term}について ${term}の実装 ${term}を使用`;
+        
+        try {
+            const context = await this.ngramAI.predictContext(sampleText);
+            return [context.predictedCategory]; // 簡化したパターン抽出
+        } catch (error) {
+            return [];
+        }
+    }
+
+    /**
+     * 共起ベクトル構築
+     */
+    buildCooccurrenceVector(term) {
+        const vector = [];
+        const relations = this.userRelations[term] || [];
+        
+        // 全用語の辞書を作成
+        const allTerms = new Set();
+        Object.keys(this.userRelations).forEach(t => allTerms.add(t));
+        Object.values(this.userRelations).forEach(rels => 
+            rels.forEach(r => allTerms.add(r.term))
+        );
+        
+        // ベクトル構築
+        for (const otherTerm of allTerms) {
+            const relation = relations.find(r => r.term === otherTerm);
+            vector.push(relation ? relation.strength : 0);
+        }
+        
+        return vector;
+    }
+
+    /**
+     * コサイン類似度計算
+     */
+    calculateCosineSimilarity(vector1, vector2) {
+        if (vector1.length !== vector2.length || vector1.length === 0) return 0;
+        
+        let dotProduct = 0;
+        let norm1 = 0;
+        let norm2 = 0;
+        
+        for (let i = 0; i < vector1.length; i++) {
+            dotProduct += vector1[i] * vector2[i];
+            norm1 += vector1[i] * vector1[i];
+            norm2 += vector2[i] * vector2[i];
+        }
+        
+        const denominator = Math.sqrt(norm1) * Math.sqrt(norm2);
+        return denominator === 0 ? 0 : dotProduct / denominator;
     }
 
     /**

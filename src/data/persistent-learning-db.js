@@ -109,6 +109,68 @@ export class PersistentLearningDB {
     }
 
     /**
+     * 品質予測モデル読み込み
+     */
+    async loadQualityPredictionModel() {
+        const modelPath = path.join(this.basePath, 'quality-prediction-model.json');
+        try {
+            if (fs.existsSync(modelPath)) {
+                const data = fs.readFileSync(modelPath, 'utf8');
+                console.log('📥 品質予測モデル読み込み完了');
+                return JSON.parse(data);
+            }
+            return null;
+        } catch (error) {
+            console.warn('⚠️ 品質予測モデル読み込みエラー:', error.message);
+            return null;
+        }
+    }
+
+    /**
+     * 品質予測モデル保存
+     */
+    async saveQualityPredictionModel(modelData) {
+        const modelPath = path.join(this.basePath, 'quality-prediction-model.json');
+        try {
+            fs.writeFileSync(modelPath, JSON.stringify(modelData, null, 2));
+            console.log('💾 品質予測モデル保存完了');
+        } catch (error) {
+            console.error('❌ 品質予測モデル保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 改善パターン読み込み
+     */
+    async loadImprovementPatterns() {
+        const patternsPath = path.join(this.basePath, 'improvement-patterns.json');
+        try {
+            if (fs.existsSync(patternsPath)) {
+                const data = fs.readFileSync(patternsPath, 'utf8');
+                console.log('📚 改善パターン読み込み完了');
+                return JSON.parse(data);
+            }
+            return [];
+        } catch (error) {
+            console.warn('⚠️ 改善パターン読み込みエラー:', error.message);
+            return [];
+        }
+    }
+
+    /**
+     * 改善パターン保存
+     */
+    async saveImprovementPatterns(patterns) {
+        const patternsPath = path.join(this.basePath, 'improvement-patterns.json');
+        try {
+            fs.writeFileSync(patternsPath, JSON.stringify(patterns, null, 2));
+            console.log('💾 改善パターン保存完了');
+        } catch (error) {
+            console.error('❌ 改善パターン保存エラー:', error.message);
+        }
+    }
+
+    /**
      * バンディットデータ読み込み
      */
     async loadBanditData() {
@@ -458,7 +520,26 @@ export class PersistentLearningDB {
      */
     async saveUserSpecificRelations(userId, relations) {
         const userKey = `user_${userId}`;
-        this.userRelationsCache.set(userKey, relations);
+        
+        // relationsオブジェクトの正しい構造を確保
+        const validatedRelations = {
+            userRelations: relations.userRelations || {},
+            coOccurrenceData: relations.coOccurrenceData || {},
+            learningConfig: relations.learningConfig || {
+                minCoOccurrence: 2,
+                strengthThreshold: 0.3,
+                maxRelationsPerTerm: 10,
+                decayFactor: 0.95,
+                learningRate: 0.1,
+                forgettingThreshold: 0.1,
+                maxMemorySize: 1000,
+                batchSaveInterval: 5,
+                qualityThreshold: 0.6
+            },
+            lastSaved: Date.now()
+        };
+        
+        this.userRelationsCache.set(userKey, validatedRelations);
         
         // 全データ保存
         await this.saveUserRelations(this.userRelationsCache);
@@ -466,7 +547,7 @@ export class PersistentLearningDB {
         // 学習イベント記録
         await this.recordLearningEvent('user_relations_update', {
             userId: userId,
-            relationsCount: Object.keys(relations).length
+            relationsCount: Object.keys(validatedRelations.userRelations).length
         });
     }
 

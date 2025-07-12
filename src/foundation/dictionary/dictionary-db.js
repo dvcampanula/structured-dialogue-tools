@@ -66,6 +66,20 @@ export class DictionaryDB {
     }
 
     /**
+     * 辞書DB初期化
+     */
+    async initialize() {
+        console.log('📚 DictionaryDB初期化中...');
+        
+        // キャッシュマネージャー初期化
+        if (this.enableCaching) {
+            await this.initializeCacheManager();
+        }
+        
+        console.log('✅ DictionaryDB初期化完了');
+    }
+
+    /**
      * キャッシュマネージャー初期化
      */
     async initializeCacheManager() {

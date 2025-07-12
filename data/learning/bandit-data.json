@@ -4,7 +4,7 @@
       "プログラミング",
       {
         "rewards": 0.9,
-        "selections": 5
+        "selections": 10
       }
     ],
     [
@@ -90,7 +90,147 @@
         "rewards": 0,
         "selections": 1
       }
+    ],
+    [
+      "キーワード",
+      {
+        "rewards": 0,
+        "selections": 5
+      }
+    ],
+    [
+      "ここ",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "関連",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "対話",
+      {
+        "rewards": 0,
+        "selections": 3
+      }
+    ],
+    [
+      "文脈",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "明日",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "お手伝い",
+      {
+        "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "最適",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "説明",
+      {
+        "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "詳細",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "元気",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "重要",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "デバッグ",
+      {
+        "rewards": 0,
+        "selections": 4
+      }
+    ],
+    [
+      "手間",
+      {
+        "rewards": 0,
+        "selections": 1
+      }
+    ],
+    [
+      "おにぎり",
+      {
+        "rewards": 0,
+        "selections": 2
+      }
+    ],
+    [
+      "testWord",
+      {
+        "rewards": 0,
+        "selections": 5
+      }
+    ],
+    [
+      "feedbackWord",
+      {
+        "rewards": 4,
+        "selections": 5
+      }
+    ],
+    [
+      "wordA",
+      {
+        "rewards": 0.5,
+        "selections": 5
+      }
+    ],
+    [
+      "wordB",
+      {
+        "rewards": 4.5,
+        "selections": 10
+      }
+    ],
+    [
+      "wordC",
+      {
+        "rewards": 0,
+        "selections": 4
+      }
     ]
   ],
-  "totalSelections": 19
+  "totalSelections": 80
 }

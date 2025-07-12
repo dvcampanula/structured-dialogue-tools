@@ -8,8 +8,7 @@
     "start": "node src/interfaces/web/server.js",
     "start:old": "node archive/old-webui/minimal-ai-server.js",
     "build": "tsc",
-    "test": "npm run test:new-ai",
-    "test:new-ai": "tsx workspace/test-new-ai-system.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [
     "structured-dialogue",
@@ -37,6 +36,7 @@
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
+    "jest": "^30.0.4",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }

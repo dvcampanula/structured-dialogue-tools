@@ -1,48 +1,28 @@
-<<<<<<< Updated upstream
 {
-  "totalConversations": 28,
-  "totalRelationsLearned": 79,
-  "totalConceptsLearned": 10,
-  "lastLearningDate": 1752160866937,
+  "totalConversations": 0,
+  "totalRelationsLearned": 1,
+  "totalConceptsLearned": 0,
+  "lastLearningDate": 1752290299528,
   "qualityScore": 0.5,
   "learningEvents": [
     {
-      "timestamp": 1751948343531,
-      "type": "dynamic_learning_update",
+      "timestamp": 1752280602249,
+      "type": "user_relations_update",
       "data": {
-        "userId": "anonymous",
-        "relations": null,
-        "learningStats": {
-          "totalTerms": 6,
-          "totalRelations": null,
-          "averageStrength": null,
-          "coOccurrencePairs": 10
-        }
+        "userId": "default",
+        "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751948343532,
-      "type": "personal_analysis_update",
+      "timestamp": 1752280882929,
+      "type": "user_relations_update",
       "data": {
-        "userId": "anonymous",
-        "profile": {
-          "interaction": {
-            "userMessageLength": 9,
-            "aiResponseLength": 122,
-            "technicalTermsUsed": 0,
-            "questionType": "statement"
-          },
-          "analysis": {
-            "userEngagement": 0.8,
-            "responseRelevance": 0.9,
-            "conversationFlow": 0.7
-          },
-          "timestamp": 1751948343532
-        }
+        "userId": "default",
+        "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751962663822,
+      "timestamp": 1752280882929,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -50,7 +30,7 @@
       }
     },
     {
-      "timestamp": 1751962666250,
+      "timestamp": 1752280882930,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -58,7 +38,7 @@
       }
     },
     {
-      "timestamp": 1751962666264,
+      "timestamp": 1752281161438,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -66,7 +46,7 @@
       }
     },
     {
-      "timestamp": 1751962666270,
+      "timestamp": 1752281161438,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -74,23 +54,23 @@
       }
     },
     {
-      "timestamp": 1751962804744,
+      "timestamp": 1752281161439,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751962804757,
+      "timestamp": 1752281442117,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751962953632,
+      "timestamp": 1752281442118,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -98,7 +78,7 @@
       }
     },
     {
-      "timestamp": 1751962955996,
+      "timestamp": 1752281442118,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -106,7 +86,7 @@
       }
     },
     {
-      "timestamp": 1751962956002,
+      "timestamp": 1752281722760,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -114,7 +94,7 @@
       }
     },
     {
-      "timestamp": 1751962956011,
+      "timestamp": 1752281722767,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -122,23 +102,23 @@
       }
     },
     {
-      "timestamp": 1751963095275,
+      "timestamp": 1752281722768,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963095280,
+      "timestamp": 1752282003428,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963244054,
+      "timestamp": 1752282003429,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -146,7 +126,7 @@
       }
     },
     {
-      "timestamp": 1751963246414,
+      "timestamp": 1752282003430,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -154,7 +134,7 @@
       }
     },
     {
-      "timestamp": 1751963246426,
+      "timestamp": 1752282281924,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -162,7 +142,7 @@
       }
     },
     {
-      "timestamp": 1751963246431,
+      "timestamp": 1752282281925,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -170,23 +150,23 @@
       }
     },
     {
-      "timestamp": 1751963385528,
+      "timestamp": 1752282281926,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963385535,
+      "timestamp": 1752282562538,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963534115,
+      "timestamp": 1752282562539,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -194,7 +174,7 @@
       }
     },
     {
-      "timestamp": 1751963536388,
+      "timestamp": 1752282562540,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -202,7 +182,7 @@
       }
     },
     {
-      "timestamp": 1751963536393,
+      "timestamp": 1752282843208,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -210,7 +190,7 @@
       }
     },
     {
-      "timestamp": 1751963536398,
+      "timestamp": 1752282843209,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -218,23 +198,23 @@
       }
     },
     {
-      "timestamp": 1751963674261,
+      "timestamp": 1752282843210,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963674268,
+      "timestamp": 1752283123967,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963823922,
+      "timestamp": 1752283123967,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -242,7 +222,7 @@
       }
     },
     {
-      "timestamp": 1751963826144,
+      "timestamp": 1752283123969,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -250,7 +230,7 @@
       }
     },
     {
-      "timestamp": 1751963826149,
+      "timestamp": 1752283405672,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -258,7 +238,7 @@
       }
     },
     {
-      "timestamp": 1751963826154,
+      "timestamp": 1752283405673,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -266,23 +246,23 @@
       }
     },
     {
-      "timestamp": 1751963963830,
+      "timestamp": 1752283405674,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751963963836,
+      "timestamp": 1752283699802,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751964112307,
+      "timestamp": 1752283699803,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -290,7 +270,7 @@
       }
     },
     {
-      "timestamp": 1751964114501,
+      "timestamp": 1752283699804,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -298,7 +278,7 @@
       }
     },
     {
-      "timestamp": 1751964114507,
+      "timestamp": 1752283999214,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -306,7 +286,7 @@
       }
     },
     {
-      "timestamp": 1751964114513,
+      "timestamp": 1752283999215,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -314,23 +294,23 @@
       }
     },
     {
-      "timestamp": 1751964253330,
+      "timestamp": 1752283999216,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751964253342,
+      "timestamp": 1752284299221,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751964401669,
+      "timestamp": 1752284299222,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -338,7 +318,7 @@
       }
     },
     {
-      "timestamp": 1751964403795,
+      "timestamp": 1752284299223,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -346,7 +326,7 @@
       }
     },
     {
-      "timestamp": 1751964403801,
+      "timestamp": 1752284599218,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -354,7 +334,7 @@
       }
     },
     {
-      "timestamp": 1751964403807,
+      "timestamp": 1752284599221,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -362,23 +342,23 @@
       }
     },
     {
-      "timestamp": 1751964542547,
+      "timestamp": 1752284599222,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751964542552,
+      "timestamp": 1752284899225,
       "type": "user_relations_update",
       "data": {
-        "userId": "test_user",
+        "userId": "default",
         "relationsCount": 4
       }
     },
     {
-      "timestamp": 1751964955649,
+      "timestamp": 1752284899226,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -386,7 +366,7 @@
       }
     },
     {
-      "timestamp": 1751964958004,
+      "timestamp": 1752284899226,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -394,7 +374,7 @@
       }
     },
     {
-      "timestamp": 1751964958009,
+      "timestamp": 1752285199220,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -402,7 +382,7 @@
       }
     },
     {
-      "timestamp": 1751964958015,
+      "timestamp": 1752285199226,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -410,7 +390,7 @@
       }
     },
     {
-      "timestamp": 1751965244608,
+      "timestamp": 1752285199227,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -418,7 +398,7 @@
       }
     },
     {
-      "timestamp": 1752009478756,
+      "timestamp": 1752285499229,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -426,7 +406,7 @@
       }
     },
     {
-      "timestamp": 1752009483925,
+      "timestamp": 1752285499230,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -434,7 +414,7 @@
       }
     },
     {
-      "timestamp": 1752009768278,
+      "timestamp": 1752285499231,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -442,7 +422,7 @@
       }
     },
     {
-      "timestamp": 1752009772879,
+      "timestamp": 1752285799224,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -450,7 +430,7 @@
       }
     },
     {
-      "timestamp": 1752010891995,
+      "timestamp": 1752285799231,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -458,7 +438,7 @@
       }
     },
     {
-      "timestamp": 1752010896760,
+      "timestamp": 1752285799232,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -466,7 +446,7 @@
       }
     },
     {
-      "timestamp": 1752011414258,
+      "timestamp": 1752286099230,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -474,7 +454,7 @@
       }
     },
     {
-      "timestamp": 1752011419401,
+      "timestamp": 1752286099231,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -482,7 +462,7 @@
       }
     },
     {
-      "timestamp": 1752011699561,
+      "timestamp": 1752286099232,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -490,7 +470,7 @@
       }
     },
     {
-      "timestamp": 1752011704705,
+      "timestamp": 1752286399225,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -498,7 +478,7 @@
       }
     },
     {
-      "timestamp": 1752011986604,
+      "timestamp": 1752286399232,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -506,7 +486,7 @@
       }
     },
     {
-      "timestamp": 1752011991018,
+      "timestamp": 1752286399233,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -514,7 +494,7 @@
       }
     },
     {
-      "timestamp": 1752013743052,
+      "timestamp": 1752286699225,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -522,7 +502,7 @@
       }
     },
     {
-      "timestamp": 1752013746332,
+      "timestamp": 1752286699232,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -530,7 +510,7 @@
       }
     },
     {
-      "timestamp": 1752014027441,
+      "timestamp": 1752286699238,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -538,7 +518,7 @@
       }
     },
     {
-      "timestamp": 1752014032409,
+      "timestamp": 1752286999257,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -546,7 +526,7 @@
       }
     },
     {
-      "timestamp": 1752014312982,
+      "timestamp": 1752286999262,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -554,7 +534,7 @@
       }
     },
     {
-      "timestamp": 1752014317877,
+      "timestamp": 1752286999263,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -562,7 +542,7 @@
       }
     },
     {
-      "timestamp": 1752014598152,
+      "timestamp": 1752287299260,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -570,7 +550,7 @@
       }
     },
     {
-      "timestamp": 1752014602975,
+      "timestamp": 1752287299262,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -578,7 +558,7 @@
       }
     },
     {
-      "timestamp": 1752014881189,
+      "timestamp": 1752287299263,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -586,7 +566,7 @@
       }
     },
     {
-      "timestamp": 1752014885998,
+      "timestamp": 1752287599296,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -594,7 +574,7 @@
       }
     },
     {
-      "timestamp": 1752015165788,
+      "timestamp": 1752287599297,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -602,7 +582,7 @@
       }
     },
     {
-      "timestamp": 1752015170624,
+      "timestamp": 1752287599297,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -610,7 +590,7 @@
       }
     },
     {
-      "timestamp": 1752015450235,
+      "timestamp": 1752287899319,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -618,7 +598,7 @@
       }
     },
     {
-      "timestamp": 1752015455010,
+      "timestamp": 1752287899320,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -626,7 +606,7 @@
       }
     },
     {
-      "timestamp": 1752015734633,
+      "timestamp": 1752287899321,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -634,7 +614,7 @@
       }
     },
     {
-      "timestamp": 1752015739328,
+      "timestamp": 1752288199326,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -642,7 +622,7 @@
       }
     },
     {
-      "timestamp": 1752016016862,
+      "timestamp": 1752288199330,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -650,7 +630,7 @@
       }
     },
     {
-      "timestamp": 1752016021530,
+      "timestamp": 1752288199331,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -658,7 +638,7 @@
       }
     },
     {
-      "timestamp": 1752016300872,
+      "timestamp": 1752288499354,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -666,7 +646,7 @@
       }
     },
     {
-      "timestamp": 1752157474666,
+      "timestamp": 1752288499361,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -674,7 +654,7 @@
       }
     },
     {
-      "timestamp": 1752157474820,
+      "timestamp": 1752288499361,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -682,7 +662,7 @@
       }
     },
     {
-      "timestamp": 1752157474952,
+      "timestamp": 1752288799383,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -690,7 +670,7 @@
       }
     },
     {
-      "timestamp": 1752157475010,
+      "timestamp": 1752288799388,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -698,7 +678,7 @@
       }
     },
     {
-      "timestamp": 1752159756136,
+      "timestamp": 1752288799389,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -706,7 +686,7 @@
       }
     },
     {
-      "timestamp": 1752160007829,
+      "timestamp": 1752289099411,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -714,7 +694,7 @@
       }
     },
     {
-      "timestamp": 1752160102080,
+      "timestamp": 1752289099417,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -722,7 +702,7 @@
       }
     },
     {
-      "timestamp": 1752160198926,
+      "timestamp": 1752289099418,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -730,7 +710,7 @@
       }
     },
     {
-      "timestamp": 1752160226505,
+      "timestamp": 1752289399439,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -738,7 +718,7 @@
       }
     },
     {
-      "timestamp": 1752160254844,
+      "timestamp": 1752289399446,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -746,7 +726,7 @@
       }
     },
     {
-      "timestamp": 1752160309203,
+      "timestamp": 1752289399447,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -754,7 +734,7 @@
       }
     },
     {
-      "timestamp": 1752160356583,
+      "timestamp": 1752289699467,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -762,7 +742,7 @@
       }
     },
     {
-      "timestamp": 1752160389393,
+      "timestamp": 1752289699468,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -770,7 +750,7 @@
       }
     },
     {
-      "timestamp": 1752160423376,
+      "timestamp": 1752289699469,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -778,7 +758,7 @@
       }
     },
     {
-      "timestamp": 1752160452079,
+      "timestamp": 1752289999494,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -786,7 +766,7 @@
       }
     },
     {
-      "timestamp": 1752160499232,
+      "timestamp": 1752289999500,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -794,7 +774,7 @@
       }
     },
     {
-      "timestamp": 1752160588295,
+      "timestamp": 1752289999501,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -802,7 +782,7 @@
       }
     },
     {
-      "timestamp": 1752160866273,
+      "timestamp": 1752290299522,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -810,7 +790,7 @@
       }
     },
     {
-      "timestamp": 1752160866505,
+      "timestamp": 1752290299528,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -818,7 +798,7 @@
       }
     },
     {
-      "timestamp": 1752160866937,
+      "timestamp": 1752290299529,
       "type": "user_relations_update",
       "data": {
         "userId": "default",
@@ -827,5 +807,3 @@
     }
   ]
 }
-=======
->>>>>>> Stashed changes

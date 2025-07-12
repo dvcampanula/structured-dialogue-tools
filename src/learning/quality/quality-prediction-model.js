@@ -6,30 +6,35 @@
  */
 
 // 真の線形回帰実装（最小二乗法）
-import { ConceptQualityManager } from '../../analyzers/concept-quality-manager.js';
+// ConceptQualityManager removed - using pure statistical learning instead
 import { persistentLearningDB as defaultPersistentLearningDB } from '../../data/persistent-learning-db.js';
+import { NgramContextPatternAI } from '../ngram/ngram-context-pattern.js';
+import { DynamicRelationshipLearner } from '../cooccurrence/dynamic-relationship-learner.js';
 
 export class QualityPredictionModel {
-    constructor(persistentDB = defaultPersistentLearningDB, conceptQualityManager = new ConceptQualityManager()) {
-        this.persistentLearningDB = persistentDB;
-        this.conceptQualityManager = conceptQualityManager;
+    constructor(persistentDB, ngramAI, cooccurrenceLearner) {
+        this.persistentLearningDB = persistentDB || defaultPersistentLearningDB;
+        this.ngramAI = ngramAI || new NgramContextPatternAI(3, 0.75);
+        this.cooccurrenceLearner = cooccurrenceLearner || new DynamicRelationshipLearner('quality_predictor');
+        this.improvementPatterns = new Map(); // 学習された改善パターン
+        this.isAIModulesInitialized = false;
         
         // 線形回帰モデル
         this.regressionModel = null;
         this.regressionWeights = [];
         this.predictionAccuracy = 0;
         
-        // 特徴量定義 (ConceptQualityManagerの計算要素を拡張)
+        // 統計学習特徴量定義（技術用語分類除去）
         this.featureNames = [
             'lengthScore',           // 長さ評価
-            'technicalScore',        // 技術用語度
-            'relevanceScore',        // 関連性評価  
             'frequencyScore',        // 頻度評価
+            'relevanceScore',        // 関連性評価  
             'noiseScore',           // ノイズ度（負の特徴量）
             'structureScore',       // 構造性評価
             'contextDensity',       // 文脈密度
             'semanticCoherence',    // 意味的一貫性
-            'vocabularyDiversity'   // 語彙多様性
+            'vocabularyDiversity',  // 語彙多様性
+            'statisticalComplexity' // 統計的複雑度（技術用語度の代替）
         ];
         
         // 訓練データ蓄積
@@ -44,7 +49,25 @@ export class QualityPredictionModel {
             poor: 0.2
         };
         
+        // initializeAIModulesはコンストラクタで呼ばない。テストで制御するため。
+        // this.initializeAIModules();
         console.log('🧬 QualityPredictionModel初期化完了');
+    }
+
+    /**
+     * AI統計学習モジュールの初期化
+     */
+    async initializeAIModules() {
+        try {
+            await this.ngramAI.initialize();
+            await this.cooccurrenceLearner.initializeLearner();
+            await this.loadModel();
+            await this.loadImprovementPatterns();
+            this.isAIModulesInitialized = true;
+            console.log('🤖 統計学習モジュール初期化完了');
+        } catch (error) {
+            console.warn('⚠️ 統計学習モジュール初期化エラー:', error.message);
+        }
     }
 
     /**
@@ -64,7 +87,7 @@ export class QualityPredictionModel {
             const targets = [];
 
             for (const data of trainingData) {
-                const featureVector = this.extractFeatures(data.content);
+                const featureVector = await this.extractFeatures(data.content);
                 if (featureVector && featureVector.length === this.featureNames.length) {
                     features.push(featureVector);
                     targets.push(data.qualityScore);
@@ -129,7 +152,7 @@ export class QualityPredictionModel {
      * @param {Object} content - 予測対象コンテンツ
      * @returns {Object} 品質スコアと信頼度
      */
-    predictQuality(content) {
+    async predictQuality(content) {
         try {
             if (!this.isModelTrained) {
                 // モデル未訓練の場合はConceptQualityManagerのヒューリスティック使用
@@ -138,14 +161,14 @@ export class QualityPredictionModel {
             }
 
             // 特徴量抽出
-            const features = this.extractFeatures(content);
+            const features = await this.extractFeatures(content);
             
             // 線形回帰による予測
             const predictedScore = this.regressionModel.predict([features])[0];
             const normalizedScore = Math.max(0, Math.min(1, predictedScore));
 
             // 信頼度計算（特徴量の分散と訓練データとの類似度基準）
-            const confidence = this.calculatePredictionConfidence(features);
+            const confidence = await this.calculatePredictionConfidence(features);
 
             // 品質グレード判定
             const grade = this.getQualityGrade(normalizedScore);
@@ -169,135 +192,221 @@ export class QualityPredictionModel {
     }
 
     /**
-     * 改善提案生成
+     * 統計学習ベース改善提案生成
      * @param {Object} content - 分析対象コンテンツ
      * @returns {Array} 改善提案リスト
      */
-    suggestImprovements(content) {
+    async suggestImprovements(content) {
         try {
-            const qualityResult = this.predictQuality(content);
+            const qualityResult = await this.predictQuality(content);
             const features = qualityResult.features;
             const improvements = [];
 
-            // 特徴量別改善提案
-            if (features.lengthScore < 0.5) {
-                improvements.push({
-                    type: 'length_optimization',
-                    priority: 'high',
-                    issue: '語彙の長さが最適でない',
-                    suggestion: '3-20文字の適切な長さの語彙を選択してください',
-                    expectedImprovement: 0.15
-                });
-            }
+            // 統計学習ベース改善パターン検索
+            const statisticalImprovements = await this.generateStatisticalImprovements(content, qualityResult);
+            improvements.push(...statisticalImprovements);
 
-            if (features.technicalScore < 0.3) {
-                improvements.push({
-                    type: 'technical_enhancement',
-                    priority: 'medium', 
-                    issue: '技術用語の使用が少ない',
-                    suggestion: 'より具体的な技術用語を使用して専門性を向上させてください',
-                    expectedImprovement: 0.12
-                });
-            }
+            // N-gramベース文脈改善提案
+            const contextualImprovements = await this.generateContextualImprovements(content);
+            improvements.push(...contextualImprovements);
 
-            if (features.noiseScore > 0.5) {
-                improvements.push({
-                    type: 'noise_reduction',
-                    priority: 'high',
-                    issue: 'ノイズが多い（一般的すぎる語・記号等）',
-                    suggestion: 'より具体的で意味のある語彙に置き換えてください',
-                    expectedImprovement: 0.18
-                });
-            }
+            // 共起関係ベース関連語提案
+            const relationshipImprovements = await this.generateRelationshipImprovements(content);
+            improvements.push(...relationshipImprovements);
 
-            if (features.structureScore < 0.4) {
-                improvements.push({
-                    type: 'structure_improvement',
-                    priority: 'medium',
-                    issue: '構造的複雑さが不足',
-                    suggestion: '複合語や専門用語構造を活用してください',
-                    expectedImprovement: 0.10
-                });
-            }
+            // 過去の成功パターンからの学習
+            const learnedImprovements = await this.generateLearnedImprovements(content, qualityResult);
+            improvements.push(...learnedImprovements);
 
-            if (features.contextDensity < 0.5) {
-                improvements.push({
-                    type: 'context_enhancement',
-                    priority: 'medium',
-                    issue: '文脈密度が低い',
-                    suggestion: 'より多くの関連概念を含めて文脈を豊かにしてください',
-                    expectedImprovement: 0.08
-                });
-            }
+            // 重複排除と統計的信頼度によるソート
+            const uniqueImprovements = this.deduplicateAndRankImprovements(improvements);
 
-            // 総合的な改善提案
-            if (qualityResult.qualityScore < this.qualityThresholds.acceptable) {
-                improvements.push({
-                    type: 'comprehensive_rewrite',
-                    priority: 'critical',
-                    issue: '全体的な品質が低い',
-                    suggestion: '語彙選択から見直し、技術的で構造化された表現を心がけてください',
-                    expectedImprovement: 0.25
-                });
-            }
-
-            // 優先度・期待改善度順でソート
-            improvements.sort((a, b) => {
-                const priorityOrder = { critical: 4, high: 3, medium: 2, low: 1 };
-                const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
-                return priorityDiff !== 0 ? priorityDiff : b.expectedImprovement - a.expectedImprovement;
-            });
-
-            return improvements;
+            return uniqueImprovements.slice(0, 5); // 上位5つの提案を返す
 
         } catch (error) {
-            console.error('❌ 改善提案生成エラー:', error.message);
-            return [{
-                type: 'error',
-                priority: 'low',
-                issue: '改善提案の生成に失敗',
-                suggestion: '手動での品質確認を推奨',
-                expectedImprovement: 0
-            }];
+            console.error('❌ 統計学習改善提案エラー:', error.message);
+            return await this.fallbackRuleBasedImprovements(content);
         }
+    }
+
+    /**
+     * 統計学習ベース改善パターン生成
+     */
+    async generateStatisticalImprovements(content, qualityResult) {
+        const improvements = [];
+        const features = qualityResult.features;
+        
+        // 低スコア特徴量の統計的分析
+        const lowScoreFeatures = Object.entries(features)
+            .filter(([_, score]) => score < 0.5)
+            .sort(([_, a], [__, b]) => a - b); // 最も低いスコア順
+
+        for (const [featureName, score] of lowScoreFeatures.slice(0, 3)) {
+            const pattern = await this.getImprovementPattern(featureName, score);
+            if (pattern) {
+                improvements.push({
+                    type: `statistical_${featureName}`,
+                    priority: this.calculatePriority(score, pattern.confidence),
+                    issue: pattern.issue,
+                    suggestion: pattern.suggestion,
+                    expectedImprovement: pattern.expectedImprovement,
+                    confidence: pattern.confidence,
+                    source: 'statistical_learning'
+                });
+            }
+        }
+
+        return improvements;
+    }
+
+    /**
+     * N-gramベース文脈改善提案
+     */
+    async generateContextualImprovements(content) {
+        if (!this.isAIModulesInitialized) return [];
+        
+        const improvements = [];
+        const text = content.text || content.term || String(content);
+        
+        try {
+            // 文脈予測で改善方向を分析
+            const contextPrediction = await this.ngramAI.predictContext(text);
+            
+            if (contextPrediction.confidence > 0.6) {
+                const suggestedCategory = contextPrediction.predictedCategory;
+                improvements.push({
+                    type: 'contextual_alignment',
+                    priority: 'medium',
+                    issue: `文脈が「${suggestedCategory}」により適合可能`,
+                    suggestion: `「${suggestedCategory}」文脈に特化した語彙選択を検討してください`,
+                    expectedImprovement: 0.12 * contextPrediction.confidence,
+                    confidence: contextPrediction.confidence,
+                    source: 'ngram_analysis'
+                });
+            }
+        } catch (error) {
+            console.warn('⚠️ 文脈改善分析エラー:', error.message);
+        }
+
+        return improvements;
+    }
+
+    /**
+     * 共起関係ベース関連語提案
+     */
+    async generateRelationshipImprovements(content) {
+        if (!this.isAIModulesInitialized) return [];
+        
+        const improvements = [];
+        const text = content.text || content.term || String(content);
+        
+        try {
+            // 統計的関連語取得
+            const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
+            
+            if (relatedTerms.length > 0) {
+                const topRelated = relatedTerms.slice(0, 3).join('、');
+                improvements.push({
+                    type: 'relationship_enhancement',
+                    priority: 'medium',
+                    issue: '統計的関連語との連携が可能',
+                    suggestion: `関連語「${topRelated}」との組み合わせを検討してください`,
+                    expectedImprovement: 0.08 + (relatedTerms.length * 0.02),
+                    confidence: Math.min(0.9, relatedTerms.length * 0.2),
+                    source: 'cooccurrence_analysis'
+                });
+            }
+        } catch (error) {
+            console.warn('⚠️ 関係性改善分析エラー:', error.message);
+        }
+
+        return improvements;
+    }
+
+    /**
+     * 過去の成功パターン学習改善提案
+     */
+    async generateLearnedImprovements(content, qualityResult) {
+        const improvements = [];
+        const currentScore = qualityResult.qualityScore;
+        
+        // 学習済み改善パターンから類似ケースを検索
+        for (const [patternKey, pattern] of this.improvementPatterns.entries()) {
+            const similarity = this.calculateContentSimilarity(content, pattern.originalContent);
+            
+            if (similarity > 0.6 && pattern.actualImprovement > 0.1) {
+                improvements.push({
+                    type: 'learned_pattern',
+                    priority: pattern.actualImprovement > 0.2 ? 'high' : 'medium',
+                    issue: pattern.identifiedIssue,
+                    suggestion: pattern.successfulSolution,
+                    expectedImprovement: pattern.actualImprovement * similarity,
+                    confidence: similarity * pattern.confidence,
+                    source: 'historical_learning'
+                });
+            }
+        }
+
+        return improvements;
+    }
+
+    /**
+     * フォールバック用ルールベース改善提案
+     */
+    async fallbackRuleBasedImprovements(content) {
+        console.warn('⚠️ フォールバック: ルールベース改善提案を使用');
+        const qualityResult = this.predictQuality(content);
+        const features = qualityResult.features;
+        
+        const improvements = [];
+        
+        if (features.lengthScore < 0.5) {
+            improvements.push({
+                type: 'length_optimization',
+                priority: 'high',
+                issue: '語彙の長さが最適でない',
+                suggestion: '3-20文字の適切な長さの語彙を選択してください',
+                expectedImprovement: 0.15,
+                source: 'rule_based_fallback'
+            });
+        }
+        
+        return improvements.slice(0, 3);
     }
 
     /**
      * コンテンツから特徴量ベクトルを抽出
      * ConceptQualityManagerの計算要素を活用・拡張
      */
-    extractFeatures(content) {
+    async extractFeatures(content) {
         try {
             // コンテンツの正規化
             const text = content.text || content.term || content.name || String(content);
             const metadata = content.metadata || {};
             
-            // ConceptQualityManagerベースの特徴量計算
-            const concept = { name: text, ...metadata };
-            
-            // 基本特徴量 (ConceptQualityManager準拠)
-            const lengthScore = this.conceptQualityManager.calculateLengthScore(text);
-            const technicalScore = this.conceptQualityManager.calculateTechnicalScore(text);
+            // 純粋統計学習ベース特徴量計算
+            const lengthScore = this.calculateStatisticalLengthScore(text);
+            const frequencyScore = this.calculateStatisticalFrequencyScore(metadata.frequency || 1);
             const relevanceScore = metadata.relevanceScore || metadata.confidence || 0.5;
-            const frequencyScore = this.conceptQualityManager.calculateFrequencyScore(metadata.frequency || 1);
-            const noiseScore = this.conceptQualityManager.calculateNoiseScore(text);
-            const structureScore = this.conceptQualityManager.calculateStructureScore(text);
+            const noiseScore = this.calculateStatisticalNoiseScore(text);
+            const structureScore = this.calculateStatisticalStructureScore(text);
+            const statisticalComplexity = await this.calculateStatisticalComplexity(text);
 
             // 拡張特徴量（統計的品質予測用）
-            const contextDensity = this.calculateContextDensity(content);
-            const semanticCoherence = this.calculateSemanticCoherence(content);
-            const vocabularyDiversity = this.calculateVocabularyDiversity(content);
+            const contextDensity = await this.calculateContextDensity(content);
+            const semanticCoherence = await this.calculateSemanticCoherence(content);
+            const vocabularyDiversity = await this.calculateVocabularyDiversity(content);
 
             return [
                 lengthScore,
-                technicalScore, 
+                frequencyScore, 
                 relevanceScore,
-                frequencyScore,
                 1.0 - noiseScore,  // ノイズは負の特徴量なので反転
                 structureScore,
                 contextDensity,
                 semanticCoherence,
-                vocabularyDiversity
+                vocabularyDiversity,
+                statisticalComplexity
             ];
 
         } catch (error) {
@@ -308,60 +417,136 @@ export class QualityPredictionModel {
     }
 
     /**
-     * 文脈密度計算
+     * 統計学習ベース文脈密度計算
      */
-    calculateContextDensity(content) {
+    async calculateContextDensity(content) {
         const text = content.text || String(content);
         const relatedTerms = content.relatedTerms || content.relatedConcepts || [];
-        const textLength = text.length;
         
-        if (textLength === 0) return 0;
+        let density = 0;
         
-        // 関連語数と文字数の比率
-        const relatedRatio = relatedTerms.length / Math.max(textLength / 10, 1);
-        return Math.min(1.0, relatedRatio);
+        // 基本的な関連語比率
+        const basicDensity = relatedTerms.length / Math.max(text.length / 10, 1);
+        density += Math.min(0.5, basicDensity);
+        
+        // 統計学習ベース文脈密度
+        if (this.isAIModulesInitialized) {
+            try {
+                // N-gram文脈予測による密度評価
+                const contextPrediction = await this.ngramAI.predictContext(text);
+                density += contextPrediction.confidence * 0.3;
+                
+                // 共起関係による密度評価
+                const relatedCount = this.cooccurrenceLearner.getUserRelations(text).length;
+                density += Math.min(0.2, relatedCount * 0.05);
+                
+            } catch (error) {
+                console.warn('⚠️ 統計的文脈密度計算エラー:', error.message);
+            }
+        }
+        
+        return Math.min(1.0, density);
     }
 
     /**
-     * 意味的一貫性計算
+     * 統計学習ベース意味的一貫性計算
      */
-    calculateSemanticCoherence(content) {
+    async calculateSemanticCoherence(content) {
         const text = content.text || String(content);
-        const category = content.category || 'general';
         
-        // カテゴリ一致度による一貫性評価
-        const categoryCoherence = category !== 'general' ? 0.8 : 0.4;
+        let coherence = 0;
         
-        // 文字種の統一性（技術用語パターン）
+        // 基本的な文字種一貫性
         const hasKanji = /[\u4E00-\u9FAF]/.test(text);
         const hasKatakana = /[\u30A0-\u30FF]/.test(text);
         const hasAlphabet = /[A-Za-z]/.test(text);
+        coherence += (hasKanji && hasKatakana) || hasAlphabet ? 0.4 : 0.2;
         
-        const characterConsistency = (hasKanji && hasKatakana) || hasAlphabet ? 0.8 : 0.6;
+        // 統計学習ベース一貫性評価
+        if (this.isAIModulesInitialized) {
+            try {
+                // N-gram文脈一貫性
+                const contextPrediction = await this.ngramAI.predictContext(text);
+                coherence += contextPrediction.confidence * 0.4;
+                
+                // 関連語の意味的一貫性
+                const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
+                if (relatedTerms.length > 0) {
+                    // 関連語の平均関係性強度
+                    const avgStrength = relatedTerms.slice(0, 3).reduce((sum, term) => {
+                        return sum + this.cooccurrenceLearner.getRelationshipStrength(text, term);
+                    }, 0) / Math.min(3, relatedTerms.length);
+                    coherence += avgStrength * 0.2;
+                }
+                
+            } catch (error) {
+                console.warn('⚠️ 統計的意味一貫性計算エラー:', error.message);
+            }
+        }
         
-        return (categoryCoherence + characterConsistency) / 2;
+        return Math.min(1.0, coherence);
     }
 
     /**
-     * 語彙多様性計算
+     * 統計学習ベース語彙多様性計算
      */
-    calculateVocabularyDiversity(content) {
+    async calculateVocabularyDiversity(content) {
         const text = content.text || String(content);
         
-        // 文字種多様性
+        let diversity = 0;
+        
+        // 基本的な文字種多様性
         const charTypes = [];
         if (/[\u3040-\u309F]/.test(text)) charTypes.push('hiragana');
         if (/[\u30A0-\u30FF]/.test(text)) charTypes.push('katakana');
         if (/[\u4E00-\u9FAF]/.test(text)) charTypes.push('kanji');
         if (/[A-Za-z]/.test(text)) charTypes.push('alphabet');
         if (/[0-9]/.test(text)) charTypes.push('number');
+        diversity += Math.min(0.5, charTypes.length / 3);
         
-        const diversityScore = Math.min(1.0, charTypes.length / 3);
+        // 統計学習ベース多様性評価
+        if (this.isAIModulesInitialized) {
+            try {
+                // N-gram語彙多様性
+                const ngramPattern = await this.extractNgramDiversity(text);
+                diversity += ngramPattern * 0.3;
+                
+                // 関連語の多様性（異なるカテゴリの関連語数）
+                const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
+                const diversityBonus = Math.min(0.2, relatedTerms.length * 0.04);
+                diversity += diversityBonus;
+                
+            } catch (error) {
+                console.warn('⚠️ 統計的語彙多様性計算エラー:', error.message);
+            }
+        }
         
-        // 長さによる多様性ボーナス
-        const lengthBonus = text.length > 5 ? 0.1 : 0;
-        
-        return Math.min(1.0, diversityScore + lengthBonus);
+        return Math.min(1.0, diversity);
+    }
+
+    /**
+     * N-gram語彙多様性抽出
+     */
+    async extractNgramDiversity(text) {
+        try {
+            // 複数文脈での予測を試行
+            const contexts = [
+                `${text}について`,
+                `${text}の実装`,
+                `${text}を使用`
+            ];
+            
+            const predictions = await Promise.all(
+                contexts.map(ctx => this.ngramAI.predictContext(ctx))
+            );
+            
+            // 異なる文脈予測結果の多様性を評価
+            const uniqueCategories = new Set(predictions.map(p => p.predictedCategory));
+            return Math.min(1.0, uniqueCategories.size / 3);
+            
+        } catch (error) {
+            return 0;
+        }
     }
 
     /**
@@ -388,12 +573,12 @@ export class QualityPredictionModel {
     /**
      * 予測信頼度計算
      */
-    calculatePredictionConfidence(features) {
+    async calculatePredictionConfidence(features) {
         if (!this.trainingData.length) return 0.5;
         
         try {
             // 訓練データとの類似度による信頼度
-            const trainingFeatures = this.trainingData.map(data => this.extractFeatures(data.content));
+            const trainingFeatures = await Promise.all(this.trainingData.map(data => this.extractFeatures(data.content)));
             const similarities = trainingFeatures.map(trainFeature => {
                 const distance = Math.sqrt(
                     features.reduce((sum, val, i) => sum + Math.pow(val - trainFeature[i], 2), 0)
@@ -419,19 +604,22 @@ export class QualityPredictionModel {
      * フォールバック品質予測（モデル未訓練時）
      */
     fallbackQualityPrediction(content) {
-        const concept = { 
-            name: content.text || content.term || String(content),
-            ...content
-        };
+        // 統計学習フォールバック（技術用語分類除去）
+        const text = content.text || content.term || String(content);
         
-        const qualityScore = this.conceptQualityManager.calculateQualityScore(concept);
+        // 基本的な統計評価
+        const basicScore = (
+            this.calculateStatisticalLengthScore(text) * 0.3 +
+            this.calculateStatisticalStructureScore(text) * 0.4 +
+            (1.0 - this.calculateStatisticalNoiseScore(text)) * 0.3
+        );
         
         return {
-            qualityScore: qualityScore,
-            confidence: 0.6, // ヒューリスティックの信頼度
-            grade: this.getQualityGrade(qualityScore),
+            qualityScore: basicScore,
+            confidence: 0.5, // フォールバックの信頼度
+            grade: this.getQualityGrade(basicScore),
             features: {},
-            modelUsed: 'heuristic_fallback',
+            modelUsed: 'statistical_fallback',
             predictionAccuracy: 0
         };
     }
@@ -515,6 +703,139 @@ export class QualityPredictionModel {
     /**
      * 統計情報取得
      */
+    /**
+     * 改善パターン取得
+     */
+    async getImprovementPattern(featureName, score) {
+        // シンプルな統計パターンマッピング
+        const patterns = {
+            lengthScore: {
+                issue: '語彙長が統計的最適値から逸脱',
+                suggestion: '統計分析に基づく最適長（4-12文字）への調整を推奨',
+                expectedImprovement: (1 - score) * 0.2,
+                confidence: 0.8
+            },
+            statisticalComplexity: {
+                issue: '統計的複雑度が目標値以下',
+                suggestion: '統計学習で特定された高品質パターンの採用を推奨',
+                expectedImprovement: (1 - score) * 0.15,
+                confidence: 0.75
+            },
+            contextDensity: {
+                issue: '文脈関連性が統計モデル期待値以下',
+                suggestion: 'N-gram分析で特定された関連語群の組み込みを推奨',
+                expectedImprovement: (1 - score) * 0.12,
+                confidence: 0.75
+            }
+        };
+        
+        return patterns[featureName] || null;
+    }
+
+    /**
+     * 優先度計算
+     */
+    calculatePriority(score, confidence) {
+        const impact = (1 - score) * confidence;
+        if (impact > 0.6) return 'high';
+        if (impact > 0.3) return 'medium';
+        return 'low';
+    }
+
+    /**
+     * 改善提案重複排除とランキング
+     */
+    deduplicateAndRankImprovements(improvements) {
+        const seen = new Set();
+        const unique = improvements.filter(imp => {
+            const key = `${imp.type}_${imp.issue}`;
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        });
+        
+        return unique.sort((a, b) => {
+            const scoreA = (a.expectedImprovement || 0) * (a.confidence || 0.5);
+            const scoreB = (b.expectedImprovement || 0) * (b.confidence || 0.5);
+            return scoreB - scoreA;
+        });
+    }
+
+    /**
+     * コンテンツ類似度計算
+     */
+    calculateContentSimilarity(content1, content2) {
+        const text1 = content1.text || content1.term || String(content1);
+        const text2 = content2.text || content2.term || String(content2);
+        
+        // 簡易的な文字列類似度（ジャカード係数）
+        const set1 = new Set(text1.split(''));
+        const set2 = new Set(text2.split(''));
+        const intersection = new Set([...set1].filter(x => set2.has(x)));
+        const union = new Set([...set1, ...set2]);
+        
+        return union.size > 0 ? intersection.size / union.size : 0;
+    }
+
+    /**
+     * 改善パターン読み込み
+     */
+    async loadImprovementPatterns() {
+        try {
+            const patterns = await this.persistentLearningDB.loadImprovementPatterns();
+            if (patterns) {
+                this.improvementPatterns = new Map(patterns);
+                console.log(`📚 改善パターン読み込み: ${this.improvementPatterns.size}件`);
+            }
+        } catch (error) {
+            console.warn('⚠️ 改善パターン読み込みエラー:', error.message);
+        }
+    }
+
+    /**
+     * 改善パターン保存
+     */
+    async saveImprovementPatterns() {
+        try {
+            const patternsArray = Array.from(this.improvementPatterns.entries());
+            await this.persistentLearningDB.saveImprovementPatterns(patternsArray);
+            console.log(`💾 改善パターン保存: ${patternsArray.length}件`);
+        } catch (error) {
+            console.warn('⚠️ 改善パターン保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 改善パターン学習（フィードバックから）
+     */
+    async learnFromFeedback(originalContent, appliedSuggestion, beforeScore, afterScore) {
+        try {
+            const actualImprovement = afterScore - beforeScore;
+            
+            if (actualImprovement > 0.05) { // 有意な改善のみ学習
+                const patternKey = `${appliedSuggestion.type}_${Date.now()}`;
+                const pattern = {
+                    originalContent,
+                    identifiedIssue: appliedSuggestion.issue,
+                    successfulSolution: appliedSuggestion.suggestion,
+                    actualImprovement,
+                    confidence: Math.min(0.9, actualImprovement / 0.3),
+                    learnedAt: new Date().toISOString()
+                };
+                
+                this.improvementPatterns.set(patternKey, pattern);
+                await this.saveImprovementPatterns();
+                
+                console.log(`🎓 改善パターン学習: ${actualImprovement.toFixed(3)}の改善`);
+            }
+        } catch (error) {
+            console.warn('⚠️ 改善パターン学習エラー:', error.message);
+        }
+    }
+
+    /**
+     * モデル統計情報取得
+     */
     getModelStats() {
         return {
             isModelTrained: this.isModelTrained,
@@ -523,7 +844,9 @@ export class QualityPredictionModel {
             featureCount: this.featureNames.length,
             featureNames: this.featureNames,
             regressionWeights: this.regressionWeights,
-            qualityThresholds: this.qualityThresholds
+            qualityThresholds: this.qualityThresholds,
+            improvementPatternsCount: this.improvementPatterns.size,
+            isAIModulesInitialized: this.isAIModulesInitialized
         };
     }
 
@@ -783,6 +1106,104 @@ export class QualityPredictionModel {
         }
         
         return inverse;
+    }
+
+    /**
+     * 統計学習ベース長さスコア計算
+     */
+    calculateStatisticalLengthScore(text) {
+        const length = text.length;
+        // 統計的最適長：4-12文字でピーク
+        if (length >= 4 && length <= 12) {
+            return 1.0;
+        } else if (length >= 2 && length <= 20) {
+            // 線形減衰
+            return Math.max(0.3, 1.0 - Math.abs(length - 8) * 0.1);
+        } else {
+            return 0.1;
+        }
+    }
+
+    /**
+     * 統計学習ベース頻度スコア計算
+     */
+    calculateStatisticalFrequencyScore(frequency) {
+        // 寶数正規化：低頻度でも適度なスコア
+        return Math.min(1.0, Math.log10(frequency + 1) / 3);
+    }
+
+    /**
+     * 統計学習ベースノイズスコア計算
+     */
+    calculateStatisticalNoiseScore(text) {
+        let noiseScore = 0;
+        
+        // 高頻度文字パターン（統計的ノイズ）
+        const commonChars = /[あ-んはですますだけ]/;
+        const charNoiseRatio = (text.match(commonChars) || []).length / text.length;
+        noiseScore += charNoiseRatio * 0.6;
+        
+        // 特殊文字・記号
+        const specialChars = /[!@#$%^&*()\-+=\[\]{}|;:'",.<>?/`~]/;
+        if (specialChars.test(text)) {
+            noiseScore += 0.3;
+        }
+        
+        return Math.min(1.0, noiseScore);
+    }
+
+    /**
+     * 統計学習ベース構造スコア計算
+     */
+    calculateStatisticalStructureScore(text) {
+        let structureScore = 0;
+        
+        // 文字種混合性（複雑度指標）
+        const hasKanji = /[\u4E00-\u9FAF]/.test(text);
+        const hasKatakana = /[\u30A0-\u30FF]/.test(text);
+        const hasAlphabet = /[A-Za-z]/.test(text);
+        const hasNumber = /[0-9]/.test(text);
+        
+        const charTypeCount = [hasKanji, hasKatakana, hasAlphabet, hasNumber].filter(Boolean).length;
+        structureScore += charTypeCount / 4 * 0.6;
+        
+        // 長さに基づく構造性
+        if (text.length > 6) {
+            structureScore += 0.4;
+        } else if (text.length > 3) {
+            structureScore += 0.2;
+        }
+        
+        return Math.min(1.0, structureScore);
+    }
+
+    /**
+     * 統計学習ベース複雑度計算（技術用語度の代替）
+     */
+    async calculateStatisticalComplexity(text) {
+        let complexity = 0;
+        
+        // 基本的な複雑度：長さと文字種多様性
+        const baseComplexity = Math.min(1.0, text.length / 15) * 0.3;
+        complexity += baseComplexity;
+        
+        // 統計学習ベース複雑度（N-gram連携）
+        if (this.isAIModulesInitialized) {
+            try {
+                const contextPrediction = await this.ngramAI.predictContext(text);
+                // 高信頼度文脈予測は複雑度が高い
+                complexity += contextPrediction.confidence * 0.4;
+                
+                // 共起関係の複雑度
+                const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
+                complexity += Math.min(0.3, relatedTerms.length * 0.05);
+                
+            } catch (error) {
+                console.warn('⚠️ 統計複雑度計算エラー:', error.message);
+            }
+        }
+        
+        return Math.min(1.0, complexity);
     }
 }
 

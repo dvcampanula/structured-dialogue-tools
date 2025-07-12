@@ -10,12 +10,15 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { AIVocabularyProcessor } from '../../processing/vocabulary/ai-vocabulary-processor.js';
+import { StatisticalResponseGenerator } from '../../engines/response/statistical-response-generator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const PORT = process.env.PORT || 3002;
 
 let aiVocabularyProcessor; // AIVocabularyProcessorのインスタンス
+let statisticalGenerator; // StatisticalResponseGeneratorのインスタンス
+const chatHistories = new Map(); // 対話履歴管理
 
 // シンプルなJSONレスポンス
 function sendJSON(res, data, status = 200) {
@@ -35,6 +38,31 @@ function sendHTML(res, content) {
         'Access-Control-Allow-Origin': '*'
     });
     res.end(content);
+}
+
+// 対話履歴管理ヘルパー
+function addToChatHistory(userId, userInput, aiResponse, metadata = {}) {
+    if (!chatHistories.has(userId)) {
+        chatHistories.set(userId, []);
+    }
+    
+    const history = chatHistories.get(userId);
+    history.push({
+        timestamp: new Date().toISOString(),
+        userInput,
+        aiResponse,
+        ...metadata
+    });
+    
+    // 履歴サイズ制限
+    if (history.length > 100) {
+        history.shift();
+    }
+}
+
+function getChatHistory(userId, limit = 50) {
+    const history = chatHistories.get(userId) || [];
+    return history.slice(-limit);
 }
 
 // リクエストハンドラ
@@ -79,8 +107,8 @@ async function handleRequest(req, res) { // asyncを追加
 </head>
 <body>
     <div class="header">
-        <h1>🧬 軽量統計学習型日本語処理AI</h1>
-        <p>シンプル版 - 基本動作確認</p>
+        <h1>🧬 軽量統計学習型日本語処理AI - Phase 4</h1>
+        <p>統計的応答生成AI対話システム</p>
     </div>
     
     <div class="input-group">
@@ -96,6 +124,19 @@ async function handleRequest(req, res) { // asyncを追加
     <button onclick="processText()">処理実行</button>
     
     <div id="result" class="result" style="display:none;"></div>
+    
+    <!-- Phase 4: 対話システム -->
+    <hr style="margin: 40px 0;">
+    <h2>🗣️ AI対話システム</h2>
+    
+    <div class="input-group">
+        <label for="chatMessage">メッセージ:</label>
+        <input type="text" id="chatMessage" placeholder="こんにちは！何について話しましょうか？">
+    </div>
+    
+    <button onclick="sendChatMessage()">送信</button>
+    
+    <div id="chatHistory" class="result" style="display:block; max-height: 400px; overflow-y: auto;"></div>
     
     <script>
         async function processText() {
@@ -134,6 +175,87 @@ async function handleRequest(req, res) { // asyncを追加
             result.className = 'result status ' + type;
             result.style.display = 'block';
         }
+        
+        // Phase 4: 対話機能
+        async function sendChatMessage() {
+            const message = document.getElementById('chatMessage').value;
+            const userId = document.getElementById('userId').value;
+            
+            if (!message.trim()) {
+                alert('メッセージを入力してください');
+                return;
+            }
+            
+            try {
+                // ユーザーメッセージを履歴に追加
+                addMessageToHistory('user', message);
+                document.getElementById('chatMessage').value = '';
+                
+                // AI応答を取得
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message, userId })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // AI応答を履歴に追加
+                    addMessageToHistory('ai', data.response, {
+                        strategy: data.strategy,
+                        confidence: data.confidence,
+                        qualityScore: data.qualityMetrics.score,
+                        grade: data.qualityMetrics.grade,
+                        processingTime: data.processingTime
+                    });
+                } else {
+                    addMessageToHistory('error', 'エラー: ' + data.error);
+                }
+            } catch (error) {
+                addMessageToHistory('error', '通信エラー: ' + error.message);
+            }
+        }
+        
+        function addMessageToHistory(type, message, metadata = {}) {
+            const chatHistory = document.getElementById('chatHistory');
+            const messageDiv = document.createElement('div');
+            messageDiv.style.marginBottom = '15px';
+            messageDiv.style.padding = '10px';
+            messageDiv.style.borderRadius = '8px';
+            
+            if (type === 'user') {
+                messageDiv.style.background = '#e3f2fd';
+                messageDiv.style.textAlign = 'right';
+                messageDiv.innerHTML = '<strong>あなた:</strong> ' + message;
+            } else if (type === 'ai') {
+                messageDiv.style.background = '#f1f8e9';
+                let metaInfo = '';
+                if (metadata.strategy) {
+                    metaInfo = '<br><small>戦略: ' + metadata.strategy + 
+                              ' | 信頼度: ' + (metadata.confidence || 0).toFixed(2) +
+                              ' | 品質: ' + metadata.grade + 
+                              ' (' + (metadata.qualityScore || 0).toFixed(2) + ')' +
+                              ' | 処理時間: ' + (metadata.processingTime || 0) + 'ms</small>';
+                }
+                messageDiv.innerHTML = '<strong>AI:</strong> ' + message + metaInfo;
+            } else {
+                messageDiv.style.background = '#ffebee';
+                messageDiv.innerHTML = '<strong>エラー:</strong> ' + message;
+            }
+            
+            chatHistory.appendChild(messageDiv);
+            chatHistory.scrollTop = chatHistory.scrollHeight;
+        }
+        
+        // Enterキーで送信
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('chatMessage').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    sendChatMessage();
+                }
+            });
+        });
     </script>
 </body>
 </html>`;
@@ -179,11 +301,124 @@ async function handleRequest(req, res) { // asyncを追加
             }
         });
 
+    } else if (url.pathname === '/api/chat' && req.method === 'POST') {
+        // Phase 4: 統計的応答生成API
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', async () => {
+            try {
+                const { message, userId = 'default', sessionId } = JSON.parse(body);
+                
+                if (!message || typeof message !== 'string') {
+                    sendJSON(res, { success: false, error: 'メッセージが必要です' }, 400);
+                    return;
+                }
+                
+                if (!statisticalGenerator) {
+                    sendJSON(res, { success: false, error: 'Statistical Generator not initialized' }, 500);
+                    return;
+                }
+                
+                console.log(`🗣️ 対話リクエスト: "${message}" (ユーザー: ${userId})`);
+                
+                // 統計的応答生成
+                const result = await statisticalGenerator.generateResponse(message, userId);
+                
+                if (result.success) {
+                    // 対話履歴保存
+                    addToChatHistory(userId, message, result.response, {
+                        strategy: result.strategy,
+                        qualityScore: result.qualityScore,
+                        grade: result.grade,
+                        confidence: result.confidence,
+                        processingTime: result.processingTime
+                    });
+                    
+                    // 成功レスポンス
+                    sendJSON(res, {
+                        success: true,
+                        response: result.response,
+                        confidence: result.confidence,
+                        strategy: result.strategy,
+                        qualityMetrics: {
+                            score: result.qualityScore,
+                            grade: result.grade,
+                            improvements: result.improvements
+                        },
+                        processingTime: result.processingTime,
+                        timestamp: result.timestamp
+                    });
+                } else {
+                    // エラーレスポンス
+                    sendJSON(res, result, 500);
+                }
+                
+            } catch (error) {
+                console.error('❌ 対話API エラー:', error);
+                sendJSON(res, {
+                    success: false,
+                    error: '内部サーバーエラー',
+                    details: error.message
+                }, 500);
+            }
+        });
+
+    } else if (url.pathname.startsWith('/api/chat/history/') && req.method === 'GET') {
+        // 対話履歴取得API
+        const pathParts = url.pathname.split('/');
+        const userId = pathParts[4];
+        const limit = parseInt(url.searchParams.get('limit')) || 50;
+        
+        if (!userId) {
+            sendJSON(res, { success: false, error: 'ユーザーIDが必要です' }, 400);
+            return;
+        }
+        
+        try {
+            const history = getChatHistory(userId, limit);
+            sendJSON(res, {
+                success: true,
+                history,
+                count: history.length
+            });
+        } catch (error) {
+            console.error('❌ 履歴API エラー:', error);
+            sendJSON(res, {
+                success: false,
+                error: '履歴取得エラー',
+                details: error.message
+            }, 500);
+        }
+
+    } else if (url.pathname === '/api/chat/status' && req.method === 'GET') {
+        // システム状態API
+        try {
+            const systemStatus = statisticalGenerator ? statisticalGenerator.getSystemStatus() : { initialized: false };
+            
+            sendJSON(res, {
+                success: true,
+                status: systemStatus,
+                serverInfo: {
+                    uptime: process.uptime(),
+                    memoryUsage: process.memoryUsage(),
+                    nodeVersion: process.version
+                }
+            });
+        } catch (error) {
+            console.error('❌ 状態API エラー:', error);
+            sendJSON(res, {
+                success: false,
+                error: '状態取得エラー',
+                details: error.message
+            }, 500);
+        }
+        
     } else if (url.pathname === '/health' && req.method === 'GET') {
         sendJSON(res, { 
             status: 'healthy', 
+            ai: statisticalGenerator ? 'ready' : 'not_ready',
             timestamp: new Date().toISOString(),
-            version: 'simple-v1'
+            version: 'phase4-v1'
         });
         
     } else {
@@ -194,17 +429,26 @@ async function handleRequest(req, res) { // asyncを追加
 // サーバー起動関数
 async function startServer() {
     try {
-        console.log('Initializing AIVocabularyProcessor...');
+        console.log('🚀 Phase 4 システム初期化開始...');
+        
+        // AIVocabularyProcessor初期化
+        console.log('📊 AIVocabularyProcessor初期化中...');
         aiVocabularyProcessor = new AIVocabularyProcessor();
         await aiVocabularyProcessor.initialize();
-        console.log('AIVocabularyProcessor initialized.');
+        console.log('✅ AIVocabularyProcessor初期化完了');
+        
+        // StatisticalResponseGenerator初期化
+        console.log('🗣️ StatisticalResponseGenerator初期化中...');
+        statisticalGenerator = new StatisticalResponseGenerator(aiVocabularyProcessor);
+        console.log('✅ StatisticalResponseGenerator初期化完了');
 
         const server = http.createServer(handleRequest);
 
         server.listen(PORT, () => {
-            console.log('🚀 シンプルサーバー起動完了');
+            console.log('🚀 Phase 4 統計的応答生成AI サーバー起動完了');
             console.log(`📍 http://localhost:${PORT}`);
-            console.log('✅ AI統合完了 - 実際の処理が実行されます');
+            console.log('✅ 5AI統合+対話システム完了 - 実際の統計学習AI処理が実行されます');
+            console.log('🗣️ 対話機能: 統計的応答生成・品質評価・自己学習システム稼働中');
         });
 
         server.on('error', (error) => {

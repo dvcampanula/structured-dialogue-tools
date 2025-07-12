@@ -13,7 +13,8 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  * ユーザーのフィードバックに基づいて最適な語彙を選択・学習します。
  */
 export class MultiArmedBanditVocabularyAI {
-  constructor() {
+  constructor(persistentDB) {
+    this.persistentLearningDB = persistentDB || persistentLearningDB; // 依存性注入またはデフォルトを使用
     this.vocabularyStats = new Map(); // Map<vocabulary: string, { rewards: number, selections: number }>
     this.totalSelections = 0;
     this.explorationConstant = Math.sqrt(2); // UCBアルゴリズムの探索定数
@@ -24,7 +25,7 @@ export class MultiArmedBanditVocabularyAI {
     if (this.isInitialized) return;
     console.log('🧬 MultiArmedBanditVocabularyAI初期化中...');
     try {
-      const loadedData = await persistentLearningDB.loadBanditData();
+      const loadedData = await this.persistentLearningDB.loadBanditData();
       if (loadedData) {
         this.vocabularyStats = new Map(loadedData.vocabularyStats);
         this.totalSelections = loadedData.totalSelections;
@@ -145,7 +146,7 @@ export class MultiArmedBanditVocabularyAI {
       vocabularyStats: Array.from(this.vocabularyStats.entries()),
       totalSelections: this.totalSelections,
     };
-    await persistentLearningDB.saveBanditData(dataToSave);
+    await this.persistentLearningDB.saveBanditData(dataToSave);
     console.log('💾 バンディットデータ保存完了');
   }
 }
