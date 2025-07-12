@@ -107,3 +107,4 @@ workspace/
 data/dictionaries/JMdict
 data/wiktionary/simple-wiktionary-extract.jsonl
 data/wiktionary/kaikki-*.jsonl
+archive/
