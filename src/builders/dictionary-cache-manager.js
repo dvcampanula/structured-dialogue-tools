@@ -3,7 +3,7 @@
  * DictionaryCacheManager - 辞書DB永続化システム
  * 
  * 🚀 解析済み辞書データJSON保存・高速読み込み
- * 📊 JMdict + Wiktionary統合結果キャッシュ
+ * 📊 JMdict解析結果キャッシュ
  * 🔄 更新検出・自動再構築システム
  */
 
@@ -26,8 +26,7 @@ export class DictionaryCacheManager {
         };
         
         this.sourceFiles = {
-            jmdict: './data/dictionaries/JMdict',
-            wiktionary: './data/wiktionary/kaikki-english.json'
+            jmdict: './data/dictionaries/JMdict'
         };
         
         // キャッシュ設定

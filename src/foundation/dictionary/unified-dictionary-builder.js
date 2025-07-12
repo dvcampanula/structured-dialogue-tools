@@ -23,7 +23,7 @@ export class UnifiedDictionaryBuilder {
         this.tempDir = './temp-build/';
         this.config = {
             enableFullJMdict: true,     // 全JMdict解析
-            enableWiktionary: true,     // Wiktionary統合
+            enableWiktionary: false,    // Wiktionary統合（無効）
             enableOptimization: true,   // 最適化有効
             maxEntries: 500000,         // 最大50万語
             qualityThreshold: 0.05,     // 品質閾値（緩和）

@@ -1,7 +1,6 @@
 import { EnhancedHybridLanguageProcessor } from '../../foundation/morphology/hybrid-processor.js';
 import fs from 'fs';
 import path from 'path';
-import { configLoader as defaultConfigLoader } from '../../data/config-loader.js';
 import { persistentLearningDB as defaultPersistentLearningDB } from '../../data/persistent-learning-db.js';
 import { NgramContextPatternAI as defaultNgramContextPatternAI } from '../ngram/ngram-context-pattern.js';
 
@@ -15,7 +14,6 @@ export class DynamicRelationshipLearner {
         this.persistentLearningDB = dependencies.persistentLearningDB || defaultPersistentLearningDB;
         this.hybridProcessor = dependencies.hybridProcessor || new EnhancedHybridLanguageProcessor();
         this.ngramAI = dependencies.ngramAI || new defaultNgramContextPatternAI(3, 0.75);
-        this.configLoader = dependencies.configLoader || defaultConfigLoader;
 
         this.semanticCache = new Map(); // 意味類似度キャッシュ
         this.tfIdfCache = new Map(); // TF-IDFキャッシュ
@@ -43,10 +41,16 @@ export class DynamicRelationshipLearner {
                 this.learningConfig = { ...this.learningConfig, ...loadedRelations.learningConfig };
             }
             
-            // 学習設定読み込み
-            const config = await this.configLoader.loadConfig('learningConfig');
-            if (config) {
-                this.learningConfig = { ...this.learningConfig, ...config };
+            // 学習設定読み込み（直接ファイル読み込み）
+            try {
+                const configPath = path.join(process.cwd(), 'src', 'config', 'learning-config.json');
+                if (fs.existsSync(configPath)) {
+                    const configData = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                    this.learningConfig = { ...this.learningConfig, ...configData };
+                    console.log('✅ 学習設定読み込み完了');
+                }
+            } catch (error) {
+                console.warn('⚠️ 学習設定読み込み失敗:', error.message);
             }
             
             await this.hybridProcessor.initialize();
