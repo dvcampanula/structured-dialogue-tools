@@ -74,9 +74,12 @@ export class AIVocabularyProcessor {
       
       // enhancedTermsまたはtokensから統一的に処理
       const tokens = processed.tokens || processed.enhancedTerms || [];
-      result.processedTokens = tokens;
       
       if (tokens.length > 0) {
+        // 0. 処理済みトークンの保存
+        result.processedTokens = tokens;
+        result.enhancedTerms = tokens; // 互換性のため
+        
         const lookupResults = await Promise.all(
           tokens.map(token => this.dictionary.lookup(token.surface || token.term))
         );
@@ -96,7 +99,10 @@ export class AIVocabularyProcessor {
         // 5. 共起関係学習
         // DynamicRelationshipLearnerのanalyzeメソッドを呼び出す
         await this.cooccurrenceLearner.analyze(text, result.optimizedVocabulary);
-        result.cooccurrenceAnalysis = this.cooccurrenceLearner.getLearningStats();
+        result.cooccurrenceAnalysis = {
+          learningStats: this.cooccurrenceLearner.getLearningStats(),
+          relatedTerms: this.cooccurrenceLearner.getUserRelationsData()
+        };
         
         // 6. 品質予測
         result.qualityPrediction = await this.qualityPredictor.predictQuality({
