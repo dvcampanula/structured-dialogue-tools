@@ -243,7 +243,7 @@ export class SyntacticStructureGenerator {
           keyword: keyword,
           related: term.term,
           strength: strength,
-          estimated_probability: Math.min(strength / 10, 0.8)
+          estimated_probability: Math.min(strength / 5, 1.0) // strengthを正規化して確率に変換
         });
       } else if (strength > 1) {
         patterns.push({
@@ -252,7 +252,7 @@ export class SyntacticStructureGenerator {
           keyword: keyword,
           related: term.term,
           strength: strength,
-          estimated_probability: Math.min(strength / 5, 0.6)
+          estimated_probability: Math.min(strength / 3, 1.0) // strengthを正規化して確率に変換
         });
       } else {
         patterns.push({
@@ -261,7 +261,7 @@ export class SyntacticStructureGenerator {
           keyword: keyword,
           related: term.term, 
           strength: strength,
-          estimated_probability: 0.3
+          estimated_probability: Math.min(strength / 2, 1.0) // strengthを正規化して確率に変換
         });
       }
     }
@@ -397,16 +397,6 @@ export class SyntacticStructureGenerator {
     // 名詞句パターンは学習データから動的生成
     const npPatterns = this.generateNounPhrases(patterns.lexical);
     rules.NP = npPatterns.length > 0 ? npPatterns : this.getMinimalNounPhrases();
-    
-    // 最小保証：空の場合のフォールバック
-    if (rules.S.length === 0) {
-      rules.S.push({
-        pattern: 'NP について VP',
-        probability: 1.0,
-        type: 'learned_fallback',
-        learned: false
-      });
-    }
     
     return rules;
   }
