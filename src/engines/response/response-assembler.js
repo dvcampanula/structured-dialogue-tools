@@ -1,7 +1,7 @@
 import { ResponseStrategies } from './response-strategy-manager.js';
 
 export class ResponseAssembler {
-  constructor(calculateDynamicWeights, extractRelationshipPatterns, buildSemanticContext, filterKeywordsByStatisticalQuality, getLearnedRelatedTerms, syntacticGenerator, qualityEvaluator) {
+  constructor(calculateDynamicWeights, extractRelationshipPatterns, buildSemanticContext, filterKeywordsByStatisticalQuality, getLearnedRelatedTerms, syntacticGenerator, qualityEvaluator, learningConfig) {
     this.calculateDynamicWeights = calculateDynamicWeights;
     this.extractRelationshipPatterns = extractRelationshipPatterns;
     this.buildSemanticContext = buildSemanticContext;
@@ -9,6 +9,7 @@ export class ResponseAssembler {
     this.getLearnedRelatedTerms = getLearnedRelatedTerms;
     this.syntacticGenerator = syntacticGenerator;
     this.qualityEvaluator = qualityEvaluator;
+    this.learningConfig = learningConfig; // 追加
     console.log('📝 ResponseAssembler初期化完了');
   }
 
@@ -151,7 +152,7 @@ export class ResponseAssembler {
       const semanticContext = await buildSemanticContext(inputKeywords, allRelatedTerms);
       
       const candidateResponses = [];
-      const numCandidates = 1; // 3重処理を回避してパフォーマンス向上
+      const numCandidates = this.learningConfig.numResponseCandidates || 1; // 設定から読み込む
 
       for (let i = 0; i < numCandidates; i++) {
         const relationshipPatterns = await extractRelationshipPatterns(semanticContext);
@@ -211,7 +212,7 @@ export class ResponseAssembler {
       support: supportTerms.filter(filterNonVerbal),
       confidence: syntacticStructure.confidence,
       structure: syntacticStructure.structure,
-      generatedSentence: syntacticStructure.finalResponse, // 修正点: finalResponseをgeneratedSentenceにマッピング
+      // generatedSentence: syntacticStructure.finalResponse, // 修正点: finalResponseをgeneratedSentenceにマッピング
       phase3Enhanced: phase3Enhanced.length > 0,
       semanticStrength: phase3Enhanced.length > 0 ? phase3Enhanced[0].semanticScore : 0
     };
@@ -475,12 +476,24 @@ export class ResponseAssembler {
 
       let kneserNeyResponse = '';
 
-      if (confidence > confidenceThresholds.highConfidence) {
-        kneserNeyResponse = `${originalText}について、統計的に「${enhancedTerms.join('」「')}」といった概念が強く関連しています。これらの関係性について詳しく説明できます。`;
-      } else if (confidence > confidenceThresholds.mediumConfidence) {
-        kneserNeyResponse = `「${enhancedTerms.join('」「')}」に関連があります。${originalText}との関連性について掘り下げてみましょう。`;
+      // SyntacticStructureGeneratorを使用して文構造を生成
+      const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(
+        enhancedTerms, // 語彙をキーワードとして渡す
+        [], // 関係性パターンはここでは使用しない
+        'default' // userId
+      );
+
+      if (syntacticStructure && syntacticStructure.finalResponse) {
+        kneserNeyResponse = syntacticStructure.finalResponse;
       } else {
-        kneserNeyResponse = `「${enhancedTerms[0]}」について、${originalText}との関連性が見られます。`;
+        // フォールバック: 従来のロジック
+        if (confidence > confidenceThresholds.highConfidence) {
+          kneserNeyResponse = `${originalText}について、統計的に「${enhancedTerms.join('」「')}」といった概念が強く関連しています。これらの関係性について詳しく説明できます。`;
+        } else if (confidence > confidenceThresholds.mediumConfidence) {
+          kneserNeyResponse = `「${enhancedTerms.join('」「')}」に関連があります。${originalText}との関連性について掘り下げてみましょう。`;
+        } else {
+          kneserNeyResponse = `「${enhancedTerms[0]}」について、${originalText}との関連性が見られます。`;
+        }
       }
 
       // 最終的な応答の品質を統計的に評価し、必要に応じて調整

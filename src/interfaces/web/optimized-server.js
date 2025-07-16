@@ -157,7 +157,8 @@ function registerComponents() {
         const { StatisticalResponseGenerator } = await import('../../engines/response/statistical-response-generator.js');
         const aiVocabularyProcessor = await lazyInitManager.get('aiVocabularyProcessor');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB);
+        const learningConfig = await persistentLearningDB.loadSystemData('learning-config'); // learningConfigを読み込む
+        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB, learningConfig);
     }, ['aiVocabularyProcessor', 'persistentLearningDB'], 2);
 
     console.log('✅ コンポーネント登録完了');

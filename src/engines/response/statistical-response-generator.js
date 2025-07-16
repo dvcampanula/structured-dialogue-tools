@@ -27,10 +27,11 @@ export const ResponseStrategies = {
 
 
 class StatisticalResponseGenerator {
-  constructor(aiVocabularyProcessor, learningDB) {
+  constructor(aiVocabularyProcessor, learningDB, learningConfig) {
     // コア依存関係
     this.aiProcessor = aiVocabularyProcessor;
     this.learningDB = learningDB;
+    this.learningConfig = learningConfig; // 追加
     this.dialogueLogProcessor = null; // 後で初期化
     // 応答戦略管理
     this.responseStrategies = new Map();
@@ -56,7 +57,8 @@ class StatisticalResponseGenerator {
       this.filterKeywordsByStatisticalQuality.bind(this),
       this.getLearnedRelatedTerms.bind(this),
       this.syntacticGenerator,
-      this.qualityEvaluator
+      this.qualityEvaluator,
+      this.learningConfig // learningConfigを追加
     );
     this.initialize();
   }

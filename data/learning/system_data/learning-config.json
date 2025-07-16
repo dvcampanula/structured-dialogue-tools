@@ -14,5 +14,6 @@
     "uniqueWordRatio": 0.3
   },
   "qualityScoreMin": 0.1,
-  "qualityScoreMax": 0.9
+  "qualityScoreMax": 0.9,
+  "numResponseCandidates": 3
 }

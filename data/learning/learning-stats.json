@@ -2,25 +2,9 @@
   "totalConversations": 0,
   "totalRelationsLearned": 2,
   "totalConceptsLearned": 0,
-  "lastLearningDate": 1752705240685,
+  "lastLearningDate": 1752705525670,
   "qualityScore": 0.5,
   "learningEvents": [
-    {
-      "timestamp": 1752691271114,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality_predictor_user",
-        "relationsCount": 0
-      }
-    },
-    {
-      "timestamp": 1752691271121,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "ai_processor_user",
-        "relationsCount": 10
-      }
-    },
     {
       "timestamp": 1752691557229,
       "type": "user_relations_update",
@@ -799,6 +783,22 @@
     },
     {
       "timestamp": 1752705240685,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "ai_processor_user",
+        "relationsCount": 10
+      }
+    },
+    {
+      "timestamp": 1752705525669,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "quality_predictor_user",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752705525670,
       "type": "user_relations_update",
       "data": {
         "userId": "ai_processor_user",
