@@ -10,42 +10,20 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-/**
- * 軽量辞書エントリ構造
- */
-class DictionaryEntry {
-    constructor(word, reading = null, definitions = [], synonyms = [], antonyms = [], pos = []) {
-        this.word = word;           // 単語
-        this.reading = reading;     // 読み（ひらがな）
-        this.definitions = definitions; // 定義・意味
-        this.synonyms = synonyms;   // 同義語
-        this.antonyms = antonyms;   // 反義語
-        this.pos = pos;            // 品詞 (part of speech)
-        this.frequency = 0;        // 使用頻度
-        this.level = 'common';     // 語彙レベル
-    }
-}
+import { DictionaryEntry } from './dictionary-entry.js';
+import { DictionaryDBBase } from './dictionary-db-core.js';
 
 /**
  * 軽量辞書データベース
  * フリー辞書データの効率的管理
  */
-export class DictionaryDB {
-    constructor() {
-        // メインデータ構造
-        this.entries = new Map();        // word -> DictionaryEntry
-        this.synonymMap = new Map();     // word -> Set(synonyms)
-        this.readingMap = new Map();     // reading -> Set(words)
-        this.posMap = new Map();         // pos -> Set(words)
+export class DictionaryDB extends DictionaryDBBase {
+    constructor(persistentLearningDB) {
+        super(); // 基底クラスの初期化
         
-        // 統計・メタデータ
-        this.stats = {
-            totalEntries: 0,
-            loadedSources: [],
-            memoryUsage: 0,
-            lastUpdated: null
-        };
-        
+        // 依存性注入
+        this.persistentLearningDB = persistentLearningDB;
+
         // キャッシュマネージャー
         this.cacheManager = null;
         this.enableCaching = true;
@@ -56,13 +34,14 @@ export class DictionaryDB {
             enableCaching: true,        // キャッシュ有効
             compressionLevel: 'balanced' // 'fast', 'balanced', 'max'
         };
+
+        // ストップワード (動的読み込み)
+        this.stopWords = new Set();
         
         console.log('📚 DictionaryDB初期化開始');
         
-        // キャッシュマネージャー初期化
-        if (this.enableCaching) {
-            this.initializeCacheManager();
-        }
+        // 各種初期化処理
+        this.initialize();
     }
 
     /**
@@ -71,12 +50,43 @@ export class DictionaryDB {
     async initialize() {
         console.log('📚 DictionaryDB初期化中...');
         
-        // キャッシュマネージャー初期化
+        await this.loadStopWords();
         if (this.enableCaching) {
             await this.initializeCacheManager();
         }
         
         console.log('✅ DictionaryDB初期化完了');
+    }
+
+    /**
+     * ストップワードをDBから読み込む
+     */
+    async loadStopWords() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('dictionary_stopwords');
+            if (data && data.length > 0) {
+                this.stopWords = new Set(data);
+            } else {
+                await this._initializeDefaultStopWords();
+            }
+        } catch (error) {
+            console.warn('⚠️ ストップワードの読み込みエラー:', error.message);
+            await this._initializeDefaultStopWords();
+        }
+    }
+
+    /**
+     * デフォルトのストップワードを初期化して保存
+     */
+    async _initializeDefaultStopWords() {
+        const defaultStopWords = ['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'to', 'of', 'in', 'on', 'at', 'by', 'for', 'with', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'and', 'or', 'but', 'not', 'so', 'if', 'than', 'when', 'where', 'why', 'how', 'what', 'which', 'who', 'whom', 'whose', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs'];
+        this.stopWords = new Set(defaultStopWords);
+        try {
+            await this.persistentLearningDB.saveSystemData('dictionary_stopwords', defaultStopWords);
+            console.log('✅ デフォルトストップワードをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルトストップワードの保存エラー:', error.message);
+        }
     }
 
     /**
@@ -281,11 +291,14 @@ export class DictionaryDB {
         }
         
         // 品詞マップ更新
-        if (entry.pos) {
-            if (!this.posMap.has(entry.pos)) {
-                this.posMap.set(entry.pos, new Set());
+        // entry.pos が配列であることを前提とする
+        if (entry.pos && Array.isArray(entry.pos)) {
+            for (const pos of entry.pos) {
+                if (!this.posMap.has(pos)) {
+                    this.posMap.set(pos, new Set());
+                }
+                this.posMap.get(pos).add(entry.word);
             }
-            this.posMap.get(entry.pos).add(entry.word);
         }
         
         this.stats.totalEntries++;
@@ -311,11 +324,13 @@ export class DictionaryDB {
         }
         
         // 品詞マップ更新
-        for (const pos of entry.pos) {
-            if (!this.posMap.has(pos)) {
-                this.posMap.set(pos, new Set());
+        if (entry.pos && Array.isArray(entry.pos)) {
+            for (const pos of entry.pos) {
+                if (!this.posMap.has(pos)) {
+                    this.posMap.set(pos, new Set());
+                }
+                this.posMap.get(pos).add(entry.word);
             }
-            this.posMap.get(pos).add(entry.word);
         }
         
         this.stats.totalEntries++;
@@ -341,11 +356,13 @@ export class DictionaryDB {
         }
         
         // 品詞マップ更新
-        for (const p of pos) {
-            if (!this.posMap.has(p)) {
-                this.posMap.set(p, new Set());
+        if (pos && Array.isArray(pos)) {
+            for (const p of pos) {
+                if (!this.posMap.has(p)) {
+                    this.posMap.set(p, new Set());
+                }
+                this.posMap.get(p).add(word);
             }
-            this.posMap.get(p).add(word);
         }
         
         this.stats.totalEntries++;
@@ -353,21 +370,7 @@ export class DictionaryDB {
     }
 
     /**
-     * 既存エントリ取得
-     */
-    getEntry(word) {
-        return this.entries.get(word);
-    }
-
-    /**
-     * データベースサイズ取得
-     */
-    getSize() {
-        return this.entries.size;
-    }
-    
-    /**
-     * 単語の同義語取得
+     * 高機能な同義語取得（頻度でソート）
      */
     getSynonyms(word, maxResults = 5) {
         const synonymSet = this.synonymMap.get(word);
@@ -390,7 +393,7 @@ export class DictionaryDB {
     }
     
     /**
-     * 文脈を考慮した同義語選択
+     * 高機能な文脈同義語選択
      */
     getContextualSynonym(word, context = {}) {
         const synonyms = this.getSynonyms(word, 10);
@@ -431,20 +434,6 @@ export class DictionaryDB {
     }
     
     /**
-     * 単語情報取得
-     */
-    getWordInfo(word) {
-        return this.entries.get(word);
-    }
-    
-    /**
-     * 品詞による検索
-     */
-    getWordsByPOS(pos) {
-        return Array.from(this.posMap.get(pos) || []);
-    }
-    
-    /**
      * 頻度設定
      */
     setFrequency(word, frequency) {
@@ -452,28 +441,6 @@ export class DictionaryDB {
         if (entry) {
             entry.frequency = frequency;
         }
-    }
-    
-    /**
-     * メモリ使用量推定
-     */
-    estimateMemoryUsage() {
-        // 簡易推定（実際はより複雑）
-        const avgEntrySize = 200; // バイト
-        return (this.stats.totalEntries * avgEntrySize) / (1024 * 1024);
-    }
-    
-    /**
-     * 統計情報取得
-     */
-    getStatistics() {
-        return {
-            ...this.stats,
-            memoryUsage: this.estimateMemoryUsage(),
-            synonymMapSize: this.synonymMap.size,
-            readingMapSize: this.readingMap.size,
-            posMapSize: this.posMap.size
-        };
     }
     
     /**
@@ -837,17 +804,43 @@ export class DictionaryDB {
             'adj-i': '形容詞',
             'adj-na': 'ナ形容詞', 
             'adj-no': '連体詞',
+            'adj-pn': '形容動詞', // 新規追加
+            'adj-t': '形容動詞', // 新規追加
+            'adj-f': '形容詞', // 新規追加
             'adv': '副詞',
+            'aux': '助動詞', // 新規追加
             'conj': '接続詞',
+            'ctr': '接尾辞', // 新規追加
+            'exp': '慣用句', // 新規追加
             'int': '感動詞',
             'n': '名詞',
+            'n-adv': '名詞副詞', // 新規追加
+            'n-suf': '名詞接尾辞', // 新規追加
+            'n-t': '名詞時間', // 新規追加
+            'num': '数詞', // 新規追加
+            'pn': '代名詞', // 新規追加
+            'pref': '接頭辞', // 新規追加
+            'prt': '助詞', // 新規追加
+            'suf': '接尾辞', // 新規追加
+            'unc': '分類不能', // 新規追加
             'v1': '一段動詞',
             'v5': '五段動詞',
             'vs-s': 'サ変動詞',
-            'vz': 'ザ変動詞'
+            'vs-i': 'サ変動詞', // 新規追加
+            'vs-c': 'サ変動詞', // 新規追加
+            'vz': 'ザ変動詞',
+            'vi': '自動詞', // 新規追加
+            'vt': '他動詞', // 新規追加
+            'vk': 'カ変動詞', // 新規追加
+            'vn': '名詞動詞', // 新規追加
+            'vr': 'ラ変動詞', // 新規追加
+            'vs': 'サ変動詞', // 新規追加
+            'adj': '形容詞', // 汎用形容詞
+            'v': '動詞', // 汎用動詞
+            'oth': 'その他' // その他の品詞
         };
         
-        return posMap[pos] || pos;
+        return posMap[pos] || 'その他'; // マッピングがない場合は「その他」を返す
     }
     
     /**
@@ -1122,12 +1115,11 @@ export class DictionaryDB {
      */
     extractKeywords(definitions) {
         const keywords = new Set();
-        const stopWords = new Set(['a', 'an', 'the', 'is', 'are', 'was', 'were', 'be', 'been', 'being', 'have', 'has', 'had', 'do', 'does', 'did', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'to', 'of', 'in', 'on', 'at', 'by', 'for', 'with', 'from', 'up', 'about', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'between', 'among', 'and', 'or', 'but', 'not', 'so', 'if', 'than', 'when', 'where', 'why', 'how', 'what', 'which', 'who', 'whom', 'whose', 'this', 'that', 'these', 'those', 'i', 'you', 'he', 'she', 'it', 'we', 'they', 'me', 'him', 'her', 'us', 'them', 'my', 'your', 'his', 'her', 'its', 'our', 'their', 'mine', 'yours', 'hers', 'ours', 'theirs']);
         
         for (const definition of definitions) {
             const words = definition.toLowerCase().match(/\b\w+\b/g) || [];
             for (const word of words) {
-                if (word.length > 3 && !stopWords.has(word)) {
+                if (word.length > 3 && !this.stopWords.has(word)) {
                     keywords.add(word);
                 }
             }

@@ -5,13 +5,13 @@
   "main": "src/web/minimal-ai-server.js",
   "type": "module",
   "scripts": {
-    "start": "node src/interfaces/web/optimized-server.js",
+    "start": "fuser -k 3002/tcp || true && node src/interfaces/web/optimized-server.js",
     "start-legacy": "node src/interfaces/web/server.js",
     "learn-logs": "node src/scripts/learn-logs-simple.js",
     "learn-logs-legacy": "node src/scripts/learn-logs.js",
     "learn-logs-enhanced": "node src/scripts/learn-logs-enhanced.js",
     "build": "tsc",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config jest.config.js \"src/**/*.test.js\""
   },
   "keywords": [
     "structured-dialogue",

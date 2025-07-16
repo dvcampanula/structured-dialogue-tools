@@ -1,0 +1,778 @@
+[
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 27963
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 2470
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 1803
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 6318
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 5063
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 60742,
+    "timestamp": 1752676169734
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 27670
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 2598
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 1944
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 6132
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 4616
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 58153,
+    "timestamp": 1752676285083
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 27073
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 2714
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 1910
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 6279
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 4919
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 57725,
+    "timestamp": 1752676469174
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 28263
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 2681
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 1891
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 6382
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 3629
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 59636,
+    "timestamp": 1752676572785
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 30073
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 2908
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 2210
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 8043
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 6160
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 65284,
+    "timestamp": 1752676659789
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1808,
+        "processingTime": 34524
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 154,
+        "processingTime": 3265
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 106,
+        "processingTime": 823
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 354,
+        "processingTime": 8613
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 6002
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 73837,
+    "timestamp": 1752676776526
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "2025-07-13T12-54-56-022Z_くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 2705,
+        "processingTime": 35300
+      },
+      {
+        "fileName": "2025-07-13T12-55-28-211Z_くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 230,
+        "processingTime": 1911
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 158,
+        "processingTime": 2382
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 530,
+        "processingTime": 8361
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 435,
+        "processingTime": 6388
+      }
+    ],
+    "totalProcessed": 1356,
+    "totalFiles": 5,
+    "totalTime": 74459,
+    "timestamp": 1752676874847
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 2705,
+        "processingTime": 30131
+      },
+      {
+        "fileName": "くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 230,
+        "processingTime": 3132
+      },
+      {
+        "fileName": "くろーど3.txt",
+        "totalProcessed": 3747,
+        "actualLearned": 11175,
+        "processingTime": 129336
+      },
+      {
+        "fileName": "ぐろっく.txt",
+        "totalProcessed": 64,
+        "actualLearned": 191,
+        "processingTime": 2673
+      },
+      {
+        "fileName": "ぐろっく2.txt",
+        "totalProcessed": 160,
+        "actualLearned": 478,
+        "processingTime": 6287
+      },
+      {
+        "fileName": "こぱいろっと.txt",
+        "totalProcessed": 1296,
+        "actualLearned": 3748,
+        "processingTime": 45795
+      },
+      {
+        "fileName": "こらっつ.txt",
+        "totalProcessed": 1788,
+        "actualLearned": 5350,
+        "processingTime": 62282
+      },
+      {
+        "fileName": "じぇみぐろ.txt",
+        "totalProcessed": 213,
+        "actualLearned": 627,
+        "processingTime": 8377
+      },
+      {
+        "fileName": "じぇみに.txt",
+        "totalProcessed": 375,
+        "actualLearned": 1124,
+        "processingTime": 13788
+      },
+      {
+        "fileName": "じぇみにろぐ2.txt",
+        "totalProcessed": 996,
+        "actualLearned": 2985,
+        "processingTime": 38528
+      },
+      {
+        "fileName": "じぇみにろぐ3.txt",
+        "totalProcessed": 239,
+        "actualLearned": 716,
+        "processingTime": 8736
+      },
+      {
+        "fileName": "じぇみにろぐ4.txt",
+        "totalProcessed": 676,
+        "actualLearned": 2025,
+        "processingTime": 26515
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 158,
+        "processingTime": 2116
+      },
+      {
+        "fileName": "じぇみにろぐ6.txt",
+        "totalProcessed": 2110,
+        "actualLearned": 6322,
+        "processingTime": 83333
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ1.txt",
+        "totalProcessed": 7276,
+        "actualLearned": 21764,
+        "processingTime": 259164
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ2.txt",
+        "totalProcessed": 1029,
+        "actualLearned": 3081,
+        "processingTime": 36377
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ3.txt",
+        "totalProcessed": 216,
+        "actualLearned": 645,
+        "processingTime": 9073
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ4.txt",
+        "totalProcessed": 1983,
+        "actualLearned": 5941,
+        "processingTime": 72670
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ5.txt",
+        "totalProcessed": 4243,
+        "actualLearned": 12657,
+        "processingTime": 142358
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_1.txt",
+        "totalProcessed": 235,
+        "actualLearned": 705,
+        "processingTime": 8438
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_2.txt",
+        "totalProcessed": 217,
+        "actualLearned": 649,
+        "processingTime": 8062
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ7.txt",
+        "totalProcessed": 4126,
+        "actualLearned": 12323,
+        "processingTime": 140159
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ8.txt",
+        "totalProcessed": 108,
+        "actualLearned": 321,
+        "processingTime": 4166
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ9.txt",
+        "totalProcessed": 4761,
+        "actualLearned": 14178,
+        "processingTime": 163286
+      },
+      {
+        "fileName": "つくよみちゃん.txt",
+        "totalProcessed": 95,
+        "actualLearned": 284,
+        "processingTime": 4189
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 530,
+        "processingTime": 7295
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 435,
+        "processingTime": 4424
+      }
+    ],
+    "totalProcessed": 37309,
+    "totalFiles": 27,
+    "totalTime": 1797901,
+    "timestamp": 1752678923144
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1801,
+        "processingTime": 41838
+      },
+      {
+        "fileName": "くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 153,
+        "processingTime": 4220
+      },
+      {
+        "fileName": "くろーど3.txt",
+        "totalProcessed": 3747,
+        "actualLearned": 7428,
+        "processingTime": 177788
+      },
+      {
+        "fileName": "ぐろっく.txt",
+        "totalProcessed": 64,
+        "actualLearned": 127,
+        "processingTime": 3584
+      },
+      {
+        "fileName": "ぐろっく2.txt",
+        "totalProcessed": 160,
+        "actualLearned": 318,
+        "processingTime": 8337
+      },
+      {
+        "fileName": "こぱいろっと.txt",
+        "totalProcessed": 1296,
+        "actualLearned": 2452,
+        "processingTime": 62588
+      },
+      {
+        "fileName": "こらっつ.txt",
+        "totalProcessed": 1788,
+        "actualLearned": 3562,
+        "processingTime": 68378
+      },
+      {
+        "fileName": "じぇみぐろ.txt",
+        "totalProcessed": 213,
+        "actualLearned": 414,
+        "processingTime": 7797
+      },
+      {
+        "fileName": "じぇみに.txt",
+        "totalProcessed": 375,
+        "actualLearned": 749,
+        "processingTime": 16545
+      },
+      {
+        "fileName": "じぇみにろぐ2.txt",
+        "totalProcessed": 996,
+        "actualLearned": 1989,
+        "processingTime": 41165
+      },
+      {
+        "fileName": "じぇみにろぐ3.txt",
+        "totalProcessed": 239,
+        "actualLearned": 477,
+        "processingTime": 10827
+      },
+      {
+        "fileName": "じぇみにろぐ4.txt",
+        "totalProcessed": 676,
+        "actualLearned": 1349,
+        "processingTime": 28192
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 105,
+        "processingTime": 2594
+      },
+      {
+        "fileName": "じぇみにろぐ6.txt",
+        "totalProcessed": 2110,
+        "actualLearned": 4212,
+        "processingTime": 87486
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ1.txt",
+        "totalProcessed": 7276,
+        "actualLearned": 14488,
+        "processingTime": 279337
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ2.txt",
+        "totalProcessed": 1029,
+        "actualLearned": 2052,
+        "processingTime": 39355
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ3.txt",
+        "totalProcessed": 216,
+        "actualLearned": 429,
+        "processingTime": 9174
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ4.txt",
+        "totalProcessed": 1983,
+        "actualLearned": 3958,
+        "processingTime": 77809
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ5.txt",
+        "totalProcessed": 4243,
+        "actualLearned": 8414,
+        "processingTime": 161187
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_1.txt",
+        "totalProcessed": 235,
+        "actualLearned": 470,
+        "processingTime": 9726
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_2.txt",
+        "totalProcessed": 217,
+        "actualLearned": 432,
+        "processingTime": 9471
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ7.txt",
+        "totalProcessed": 4126,
+        "actualLearned": 8197,
+        "processingTime": 157623
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ8.txt",
+        "totalProcessed": 108,
+        "actualLearned": 213,
+        "processingTime": 4688
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ9.txt",
+        "totalProcessed": 4761,
+        "actualLearned": 9417,
+        "processingTime": 183075
+      },
+      {
+        "fileName": "つくよみちゃん.txt",
+        "totalProcessed": 95,
+        "actualLearned": 189,
+        "processingTime": 4329
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 353,
+        "processingTime": 7760
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 4773
+      }
+    ],
+    "totalProcessed": 37309,
+    "totalFiles": 27,
+    "totalTime": 2058200,
+    "timestamp": 1752681361786
+  },
+  {
+    "fileResults": [
+      {
+        "fileName": "くろーど.txt",
+        "totalProcessed": 904,
+        "actualLearned": 1801,
+        "processingTime": 38241
+      },
+      {
+        "fileName": "くろーど2.txt",
+        "totalProcessed": 77,
+        "actualLearned": 153,
+        "processingTime": 3657
+      },
+      {
+        "fileName": "くろーど3.txt",
+        "totalProcessed": 3747,
+        "actualLearned": 7428,
+        "processingTime": 146234
+      },
+      {
+        "fileName": "ぐろっく.txt",
+        "totalProcessed": 64,
+        "actualLearned": 127,
+        "processingTime": 3665
+      },
+      {
+        "fileName": "ぐろっく2.txt",
+        "totalProcessed": 160,
+        "actualLearned": 318,
+        "processingTime": 7343
+      },
+      {
+        "fileName": "こぱいろっと.txt",
+        "totalProcessed": 1296,
+        "actualLearned": 2452,
+        "processingTime": 57480
+      },
+      {
+        "fileName": "こらっつ.txt",
+        "totalProcessed": 1788,
+        "actualLearned": 3562,
+        "processingTime": 76880
+      },
+      {
+        "fileName": "じぇみぐろ.txt",
+        "totalProcessed": 213,
+        "actualLearned": 414,
+        "processingTime": 8536
+      },
+      {
+        "fileName": "じぇみに.txt",
+        "totalProcessed": 375,
+        "actualLearned": 749,
+        "processingTime": 18353
+      },
+      {
+        "fileName": "じぇみにろぐ2.txt",
+        "totalProcessed": 996,
+        "actualLearned": 1989,
+        "processingTime": 47214
+      },
+      {
+        "fileName": "じぇみにろぐ3.txt",
+        "totalProcessed": 239,
+        "actualLearned": 477,
+        "processingTime": 12197
+      },
+      {
+        "fileName": "じぇみにろぐ4.txt",
+        "totalProcessed": 676,
+        "actualLearned": 1349,
+        "processingTime": 31223
+      },
+      {
+        "fileName": "じぇみにろぐ5.txt",
+        "totalProcessed": 53,
+        "actualLearned": 105,
+        "processingTime": 2680
+      },
+      {
+        "fileName": "じぇみにろぐ6.txt",
+        "totalProcessed": 2110,
+        "actualLearned": 4212,
+        "processingTime": 90672
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ1.txt",
+        "totalProcessed": 7276,
+        "actualLearned": 14488,
+        "processingTime": 300341
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ2.txt",
+        "totalProcessed": 1029,
+        "actualLearned": 2052,
+        "processingTime": 46911
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ3.txt",
+        "totalProcessed": 216,
+        "actualLearned": 429,
+        "processingTime": 11138
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ4.txt",
+        "totalProcessed": 1983,
+        "actualLearned": 3958,
+        "processingTime": 85894
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ5.txt",
+        "totalProcessed": 4243,
+        "actualLearned": 8414,
+        "processingTime": 173407
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_1.txt",
+        "totalProcessed": 235,
+        "actualLearned": 470,
+        "processingTime": 10128
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ6_2.txt",
+        "totalProcessed": 217,
+        "actualLearned": 432,
+        "processingTime": 7740
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ7.txt",
+        "totalProcessed": 4126,
+        "actualLearned": 8197,
+        "processingTime": 165204
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ8.txt",
+        "totalProcessed": 108,
+        "actualLearned": 213,
+        "processingTime": 4945
+      },
+      {
+        "fileName": "じーぴーてぃーろぐ9.txt",
+        "totalProcessed": 4761,
+        "actualLearned": 9417,
+        "processingTime": 191298
+      },
+      {
+        "fileName": "つくよみちゃん.txt",
+        "totalProcessed": 95,
+        "actualLearned": 189,
+        "processingTime": 4558
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_1.txt",
+        "totalProcessed": 177,
+        "actualLearned": 353,
+        "processingTime": 8091
+      },
+      {
+        "fileName": "つくよみちゃん_かなで_2.txt",
+        "totalProcessed": 145,
+        "actualLearned": 290,
+        "processingTime": 4999
+      }
+    ],
+    "totalProcessed": 37309,
+    "totalFiles": 27,
+    "totalTime": 2123210,
+    "timestamp": 1752704504930
+  }
+]

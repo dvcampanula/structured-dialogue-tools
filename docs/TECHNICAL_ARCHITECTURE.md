@@ -3,7 +3,7 @@
 **プロジェクト名**: JapaneseVocabularyAI  
 **作成日**: 2025-07-10  
 **最終更新**: 2025-07-11  
-**バージョン**: 1.1.0 (Phase 4対話AI追加)
+**バージョン**: 1.2.0 (Phase 4 + 高度統計学習手法統合)
 
 ---
 
@@ -21,12 +21,23 @@ interface SystemArchitecture {
     dataStructures: OptimizedDataStructures;       // 高速データ構造
   };
   
-  // Layer 2: Statistical Learning (統計学習層)
+  // Layer 2: Statistical Learning (統計学習層) + Advanced Methods
   learningCore: {
     vocabularyLearner: MultiArmedBanditAI;         // 多腕バンディット学習
-    contextAnalyzer: NgramLanguageModel;           // N-gram文脈モデル
+    contextAnalyzer: AdvancedNgramModel;           // 高度N-gram + Kneser-Neyスムージング
     coOccurrenceEngine: StatisticalCoOccurrence;   // 統計的共起分析
     personalAdapter: BayesianPersonalization;     // ベイジアン個人適応
+    
+    // Phase 1: 高度統計言語モデル
+    kneserNeySmoothing: KneserNeyLanguageModel;   // Kneser-Neyスムージング
+    
+    // Phase 2: 確率的文脈自由文法
+    pcfgGenerator: ProbabilisticCFG;              // PCFG文構造生成
+    syntaxParser: StatisticalParser;              // 統計的構文解析
+    
+    // Phase 3: 分布意味論
+    distributionalSemantics: WordVectorModel;     // 分布意味論・Word Vector
+    semanticSimilarity: DistributionalSimilarity; // 意味的類似度計算
   };
   
   // Layer 3: Processing (処理層)

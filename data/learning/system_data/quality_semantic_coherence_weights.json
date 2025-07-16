@@ -1,0 +1,6 @@
+{
+  "charTypeCoherence": 0.4,
+  "charTypeIncoherence": 0.2,
+  "contextPrediction": 0.4,
+  "relatedTerms": 0.2
+}

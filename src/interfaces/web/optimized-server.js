@@ -58,91 +58,107 @@ function addToChatHistory(userId, userInput, aiResponse, metadata = {}) {
 function registerComponents() {
     console.log('📋 コンポーネント登録開始...');
 
-    // 辞書DB - 優先度1（即座に初期化）
-    lazyInitManager.register(
-        'dictionaryDB',
-        async () => {
-            const { DictionaryDBCore } = await import('../../foundation/dictionary/dictionary-db-core.js');
-            return new DictionaryDBCore();
-        },
-        [],
-        1
-    );
+    // Level 0: データベース
+    lazyInitManager.register('persistentLearningDB', async () => {
+        const { PersistentLearningDB } = await import('../../data/persistent-learning-db.js');
+        return new PersistentLearningDB();
+    }, [], 1);
 
-    // ハイブリッドプロセッサ - 優先度2（要求時）
-    lazyInitManager.register(
-        'hybridProcessor',
-        async () => {
-            const { EnhancedHybridLanguageProcessor } = await import('../../foundation/morphology/hybrid-processor.js');
-            return new EnhancedHybridLanguageProcessor();
-        },
-        [],
-        2
-    );
+    lazyInitManager.register('dictionaryDB', async () => {
+        const DictionaryDB = (await import('../../foundation/dictionary/dictionary-db.js')).default;
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const db = new DictionaryDB(persistentLearningDB);
+        // initialize() はコンストラクタ内で呼ばれるので不要
+        return db;
+    }, ['persistentLearningDB'], 1);
 
-    // 永続学習DB - 優先度2（要求時）
-    lazyInitManager.register(
-        'persistentLearningDB',
-        async () => {
-            const { PersistentLearningDB } = await import('../../data/persistent-learning-db.js');
-            return new PersistentLearningDB();
-        },
-        [],
-        2
-    );
+    // Level 1: 基本プロセッサ
+    lazyInitManager.register('hybridProcessor', async () => {
+        const { EnhancedHybridLanguageProcessor } = await import('../../foundation/morphology/hybrid-processor.js');
+        const processor = new EnhancedHybridLanguageProcessor();
+        await processor.initialize();
+        return processor;
+    }, [], 2);
 
-    // AIVocabularyProcessor - 優先度2（要求時）
-    lazyInitManager.register(
-        'aiVocabularyProcessor',
-        async () => {
-            const { AIVocabularyProcessor } = await import('../../processing/vocabulary/ai-vocabulary-processor.js');
-            const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-            const hybridProcessor = await lazyInitManager.get('hybridProcessor');
-            
-            return new AIVocabularyProcessor({
-                persistentLearningDB,
-                hybridProcessor
-            });
-        },
-        ['persistentLearningDB', 'hybridProcessor'],
-        2
-    );
+    // Level 2: コア学習モジュール
+    lazyInitManager.register('ngramAI', async () => {
+        const { NgramContextPatternAI } = await import('../../learning/ngram/ngram-context-pattern.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const ngramAI = new NgramContextPatternAI(3, 0.75, persistentLearningDB);
+        await ngramAI.initialize();
+        return ngramAI;
+    }, ['persistentLearningDB'], 2);
 
-    // StatisticalResponseGenerator - 優先度2（要求時）
-    lazyInitManager.register(
-        'statisticalGenerator',
-        async () => {
-            const { StatisticalResponseGenerator } = await import('../../engines/response/statistical-response-generator.js');
-            const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-            const hybridProcessor = await lazyInitManager.get('hybridProcessor');
-            
-            return new StatisticalResponseGenerator({
-                persistentLearningDB,
-                hybridProcessor
-            });
-        },
-        ['persistentLearningDB', 'hybridProcessor'],
-        2
-    );
-
-    // 動的学習 - 優先度3（バックグラウンド）
-    lazyInitManager.register(
-        'dynamicLearner',
-        async () => {
-            const { DynamicRelationshipLearner } = await import('../../learning/cooccurrence/dynamic-relationship-learner.js');
-            const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-            const hybridProcessor = await lazyInitManager.get('hybridProcessor');
-            
-            const learner = new DynamicRelationshipLearner('default', {
-                persistentLearningDB,
-                hybridProcessor
-            });
-            await learner.initializeLearner();
+    lazyInitManager.register('dynamicLearner', async () => {
+        const { DynamicRelationshipLearner } = await import('../../learning/cooccurrence/dynamic-relationship-learner.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const hybridProcessor = await lazyInitManager.get('hybridProcessor');
+        const ngramAI = await lazyInitManager.get('ngramAI');
+        // DynamicRelationshipLearnerはuserIdを必要とするため、ここではインスタンス化しない
+        // 代わりに、ファクトリ関数を登録する
+        return async (userId) => { // ファクトリ関数をasyncにする
+            const learner = new DynamicRelationshipLearner(persistentLearningDB, hybridProcessor, ngramAI, userId);
+            await learner.initializeLearner(userId); // userIdで初期化
             return learner;
-        },
-        ['persistentLearningDB', 'hybridProcessor'],
-        3
-    );
+        };
+    }, ['persistentLearningDB', 'hybridProcessor', 'ngramAI'], 3);
+    
+    lazyInitManager.register('banditAI', async () => {
+        const { MultiArmedBanditVocabularyAI } = await import('../../learning/bandit/multi-armed-bandit-vocabulary.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const banditAI = new MultiArmedBanditVocabularyAI(persistentLearningDB);
+        await banditAI.initialize();
+        return banditAI;
+    }, ['persistentLearningDB'], 2);
+
+    lazyInitManager.register('bayesianAI', async () => {
+        const { BayesianPersonalizationAI } = await import('../../learning/bayesian/bayesian-personalization.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const bayesianAI = new BayesianPersonalizationAI(persistentLearningDB);
+        await bayesianAI.initialize();
+        return bayesianAI;
+    }, ['persistentLearningDB'], 2);
+
+    lazyInitManager.register('qualityPredictor', async () => {
+        const { QualityPredictionModel } = await import('../../learning/quality/quality-prediction-model.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const ngramAI = await lazyInitManager.get('ngramAI');
+        const dynamicLearnerFactory = await lazyInitManager.get('dynamicLearner'); // ファクトリを取得
+        
+        // ファクトリ関数を呼び出してインスタンスを生成
+        const cooccurrenceLearnerInstance = await dynamicLearnerFactory('quality_predictor_user'); // ここをawaitする
+        
+        const qualityPredictor = new QualityPredictionModel(persistentLearningDB, ngramAI, cooccurrenceLearnerInstance);
+        await qualityPredictor.initializeAIModules();
+        return qualityPredictor;
+    }, ['persistentLearningDB', 'ngramAI', 'dynamicLearner'], 2);
+
+    // Level 3: 統合プロセッサ
+    lazyInitManager.register('aiVocabularyProcessor', async () => {
+        const { AIVocabularyProcessor } = await import('../../processing/vocabulary/ai-vocabulary-processor.js');
+        const banditAI = await lazyInitManager.get('banditAI');
+        const ngramAI = await lazyInitManager.get('ngramAI');
+        const bayesianAI = await lazyInitManager.get('bayesianAI');
+        const dynamicLearnerFactory = await lazyInitManager.get('dynamicLearner'); // ファクトリを取得
+        const qualityPredictor = await lazyInitManager.get('qualityPredictor');
+        const hybridProcessor = await lazyInitManager.get('hybridProcessor');
+        const dictionary = await lazyInitManager.get('dictionaryDB');
+        
+        // ファクトリ関数を呼び出してインスタンスを生成
+        const cooccurrenceLearnerInstance = await dynamicLearnerFactory('ai_processor_user');
+        
+        const processor = new AIVocabularyProcessor(banditAI, ngramAI, bayesianAI, cooccurrenceLearnerInstance, qualityPredictor, hybridProcessor, dictionary);
+        await processor.initialize();
+        return processor;
+    }, ['banditAI', 'ngramAI', 'bayesianAI', 'dynamicLearner', 'qualityPredictor', 'hybridProcessor', 'dictionaryDB'], 2);
+
+    // Level 4: 応答生成
+    lazyInitManager.register('statisticalGenerator', async () => {
+        const { StatisticalResponseGenerator } = await import('../../engines/response/statistical-response-generator.js');
+        const aiVocabularyProcessor = await lazyInitManager.get('aiVocabularyProcessor');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB);
+    }, ['aiVocabularyProcessor', 'persistentLearningDB'], 2);
 
     console.log('✅ コンポーネント登録完了');
 }
@@ -293,7 +309,7 @@ async function getWebUIContent() {
                 const response = await fetch('/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message, userId: 'web-user' })
+                    body: JSON.stringify({ message, userId: 'default' })
                 });
 
                 const result = await response.json();

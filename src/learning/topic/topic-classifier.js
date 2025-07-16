@@ -8,8 +8,82 @@ export class TopicClassifier {
         this.persistentLearningDB = dependencies.persistentLearningDB;
         this.hybridProcessor = dependencies.hybridProcessor;
         
-        // 基本トピックカテゴリ
-        this.topicCategories = {
+        // 基本トピックカテゴリ (動的読み込みに変更)
+        this.topicCategories = {};
+        
+        // 信頼度計算の重み (動的読み込み)
+        this.confidenceWeights = {};
+
+        // 学習済みトピックパターン
+        this.learnedTopics = new Map();
+        this.userTopicPreferences = new Map();
+        this.temporalTopicTrends = [];
+        
+        this.loadTopicCategories(); // 非同期で読み込み
+        this.loadConfidenceWeights(); // 非同期で読み込み
+        console.log('📂 TopicClassifier初期化完了');
+    }
+
+    /**
+     * 信頼度計算の重みをDBから読み込む
+     */
+    async loadConfidenceWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('topic_confidence_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.confidenceWeights = data;
+            } else {
+                await this._initializeDefaultConfidenceWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 信頼度重みの読み込みエラー:', error.message);
+            await this._initializeDefaultConfidenceWeights();
+        }
+    }
+
+    /**
+     * デフォルトの信頼度重みを初期化して保存
+     */
+    async _initializeDefaultConfidenceWeights() {
+        const defaultWeights = {
+            primaryScore: 0.4,
+            personalizedConfidence: 0.3,
+            contextualConfidence: 0.2,
+            keyTermsCount: 0.1
+        };
+        this.confidenceWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('topic_confidence_weights', defaultWeights);
+            console.log('✅ デフォルト信頼度重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト信頼度重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * トピックカテゴリをDBから読み込む
+     */
+    async loadTopicCategories() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('topic_categories');
+            if (data && Object.keys(data).length > 0) {
+                this.topicCategories = data;
+            } else {
+                // データがない場合はデフォルト値を設定して保存
+                await this._initializeDefaultTopicCategories();
+            }
+        } catch (error) {
+            console.warn('⚠️ トピックカテゴリの読み込みエラー:', error.message);
+            // エラー時もデフォルト値で初期化
+            await this._initializeDefaultTopicCategories();
+        }
+    }
+
+    /**
+     * デフォルトのトピックカテゴリを初期化して保存
+     */
+    async _initializeDefaultTopicCategories() {
+        const defaultCategories = {
             technology: {
                 keywords: ['プログラミング', 'AI', '機械学習', 'コンピュータ', 'ソフトウェア', 'アプリ', 'システム', 'データ', 'ネットワーク', 'セキュリティ'],
                 score: 0
@@ -43,13 +117,13 @@ export class TopicClassifier {
                 score: 0
             }
         };
-        
-        // 学習済みトピックパターン
-        this.learnedTopics = new Map();
-        this.userTopicPreferences = new Map();
-        this.temporalTopicTrends = [];
-        
-        console.log('📂 TopicClassifier初期化完了');
+        this.topicCategories = defaultCategories;
+        try {
+            await this.persistentLearningDB.saveSystemData('topic_categories', defaultCategories);
+            console.log('✅ デフォルトトピックカテゴリをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルトトピックカテゴリの保存エラー:', error.message);
+        }
     }
 
     /**
@@ -306,6 +380,11 @@ export class TopicClassifier {
      */
     async learnFromClassification(classification, userId) {
         try {
+            // ログ学習の場合は個人データ保存をスキップ
+            if (userId.startsWith('log_batch_') || userId === 'log_learning') {
+                return;
+            }
+            
             // ユーザー嗜好学習
             if (!this.userTopicPreferences.has(userId)) {
                 this.userTopicPreferences.set(userId, {
@@ -358,8 +437,8 @@ export class TopicClassifier {
                 this.temporalTopicTrends = this.temporalTopicTrends.slice(-1000);
             }
             
-            // データ保存
-            if (this.persistentLearningDB) {
+            // データ保存（10回に1回のみ保存）
+            if (this.persistentLearningDB && userPrefs.totalClassifications % 10 === 0) {
                 await this.saveLearningData(userId);
             }
             
@@ -501,10 +580,12 @@ export class TopicClassifier {
         const contextualConfidence = classification.contextualTopics.confidence;
         const keyTermsCount = classification.keyTerms.length;
         
-        let confidence = primaryScore * 0.4 + 
-                        personalizedConfidence * 0.3 + 
-                        contextualConfidence * 0.2 + 
-                        Math.min(keyTermsCount / 5, 1.0) * 0.1;
+        const weights = this.confidenceWeights;
+
+        let confidence = primaryScore * weights.primaryScore +
+                        personalizedConfidence * weights.personalizedConfidence +
+                        contextualConfidence * weights.contextualConfidence +
+                        Math.min(keyTermsCount / 5, 1.0) * weights.keyTermsCount;
         
         return Math.min(confidence, 1.0);
     }

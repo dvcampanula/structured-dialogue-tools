@@ -8,49 +8,98 @@ export class DialoguePatternExtractor {
         this.persistentLearningDB = dependencies.persistentLearningDB;
         this.hybridProcessor = dependencies.hybridProcessor;
         
-        // 対話パターンタイプ
-        this.patternTypes = {
-            question_answer: {
-                patterns: ['？', '?', 'どう', 'なに', 'いつ', 'どこ', 'だれ', 'なぜ', 'どのように'],
-                weight: 1.2
-            },
-            request_response: {
-                patterns: ['してください', 'お願い', 'ください', 'してほしい', 'やって'],
-                weight: 1.1
-            },
-            greeting_farewell: {
-                patterns: ['こんにちは', 'おはよう', 'こんばんは', 'さようなら', 'また', 'お疲れ'],
-                weight: 0.8
-            },
-            explanation_clarification: {
-                patterns: ['つまり', 'すなわち', '要するに', 'という意味', '詳しく', '具体的に'],
-                weight: 1.0
-            },
-            agreement_disagreement: {
-                patterns: ['そうです', 'はい', 'いいえ', '違います', '賛成', '反対'],
-                weight: 0.9
-            },
-            emotion_expression: {
-                patterns: ['嬉しい', '悲しい', '困る', '驚く', '心配', '安心'],
-                weight: 1.3
-            }
-        };
-        
-        // 文体パターン
-        this.stylePatterns = {
-            formal: ['です', 'ます', 'である', 'いたします', 'ございます'],
-            casual: ['だよ', 'だね', 'じゃん', 'かも', 'っぽい'],
-            polite: ['いただき', 'させて', 'お世話', 'お願い', 'ありがとう'],
-            technical: ['システム', '実装', '機能', 'アルゴリズム', 'データ'],
-            emotional: ['！', '♪', '✨', '💗', '😊', 'うれしい', 'かなしい']
-        };
+        // パターン (動的読み込みに変更)
+        this.patternTypes = {};
+        this.stylePatterns = {};
+        this.intentPatterns = {};
         
         // 学習済みパターン
         this.learnedPatterns = new Map();
         this.conversationFlows = new Map();
         this.temporalPatterns = [];
         
+        this.loadPatterns(); // 非同期で読み込み
         console.log('🔄 DialoguePatternExtractor初期化完了');
+    }
+
+    /**
+     * パターンをDBから読み込む
+     */
+    async loadPatterns() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('dialogue_patterns');
+            if (data && Object.keys(data).length > 0) {
+                this.patternTypes = data.patternTypes || {};
+                this.stylePatterns = data.stylePatterns || {};
+                this.intentPatterns = data.intentPatterns || {};
+            } else {
+                // データがない場合はデフォルト値を設定して保存
+                await this._initializeDefaultPatterns();
+            }
+        } catch (error) {
+            console.warn('⚠️ 対話パターンの読み込みエラー:', error.message);
+            // エラー時もデフォルト値で初期化
+            await this._initializeDefaultPatterns();
+        }
+    }
+
+    /**
+     * デフォルトのパターンを初期化して保存
+     */
+    async _initializeDefaultPatterns() {
+        const defaultPatterns = {
+            patternTypes: {
+                question_answer: {
+                    patterns: ['？', '?', 'どう', 'なに', 'いつ', 'どこ', 'だれ', 'なぜ', 'どのように'],
+                    weight: 1.2
+                },
+                request_response: {
+                    patterns: ['してください', 'お願い', 'ください', 'してほしい', 'やって'],
+                    weight: 1.1
+                },
+                greeting_farewell: {
+                    patterns: ['こんにちは', 'おはよう', 'こんばんは', 'さようなら', 'また', 'お疲れ'],
+                    weight: 0.8
+                },
+                explanation_clarification: {
+                    patterns: ['つまり', 'すなわち', '要するに', 'という意味', '詳しく', '具体的に'],
+                    weight: 1.0
+                },
+                agreement_disagreement: {
+                    patterns: ['そうです', 'はい', 'いいえ', '違います', '賛成', '反対'],
+                    weight: 0.9
+                },
+                emotion_expression: {
+                    patterns: ['嬉しい', '悲しい', '困る', '驚く', '心配', '安心'],
+                    weight: 1.3
+                }
+            },
+            stylePatterns: {
+                formal: ['です', 'ます', 'である', 'いたします', 'ございます'],
+                casual: ['だよ', 'だね', 'じゃん', 'かも', 'っぽい'],
+                polite: ['いただき', 'させて', 'お世話', 'お願い', 'ありがとう'],
+                technical: ['システム', '実装', '機能', 'アルゴリズム', 'データ'],
+                emotional: ['！', '♪', '✨', '💗', '😊', 'うれしい', 'かなしい']
+            },
+            intentPatterns: {
+                information_seeking: ['何', 'どう', 'いつ', 'どこ', '教えて', '知りたい'],
+                action_request: ['して', 'やって', 'お願い', 'ください', 'ほしい'],
+                social_interaction: ['こんにちは', 'ありがとう', 'すみません', 'お疲れ'],
+                problem_solving: ['困って', '問題', 'エラー', '解決', '助けて'],
+                opinion_sharing: ['思う', '考える', '感じる', '意見', '個人的に']
+            }
+        };
+        
+        this.patternTypes = defaultPatterns.patternTypes;
+        this.stylePatterns = defaultPatterns.stylePatterns;
+        this.intentPatterns = defaultPatterns.intentPatterns;
+
+        try {
+            await this.persistentLearningDB.saveSystemData('dialogue_patterns', defaultPatterns);
+            console.log('✅ デフォルト対話パターンをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト対話パターンの保存エラー:', error.message);
+        }
     }
 
     /**
@@ -107,7 +156,7 @@ export class DialoguePatternExtractor {
 
             for (const pattern of typeData.patterns) {
                 if (userInput.includes(pattern)) {
-                    score += typeData.weight;
+                    score += typeData.weight; // 動的に読み込まれた重みを使用
                     matchedPatterns.push(pattern);
                 }
             }
@@ -241,14 +290,7 @@ export class DialoguePatternExtractor {
      * 意図分類
      */
     classifyIntent(text) {
-        const intents = {
-            information_seeking: ['何', 'どう', 'いつ', 'どこ', '教えて', '知りたい'],
-            action_request: ['して', 'やって', 'お願い', 'ください', 'ほしい'],
-            social_interaction: ['こんにちは', 'ありがとう', 'すみません', 'お疲れ'],
-            problem_solving: ['困って', '問題', 'エラー', '解決', '助けて'],
-            opinion_sharing: ['思う', '考える', '感じる', '意見', '個人的に']
-        };
-
+        const intents = this.intentPatterns;
         let maxScore = 0;
         let classifiedIntent = 'general';
 
@@ -326,6 +368,11 @@ export class DialoguePatternExtractor {
      */
     async learnFromPattern(pattern, userId) {
         try {
+            // ログ学習の場合は個人データ保存をスキップ
+            if (userId.startsWith('log_batch_') || userId === 'log_learning') {
+                return;
+            }
+            
             // ユーザー固有パターン学習
             if (!this.learnedPatterns.has(userId)) {
                 this.learnedPatterns.set(userId, {
@@ -395,8 +442,8 @@ export class DialoguePatternExtractor {
                 this.temporalPatterns = this.temporalPatterns.slice(-1000);
             }
 
-            // データ保存
-            if (this.persistentLearningDB) {
+            // データ保存（10回に1回のみ保存）
+            if (this.persistentLearningDB && userPatterns.conversationHistory.length % 10 === 0) {
                 await this.saveLearningData(userId);
             }
 

@@ -1,0 +1,30 @@
+{
+  "userId": "test-user",
+  "classCounts": [
+    [
+      "unknown",
+      1
+    ]
+  ],
+  "featureCounts": [
+    [
+      "unknown",
+      [
+        [
+          "こんにちは",
+          1
+        ],
+        [
+          "is_rated_positive",
+          1
+        ],
+        [
+          "keyword_undefined",
+          1
+        ]
+      ]
+    ]
+  ],
+  "totalInteractions": 1,
+  "preferences": []
+}

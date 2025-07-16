@@ -1,0 +1,5 @@
+{
+  "linearDecayMin": 0.3,
+  "linearDecayFactor": 0.1,
+  "elseCase": 0.1
+}

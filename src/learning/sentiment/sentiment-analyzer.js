@@ -26,18 +26,93 @@ export class SentimentAnalyzer {
             ]
         };
         
-        // 感情強度修飾語
-        this.intensifiers = {
-            strong: ['とても', 'すごく', '非常に', '本当に', '超', 'めちゃくちゃ', '激しく'],
-            moderate: ['少し', 'やや', 'ちょっと', 'まあまあ', 'それなりに'],
-            weak: ['あまり', 'それほど', 'そんなに', 'たいして']
-        };
+        // 感情強度修飾語 (動的読み込みに変更)
+        this.intensifiers = {};
+
+        // 感情スコアの重み (動的読み込み)
+        this.sentimentWeights = {};
         
         // 学習済み感情パターン
         this.learnedPatterns = new Map();
         this.contextualPatterns = new Map();
         
+        this.loadIntensifiers(); // 非同期で読み込み
+        this.loadSentimentWeights(); // 非同期で読み込み
         console.log('🎭 SentimentAnalyzer初期化完了');
+    }
+
+    /**
+     * 感情スコアの重みをDBから読み込む
+     */
+    async loadSentimentWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('sentiment_score_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.sentimentWeights = data;
+            } else {
+                await this._initializeDefaultSentimentWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 感情スコア重みの読み込みエラー:', error.message);
+            await this._initializeDefaultSentimentWeights();
+        }
+    }
+
+    /**
+     * デフォルトの感情スコア重みを初期化して保存
+     */
+    async _initializeDefaultSentimentWeights() {
+        const defaultWeights = {
+            baseScore: 0.5,
+            positiveRatio: 0.5,
+            negativeRatio: 0.5,
+            neutralConfidence: 0.6,
+            defaultConfidence: 0.3
+        };
+        this.sentimentWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('sentiment_score_weights', defaultWeights);
+            console.log('✅ デフォルト感情スコア重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト感情スコア重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 感情強度修飾語をDBから読み込む
+     */
+    async loadIntensifiers() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('sentiment_intensifiers');
+            if (data && Object.keys(data).length > 0) {
+                this.intensifiers = data;
+            } else {
+                // データがない場合はデフォルト値を設定して保存
+                await this._initializeDefaultIntensifiers();
+            }
+        } catch (error) {
+            console.warn('⚠️ 感情強度修飾語の読み込みエラー:', error.message);
+            // エラー時もデフォルト値で初期化
+            await this._initializeDefaultIntensifiers();
+        }
+    }
+
+    /**
+     * デフォルトの感情強度修飾語を初期化して保存
+     */
+    async _initializeDefaultIntensifiers() {
+        const defaultIntensifiers = {
+            strong: ['とても', 'すごく', '非常に', '本当に', '超', 'めちゃくちゃ', '激しく'],
+            moderate: ['少し', 'やや', 'ちょっと', 'まあまあ', 'それなりに'],
+            weak: ['あまり', 'それほど', 'そんなに', 'たいして']
+        };
+        this.intensifiers = defaultIntensifiers;
+        try {
+            await this.persistentLearningDB.saveSystemData('sentiment_intensifiers', defaultIntensifiers);
+            console.log('✅ デフォルト感情強度修飾語をDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト感情強度修飾語の保存エラー:', error.message);
+        }
     }
 
     /**
@@ -87,7 +162,7 @@ export class SentimentAnalyzer {
                 negativeScore += 1;
             }
             if (this.emotionPatterns.neutral.some(pattern => word.includes(pattern))) {
-                neutralScore += 0.5;
+                neutralScore += this.sentimentWeights.neutralScore || 0.5;
             }
             
             // 絵文字分析
@@ -102,7 +177,7 @@ export class SentimentAnalyzer {
 
         const total = positiveScore + negativeScore + neutralScore;
         if (total === 0) {
-            return { label: 'neutral', score: 0.5, confidence: 0.3 };
+            return { label: 'neutral', score: this.sentimentWeights.baseScore, confidence: this.sentimentWeights.defaultConfidence };
         }
 
         const positiveRatio = positiveScore / total;
@@ -111,18 +186,18 @@ export class SentimentAnalyzer {
         if (positiveRatio > negativeRatio && positiveRatio > 0.3) {
             return { 
                 label: 'positive', 
-                score: 0.5 + (positiveRatio * 0.5), 
+                score: this.sentimentWeights.baseScore + (positiveRatio * this.sentimentWeights.positiveRatio), 
                 confidence: Math.min(positiveRatio * 2, 1.0) 
             };
         } else if (negativeRatio > positiveRatio && negativeRatio > 0.3) {
             return { 
                 label: 'negative', 
-                score: 0.5 - (negativeRatio * 0.5), 
+                score: this.sentimentWeights.baseScore - (negativeRatio * this.sentimentWeights.negativeRatio), 
                 confidence: Math.min(negativeRatio * 2, 1.0) 
             };
         }
         
-        return { label: 'neutral', score: 0.5, confidence: 0.6 };
+        return { label: 'neutral', score: this.sentimentWeights.baseScore, confidence: this.sentimentWeights.neutralConfidence };
     }
 
     /**
@@ -273,6 +348,11 @@ export class SentimentAnalyzer {
      */
     async learnFromAnalysis(analysis, userId) {
         try {
+            // ログ学習の場合は個人データ保存をスキップ
+            if (userId.startsWith('log_batch_') || userId === 'log_learning') {
+                return;
+            }
+            
             // ユーザー固有パターン学習
             if (!this.learnedPatterns.has(userId)) {
                 this.learnedPatterns.set(userId, {
@@ -322,8 +402,8 @@ export class SentimentAnalyzer {
             // 感情傾向更新
             userPattern.emotionTrends[analysis.sentiment.label]++;
             
-            // データベース保存
-            if (this.persistentLearningDB) {
+            // データベース保存（10回に1回のみ保存）
+            if (this.persistentLearningDB && userPattern.patternHistory.length % 10 === 0) {
                 await this.saveLearningData(userId);
             }
             

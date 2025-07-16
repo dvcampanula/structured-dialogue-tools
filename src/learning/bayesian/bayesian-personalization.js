@@ -14,7 +14,7 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  */
 export class BayesianPersonalizationAI {
   constructor(persistentDB) {
-    this.persistentLearningDB = persistentDB || persistentLearningDB;
+    this.persistentLearningDB = persistentDB;
     this.userProfiles = new Map(); // Map<userId: string, UserProfile>
     this.isInitialized = false;
   }
@@ -26,13 +26,17 @@ export class BayesianPersonalizationAI {
     const allUserProfilesData = await this.persistentLearningDB.loadAllUserProfiles();
     for (const userId in allUserProfilesData) {
       const profileData = allUserProfilesData[userId];
-      // Mapのキーを文字列に変換
-      profileData.classCounts = new Map(profileData.classCounts);
-      profileData.featureCounts = new Map(profileData.featureCounts);
-      for (const classKey in profileData.featureCounts) {
-        profileData.featureCounts.set(classKey, new Map(profileData.featureCounts.get(classKey)));
+      const profile = this._initializeUserProfile(userId);
+      profile.classCounts = new Map(profileData.classCounts || []);
+      profile.totalInteractions = profileData.totalInteractions || 0;
+      profile.preferences = new Map(profileData.preferences || []);
+
+      if (profileData.featureCounts) {
+        for (const [classKey, features] of profileData.featureCounts) {
+          profile.featureCounts.set(classKey, new Map(features));
+        }
       }
-      this.userProfiles.set(userId, profileData);
+      this.userProfiles.set(userId, profile);
     }
     this.isInitialized = true;
     console.log(`✅ BayesianPersonalizationAI初期化完了。${this.userProfiles.size}件のプロファイルを読み込みました。`);

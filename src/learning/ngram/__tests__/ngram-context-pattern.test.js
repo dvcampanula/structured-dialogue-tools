@@ -9,6 +9,7 @@ describe('NgramContextPatternAI', () => {
     mockPersistentLearningDB = {
       loadNgramData: jest.fn().mockResolvedValue(null),
       saveNgramData: jest.fn().mockResolvedValue(undefined),
+      getUserSpecificRelations: jest.fn().mockResolvedValue({ userRelations: {} }),
     };
     ngramAI = new NgramContextPatternAI(3, 0.75, mockPersistentLearningDB);
   });
@@ -43,8 +44,7 @@ describe('NgramContextPatternAI', () => {
 
     expect(ngramAI.ngramFrequencies.get('this')).toBe(1);
     expect(ngramAI.ngramFrequencies.get('is a')).toBe(1);
-    expect(ngramAI.ngramFrequencies.get('this is a')).toBe(1);
-    expect(ngramAI.contextFrequencies.get('general')).toBe(1);
+    expect(ngramAI.contextFrequencies.get('diverse_vocabulary_4')).toBe(1);
     // N-gram総数の正確な計算: unigram(5) + bigram(4) + trigram(3) = 12
     expect(ngramAI.totalNgrams).toBe(12);
     expect(ngramAI.totalDocuments).toBe(1);

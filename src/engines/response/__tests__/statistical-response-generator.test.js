@@ -9,6 +9,8 @@ const mockAIVocabularyProcessor = {
 const mockPersistentLearningDB = {
   loadBanditData: jest.fn(),
   saveBanditData: jest.fn(),
+  getUserSpecificRelations: jest.fn().mockResolvedValue({ userRelations: {} }),
+  getQualityStats: jest.fn().mockResolvedValue({ average: 0.5, stdDev: 0.1, count: 0 }),
 };
 
 describe('StatisticalResponseGenerator', () => {
@@ -31,6 +33,8 @@ describe('StatisticalResponseGenerator', () => {
 
     mockPersistentLearningDB.loadBanditData.mockReset().mockResolvedValue(null);
     mockPersistentLearningDB.saveBanditData.mockReset().mockResolvedValue(undefined);
+    mockPersistentLearningDB.getUserSpecificRelations.mockReset().mockResolvedValue({ userRelations: {} });
+    mockPersistentLearningDB.getQualityStats.mockReset().mockResolvedValue({ average: 0.5, stdDev: 0.1, count: 0 });
 
     generator = new StatisticalResponseGenerator(mockAIVocabularyProcessor, mockPersistentLearningDB);
     generator.initializeStrategies(); // 戦略を初期化
@@ -108,7 +112,7 @@ describe('StatisticalResponseGenerator', () => {
     const result = await generator.generateResponse(userInput, userId);
 
     // 使用された戦略の統計が更新されていることを確認
-    const strategyStats = generator.strategyStats.get(result.strategy);
+    const strategyStats = generator.strategyManager.strategyStats.get(result.strategy);
     expect(strategyStats.selections).toBeGreaterThan(0);
     expect(strategyStats.totalReward).toBeGreaterThan(0);
     expect(strategyStats.lastUsed).toBeGreaterThan(0);
@@ -123,7 +127,7 @@ describe('StatisticalResponseGenerator', () => {
     const result = await generator.generateResponse(userInput, userId);
 
     expect(result.success).toBe(false);
-    expect(result.response).toContain('申し訳ございません');
+    expect(result.response).toContain('もう少し詳しく教えていただけますか？');
     expect(result.error).toBe('5AI分析エラー: AI処理エラー'); // 実装の実際のエラーメッセージ形式に合わせる
     expect(result.strategy).toBe('fallback');
   });

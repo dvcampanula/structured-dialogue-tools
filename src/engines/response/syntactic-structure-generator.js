@@ -12,11 +12,16 @@ export class SyntacticStructureGenerator {
    */
   async generateSyntacticStructure(inputKeywords, relationshipPatterns, userId) {
     try {
-      console.log('🔧 PCFG文構造生成開始:', inputKeywords);
+      if (process.env.DEBUG_VERBOSE === 'true') {
+        console.log('🔧 PCFG文構造生成開始:', inputKeywords);
+      }
       
-      // 0. 意味埋め込みの計算（簡易版: 関係性パターンの強度を意味埋め込みとして利用）
+      // 0. 意味埋め込みの計算（統計学習ベース: 関係性パターンの強度を意味埋め込みとして利用）
       const semanticEmbeddings = this.calculateSemanticEmbeddings(relationshipPatterns);
-      console.log('🧠 意味埋め込み計算完了:', semanticEmbeddings);
+      
+      if (process.env.DEBUG_VERBOSE === 'true') {
+        console.log('🧠 意味埋め込み計算完了:', semanticEmbeddings);
+      }
 
       // 1. 日本語PCFG文法ルール取得
       const grammarRules = await this.getJapanesePCFGRules(userId);
@@ -65,27 +70,27 @@ export class SyntacticStructureGenerator {
   /**
    * 統計的確率に基づく文構造生成
    */
-  async applyPCFGRules(selectedPattern, relationshipPatterns) {
-    const primaryTerm = relationshipPatterns.length > 0 ? String(relationshipPatterns[0].term) : "テーマ";
-    const supportTerms = relationshipPatterns.length > 1 ? relationshipPatterns.slice(1, 3).map(p => String(p.term)) : [];
+  async applyPCFGRules(selectedPattern, relationshipPatterns, grammarRules) { // grammarRulesを追加
+    const patternString = selectedPattern.pattern.pattern || 'NP VP';
     const patternType = selectedPattern.pattern.type || 'subject_predicate';
 
-    // finalResponse には、assembleSentence で動的に文を生成するために必要な構造情報をオブジェクトとして格納
-    const structuralInfo = {
-      type: patternType,
-      primary: primaryTerm,
-      support: supportTerms,
-      // 必要に応じて、さらに詳細な構造情報や統計的メタデータを追加可能
-      // 例: grammaticalRoles: { subject: primaryTerm, verb: 'is', object: supportTerms[0] },
-      //     templateHint: 'explanation_template'
-    };
+    // 1. Select NP (Noun Phrase)
+    const primaryTerm = relationshipPatterns.length > 0 ? String(relationshipPatterns[0].term) : (grammarRules.NP[0]?.pattern || "");
+
+    // 2. Select VP (Verb Phrase)
+    const verbPhrase = grammarRules.VP.length > 0 ? grammarRules.VP[0].pattern : "";
+
+    // 3. Assemble the sentence template
+    let finalSentence = patternString
+      .replace('NP', primaryTerm)
+      .replace('VP', verbPhrase);
 
     return {
       primaryTerm: primaryTerm,
-      supportTerms: supportTerms,
+      supportTerms: relationshipPatterns.length > 1 ? relationshipPatterns.slice(1, 3).map(p => String(p.term)) : [],
       confidence: selectedPattern.pattern.probability || 0.5,
       structure: patternType,
-      finalResponse: structuralInfo // オブジェクトとして構造情報を格納
+      finalResponse: finalSentence // 完成した文を返す
     };
   }
 
@@ -96,6 +101,29 @@ export class SyntacticStructureGenerator {
     // Placeholder: In a real scenario, this would validate the generated structure
     // against statistical norms or grammatical rules.
     return generatedStructure;
+  }
+
+  /**
+   * 最適な文法パターンを選択
+   */
+  async selectBestGrammarPattern(inputKeywords, relationshipPatterns, grammarRules, semanticEmbeddings) {
+    let bestPattern = null;
+    let maxScore = -1;
+
+    for (const rule of grammarRules.S) {
+      const patternKeywords = this.extractKeywordsFromPattern(rule.pattern);
+      const semanticSimilarity = this.calculatePatternSemanticSimilarity(patternKeywords, semanticEmbeddings);
+      
+      // スコア計算（簡易版）
+      const score = rule.probability * 0.8 + semanticSimilarity * 0.2;
+
+      if (score > maxScore) {
+        maxScore = score;
+        bestPattern = { pattern: rule, score: score };
+      }
+    }
+    
+    return bestPattern || { pattern: grammarRules.S[0], score: 0 };
   }
 
   /**
@@ -364,10 +392,11 @@ export class SyntacticStructureGenerator {
     
     // 学習語彙からVP（動詞句）パターン生成
     const vpPatterns = this.generateVerbPhrases(patterns.lexical, thresholds);
-    rules.VP = vpPatterns;
+    rules.VP = vpPatterns.length > 0 ? vpPatterns : this.getMinimalVerbPhrases();
     
     // 名詞句パターンは学習データから動的生成
-    rules.NP = this.generateNounPhrases(patterns.lexical);
+    const npPatterns = this.generateNounPhrases(patterns.lexical);
+    rules.NP = npPatterns.length > 0 ? npPatterns : this.getMinimalNounPhrases();
     
     // 最小保証：空の場合のフォールバック
     if (rules.S.length === 0) {
@@ -407,6 +436,9 @@ export class SyntacticStructureGenerator {
    * パターンと意味埋め込みの類似度を計算（簡易版）
    */
   calculatePatternSemanticSimilarity(patternKeywords, semanticEmbeddings) {
+    if (!semanticEmbeddings || Object.keys(semanticEmbeddings).length === 0) {
+        return 0;
+    }
     let totalSimilarity = 0;
     let count = 0;
     for (const pKeyword of patternKeywords) {
@@ -587,20 +619,14 @@ export class SyntacticStructureGenerator {
    * 最小名詞句
    */
   getMinimalNounPhrases() {
-    return [
-      { pattern: 'テーマ', probability: 1.0, type: 'default_noun', learned: false, confidence: 0.5 },
-      { pattern: '情報', probability: 0.8, type: 'default_noun', learned: false, confidence: 0.5 }
-    ];
+    return [];
   }
 
   /**
    * 最小動詞句
    */
   getMinimalVerbPhrases() {
-    return [
-      { pattern: '説明できます', probability: 1.0, type: 'default_verb', learned: false, confidence: 0.5 },
-      { pattern: '分析します', probability: 0.8, type: 'default_verb', learned: false, confidence: 0.5 }
-    ];
+    return [];
   }
 
   /**
@@ -824,5 +850,130 @@ export class SyntacticStructureGenerator {
         qualityThreshold: 0.5
       };
     }
+  }
+
+  /**
+   * 意味埋め込み計算（統計学習ベース）
+   * @param {Object} relationshipPatterns - 関係性パターン
+   * @returns {Object} 意味埋め込みベクトル
+   */
+  calculateSemanticEmbeddings(relationshipPatterns) {
+    try {
+      const embeddings = {};
+      
+      // 関係性パターンから語彙の共起統計を抽出
+      for (const [primaryTerm, relations] of Object.entries(relationshipPatterns)) {
+        if (!relations || !Array.isArray(relations) || relations.length === 0) continue;
+        
+        // 各語彙の意味ベクトルを関係性強度で構築
+        const embedding = [];
+        const maxDimensions = 10; // 簡易的な次元数
+        
+        for (let i = 0; i < maxDimensions; i++) {
+          let dimensionValue = 0;
+          
+          // 関係性の強度を次元値として利用（配列であることを確認済み）
+          for (const relation of relations.slice(0, 3)) { // 上位3つの関連語
+            if (relation.strength) {
+              // 関連語のハッシュ値を次元特徴として利用
+              const hashFeature = this.simpleHash(relation.term + i) % 1000 / 1000;
+              dimensionValue += relation.strength * hashFeature;
+            }
+          }
+          
+          embedding.push(dimensionValue / relations.length);
+        }
+        
+        // ベクトル正規化
+        const norm = Math.sqrt(embedding.reduce((sum, val) => sum + val * val, 0));
+        if (norm > 0) {
+          embeddings[primaryTerm] = embedding.map(val => val / norm);
+        } else {
+          embeddings[primaryTerm] = new Array(maxDimensions).fill(0);
+        }
+      }
+      
+      console.log(`🧠 意味埋め込み計算完了: ${Object.keys(embeddings).length}語彙`);
+      return embeddings;
+      
+    } catch (error) {
+      console.warn('⚠️ 意味埋め込み計算エラー:', error.message);
+      return {};
+    }
+  }
+  
+  /**
+   * パターンの意味類似度計算
+   * @param {Array} patternKeywords - パターンのキーワード
+   * @param {Object} semanticEmbeddings - 意味埋め込み
+   * @returns {number} 類似度スコア
+   */
+  calculatePatternSemanticSimilarity(patternKeywords, semanticEmbeddings) {
+    try {
+      if (Object.keys(semanticEmbeddings).length === 0) return 0;
+      
+      let totalSimilarity = 0;
+      let validComparisons = 0;
+      
+      for (const keyword of patternKeywords) {
+        if (semanticEmbeddings[keyword]) {
+          // 他のキーワードとの平均類似度を計算
+          for (const otherKeyword of patternKeywords) {
+            if (keyword !== otherKeyword && semanticEmbeddings[otherKeyword]) {
+              const similarity = this.cosineSimilarity(
+                semanticEmbeddings[keyword],
+                semanticEmbeddings[otherKeyword]
+              );
+              totalSimilarity += similarity;
+              validComparisons++;
+            }
+          }
+        }
+      }
+      
+      return validComparisons > 0 ? totalSimilarity / validComparisons : 0;
+      
+    } catch (error) {
+      console.warn('⚠️ パターン類似度計算エラー:', error.message);
+      return 0;
+    }
+  }
+  
+  /**
+   * コサイン類似度計算
+   * @param {Array} vectorA - ベクトルA
+   * @param {Array} vectorB - ベクトルB
+   * @returns {number} コサイン類似度
+   */
+  cosineSimilarity(vectorA, vectorB) {
+    if (vectorA.length !== vectorB.length) return 0;
+    
+    let dotProduct = 0;
+    let normA = 0;
+    let normB = 0;
+    
+    for (let i = 0; i < vectorA.length; i++) {
+      dotProduct += vectorA[i] * vectorB[i];
+      normA += vectorA[i] * vectorA[i];
+      normB += vectorB[i] * vectorB[i];
+    }
+    
+    const norm = Math.sqrt(normA) * Math.sqrt(normB);
+    return norm > 0 ? dotProduct / norm : 0;
+  }
+  
+  /**
+   * 簡易ハッシュ関数
+   * @param {string} str - ハッシュ対象文字列
+   * @returns {number} ハッシュ値
+   */
+  simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      const char = str.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32-bit整数に変換
+    }
+    return Math.abs(hash);
   }
 }

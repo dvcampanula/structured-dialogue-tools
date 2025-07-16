@@ -3,7 +3,7 @@
 **プロジェクト名**: JapaneseVocabularyAI  
 **作成日**: 2025-07-10  
 **最終更新**: 2025-07-11  
-**バージョン**: 1.1.0 (Phase 4追加)
+**バージョン**: 1.2.0 (Phase 4 + 高度統計学習手法追加)
 
 ---
 
@@ -97,9 +97,11 @@ class VocabularySelectionAI {
 class ContextPatternAI {
   // 機能: N-gram統計学習による文脈パターン認識
   
-  // 学習アルゴリズム: N-gram言語モデル + TF-IDF
+  // 学習アルゴリズム: 高度N-gram言語モデル + Kneser-Neyスムージング + PCFG
   ngramFrequencies: Map<string, number>;           // N-gram頻度学習
-  contextVectors: Map<string, Vector>;             // 文脈ベクトル
+  kneserNeyParameters: SmoothingParams;            // Kneser-Neyスムージングパラメータ
+  pcfgRules: Map<string, GrammarRule>;             // 確率的文脈自由文法ルール
+  contextVectors: Map<string, Vector>;             // 分布意味論ベクトル
   similarityThreshold: number = 0.7;               // 類似度閾値
   
   // メソッド
@@ -259,16 +261,32 @@ class KuromojiMeCabProcessor {
 }
 ```
 
-#### **3. 統計的共起分析**
+#### **3. 統計的共起分析 + 高度統計学習**
 ```javascript
 // 現在のファイル: src/engines/learning/dynamic-relationship-learner.js
-// 活用方針: AI学習機能の基盤として拡張
+// 活用方針: AI学習機能の基盤として拡張 + 高度統計手法統合
 class CoOccurrenceAnalyzer {
   coOccurrenceData: Map;
   contextStrengths: Map;
   
+  // Phase 1 追加: Kneser-Neyスムージング
+  kneserNeySmoothing: KneserNeyModel;
+  
+  // Phase 2 追加: 確率的文脈自由文法
+  pcfgParser: PCFGGenerator;
+  grammarRules: Map<string, ProbabilityRule>;
+  
+  // Phase 3 追加: 分布意味論
+  wordVectors: Map<string, Vector>;
+  distributionalSimilarity: SimilarityCalculator;
+  
   learnFromConversation(input, history, response): void;
   analyzeCoOccurrence(keywords1, keywords2): void;
+  
+  // 新機能メソッド
+  generateWithKneserNey(context: string[]): TokenProbability[];
+  parseWithPCFG(tokens: string[]): SyntacticStructure;
+  calculateSemanticSimilarity(word1: string, word2: string): number;
 }
 ```
 
@@ -417,6 +435,11 @@ class CoOccurrenceAnalyzer {
 - 高精度個人適応
 - 文脈適応語彙選択
 - 動的学習率調整
+
+### **🔬 高度統計学習手法（段階的実装）**
+- **Phase 1**: Kneser-Neyスムージング統合（実現可能性: 85%）
+- **Phase 2**: 確率的文脈自由文法（PCFG）実装（実現可能性: 75%）
+- **Phase 3**: 分布意味論・Word Vector統合（実現可能性: 60% - 軽量性制約要考慮）
 
 ### **🚀 将来拡張可能**
 - より高度な機械学習モデル

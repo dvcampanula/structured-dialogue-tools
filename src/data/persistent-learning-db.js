@@ -14,8 +14,10 @@ export class PersistentLearningDB {
     constructor(basePath = './data/learning') {
         this.basePath = basePath;
         this.userProfilesDir = path.join(this.basePath, 'user_profiles');
+        this.systemDataDir = path.join(this.basePath, 'system_data');
         this.ensureDataDirectory();
         this.ensureUserProfilesDirectory();
+        this.ensureSystemDataDirectory();
         
         // データファイルパス
         this.userRelationsPath = path.join(this.basePath, 'user-relations.json');
@@ -25,6 +27,7 @@ export class PersistentLearningDB {
         this.conceptAnalysisDBPath = path.join(this.basePath, 'concept-analysis-db.json');
         this.banditDataPath = path.join(this.basePath, 'bandit-data.json');
         this.ngramDataPath = path.join(this.basePath, 'ngram-data.json');
+        this.qualityTrainingDataPath = path.join(this.basePath, 'quality-training-data.json');
         
         // インメモリキャッシュ
         this.userRelationsCache = new Map();
@@ -36,8 +39,10 @@ export class PersistentLearningDB {
         
         this.loadAllData();
         
-        console.log('✅ PersistentLearningDB初期化完了');
-        console.log(`📂 データベース: ${this.basePath}`);
+        if (process.env.DEBUG_VERBOSE === 'true') {
+            console.log('✅ PersistentLearningDB初期化完了');
+            console.log(`📂 データベース: ${this.basePath}`);
+        }
     }
 
     /**
@@ -61,6 +66,16 @@ export class PersistentLearningDB {
     }
 
     /**
+     * システムデータディレクトリ確保
+     */
+    ensureSystemDataDirectory() {
+        if (!fs.existsSync(this.systemDataDir)) {
+            fs.mkdirSync(this.systemDataDir, { recursive: true });
+            console.log(`📁 システムデータディレクトリ作成: ${this.systemDataDir}`);
+        }
+    }
+
+    /**
      * 全データ読み込み（起動時）
      */
     async loadAllData() {
@@ -74,7 +89,9 @@ export class PersistentLearningDB {
                 this.loadNgramData()
             ]);
             
-            console.log(`💾 データ読み込み完了: 関係性${this.userRelationsCache.size}件, 概念${this.conceptLearningCache.size}件, 会話${this.conversationCache.length}件`);
+            if (process.env.DEBUG_VERBOSE === 'true') {
+                console.log(`💾 データ読み込み完了: 関係性${this.userRelationsCache.size}件, 概念${this.conceptLearningCache.size}件, 会話${this.conversationCache.length}件`);
+            }
             
         } catch (error) {
             console.warn('⚠️ データ読み込みエラー:', error.message);
@@ -88,9 +105,20 @@ export class PersistentLearningDB {
     async loadNgramData() {
         if (fs.existsSync(this.ngramDataPath)) {
             const data = JSON.parse(fs.readFileSync(this.ngramDataPath, 'utf8'));
-            this.ngramDataCache = data;
-            console.log(`📊 N-gramデータ読み込み完了`);
-            return data;
+            // Mapオブジェクトに変換して返す
+            const loadedData = {
+                ngramFrequencies: new Map(data.ngramFrequencies && Array.isArray(data.ngramFrequencies) ? data.ngramFrequencies : []),
+                contextFrequencies: new Map(data.contextFrequencies && Array.isArray(data.contextFrequencies) ? data.contextFrequencies : []),
+                continuationCounts: new Map(data.continuationCounts && Array.isArray(data.continuationCounts) ? data.continuationCounts.map(([key, valueArray]) => [key, new Set(valueArray)]) : []),
+                documentFreqs: new Map(data.documentFreqs && Array.isArray(data.documentFreqs) ? data.documentFreqs : []),
+                totalNgrams: data.totalNgrams || 0,
+                totalDocuments: data.totalDocuments || 0,
+            };
+            this.ngramDataCache = loadedData;
+            if (process.env.DEBUG_VERBOSE === 'true') {
+                console.log(`📊 N-gramデータ読み込み完了`);
+            }
+            return loadedData;
         }
         return null;
     }
@@ -100,7 +128,15 @@ export class PersistentLearningDB {
      */
     async saveNgramData(data) {
         try {
-            fs.writeFileSync(this.ngramDataPath, JSON.stringify(data, null, 2));
+            const dataToSave = {
+                ngramFrequencies: Array.from(data.ngramFrequencies.entries()),
+                contextFrequencies: Array.from(data.contextFrequencies.entries()),
+                continuationCounts: Array.from(data.continuationCounts.entries()).map(([key, valueSet]) => [key, Array.from(valueSet)]),
+                documentFreqs: Array.from(data.documentFreqs.entries()),
+                totalNgrams: data.totalNgrams,
+                totalDocuments: data.totalDocuments,
+            };
+            fs.writeFileSync(this.ngramDataPath, JSON.stringify(dataToSave, null, 2));
             this.ngramDataCache = data;
             console.log(`💾 N-gramデータ保存完了`);
         } catch (error) {
@@ -116,7 +152,9 @@ export class PersistentLearningDB {
         try {
             if (fs.existsSync(modelPath)) {
                 const data = fs.readFileSync(modelPath, 'utf8');
-                console.log('📥 品質予測モデル読み込み完了');
+                if (process.env.DEBUG_VERBOSE === 'true') {
+                    console.log('📥 品質予測モデル読み込み完了');
+                }
                 return JSON.parse(data);
             }
             return null;
@@ -133,7 +171,9 @@ export class PersistentLearningDB {
         const modelPath = path.join(this.basePath, 'quality-prediction-model.json');
         try {
             fs.writeFileSync(modelPath, JSON.stringify(modelData, null, 2));
-            console.log('💾 品質予測モデル保存完了');
+            if (process.env.DEBUG_VERBOSE === 'true') {
+                console.log('💾 品質予測モデル保存完了');
+            }
         } catch (error) {
             console.error('❌ 品質予測モデル保存エラー:', error.message);
         }
@@ -146,14 +186,20 @@ export class PersistentLearningDB {
         const patternsPath = path.join(this.basePath, 'improvement-patterns.json');
         try {
             if (fs.existsSync(patternsPath)) {
-                const data = fs.readFileSync(patternsPath, 'utf8');
-                console.log('📚 改善パターン読み込み完了');
-                return JSON.parse(data);
+                const data = JSON.parse(fs.readFileSync(patternsPath, 'utf8'));
+                // Mapに変換できる形式か確認
+                if (Array.isArray(data) && data.every(item => Array.isArray(item) && item.length === 2)) {
+                    console.log('📚 改善パターン読み込み完了');
+                    return new Map(data);
+                } else {
+                    console.warn('⚠️ 改善パターンデータが不正な形式です。空のMapで初期化します。');
+                    return new Map();
+                }
             }
-            return [];
+            return new Map(); // ファイルが存在しない場合もMapを返す
         } catch (error) {
             console.warn('⚠️ 改善パターン読み込みエラー:', error.message);
-            return [];
+            return new Map();
         }
     }
 
@@ -176,9 +222,14 @@ export class PersistentLearningDB {
     async loadBanditData() {
         if (fs.existsSync(this.banditDataPath)) {
             const data = JSON.parse(fs.readFileSync(this.banditDataPath, 'utf8'));
-            this.banditDataCache = data;
+            // Mapオブジェクトに変換して返す
+            const loadedData = {
+                vocabularyStats: new Map(data.vocabularyStats && Array.isArray(data.vocabularyStats) ? data.vocabularyStats : []),
+                totalSelections: data.totalSelections || 0,
+            };
+            this.banditDataCache = loadedData;
             console.log(`🎰 バンディットデータ読み込み完了`);
-            return data;
+            return loadedData;
         }
         return null;
     }
@@ -188,9 +239,13 @@ export class PersistentLearningDB {
      */
     async saveBanditData(data) {
         try {
-            fs.writeFileSync(this.banditDataPath, JSON.stringify(data, null, 2));
+            const dataToSave = {
+                vocabularyStats: Array.from(data.vocabularyStats.entries()),
+                totalSelections: data.totalSelections,
+            };
+            fs.writeFileSync(this.banditDataPath, JSON.stringify(dataToSave, null, 2));
             this.banditDataCache = data;
-            console.log(`💾 バンディットデータ保存完了`);
+            // console.log(`💾 バンディットデータ保存完了`); // ログを削除
         } catch (error) {
             console.error('❌ バンディットデータ保存エラー:', error.message);
         }
@@ -216,8 +271,16 @@ export class PersistentLearningDB {
         const filePath = path.join(this.userProfilesDir, `${userId}.json`);
         try {
             if (fs.existsSync(filePath)) {
-                const data = fs.readFileSync(filePath, 'utf8');
-                return JSON.parse(data);
+                const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+                // Mapオブジェクトに変換して返す
+                const loadedData = {
+                    userId: data.userId,
+                    classCounts: new Map(data.classCounts || []),
+                    featureCounts: new Map(data.featureCounts ? data.featureCounts.map(([key, valueArray]) => [key, new Map(valueArray)]) : []),
+                    totalInteractions: data.totalInteractions || 0,
+                    preferences: new Map(data.preferences || []),
+                };
+                return loadedData;
             }
         } catch (error) {
             console.error(`❌ ユーザープロファイル読み込みエラー (${userId}):`, error.message);
@@ -288,11 +351,26 @@ export class PersistentLearningDB {
         if (fs.existsSync(this.userRelationsPath)) {
             const data = JSON.parse(fs.readFileSync(this.userRelationsPath, 'utf8'));
             
-            for (const [key, value] of Object.entries(data)) {
-                this.userRelationsCache.set(key, value);
+            // 読み込んだデータがオブジェクトであることを確認
+            if (typeof data === 'object' && data !== null) {
+                // 読み込んだオブジェクトをMapに変換し、ネストされたMapも再構築
+                this.userRelationsCache = new Map();
+                for (const [userKey, userData] of Object.entries(data)) {
+                    const loadedUserData = { ...userData };
+                    if (Array.isArray(loadedUserData.userRelations)) {
+                        loadedUserData.userRelations = new Map(loadedUserData.userRelations);
+                    }
+                    if (Array.isArray(loadedUserData.coOccurrenceData)) {
+                        loadedUserData.coOccurrenceData = new Map(loadedUserData.coOccurrenceData);
+                    }
+                    this.userRelationsCache.set(userKey, loadedUserData);
+                }
+            } else {
+                console.warn('⚠️ ユーザー関係性データが不正な形式です。空のMapで初期化します。');
+                this.userRelationsCache = new Map();
             }
-            
-            console.log(`📊 ユーザー関係性読み込み: ${Object.keys(data).length}件`);
+
+            console.log(`📊 ユーザー関係性読み込み: ${this.userRelationsCache.size}件`);
         }
     }
 
@@ -303,11 +381,15 @@ export class PersistentLearningDB {
         if (fs.existsSync(this.conceptLearningPath)) {
             const data = JSON.parse(fs.readFileSync(this.conceptLearningPath, 'utf8'));
             
-            for (const [key, value] of Object.entries(data)) {
-                this.conceptLearningCache.set(key, value);
+            // 読み込んだデータが配列であることを確認し、Mapに変換
+            if (Array.isArray(data)) {
+                this.conceptLearningCache = new Map(data);
+            } else {
+                console.warn('⚠️ 概念学習データが不正な形式です。空のMapで初期化します。');
+                this.conceptLearningCache = new Map();
             }
             
-            console.log(`🧠 概念学習データ読み込み: ${Object.keys(data).length}件`);
+            console.log(`🧠 概念学習データ読み込み: ${this.conceptLearningCache.size}件`);
         }
     }
 
@@ -316,7 +398,13 @@ export class PersistentLearningDB {
      */
     async loadConversationHistory() {
         if (fs.existsSync(this.conversationHistoryPath)) {
-            this.conversationCache = JSON.parse(fs.readFileSync(this.conversationHistoryPath, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(this.conversationHistoryPath, 'utf8'));
+            if (Array.isArray(data)) {
+                this.conversationCache = data;
+            } else {
+                console.warn('⚠️ 会話履歴データが不正な形式です。空の配列で初期化します。');
+                this.conversationCache = [];
+            }
             console.log(`💬 会話履歴読み込み: ${this.conversationCache.length}件`);
         }
     }
@@ -326,7 +414,13 @@ export class PersistentLearningDB {
      */
     async loadLearningStats() {
         if (fs.existsSync(this.learningStatsPath)) {
-            this.statsCache = JSON.parse(fs.readFileSync(this.learningStatsPath, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(this.learningStatsPath, 'utf8'));
+            if (typeof data === 'object' && data !== null) {
+                this.statsCache = data;
+            } else {
+                console.warn('⚠️ 学習統計データが不正な形式です。デフォルト値で初期化します。');
+                this.initializeStats();
+            }
             console.log(`📈 学習統計読み込み完了`);
         } else {
             this.initializeStats();
@@ -362,20 +456,31 @@ export class PersistentLearningDB {
     /**
      * ユーザー関係性保存
      */
-    async saveUserRelations(userRelations) {
+    async saveUserRelations(userRelationsMap) {
         try {
             // Mapをオブジェクトに変換
             const dataToSave = {};
-            for (const [key, value] of userRelations) {
-                dataToSave[key] = value;
-                this.userRelationsCache.set(key, value);
+            let totalRelationsCount = 0;
+            for (const [userKey, userData] of userRelationsMap) {
+                const processedUserData = { ...userData };
+                if (processedUserData.userRelations instanceof Map) {
+                    processedUserData.userRelations = Array.from(processedUserData.userRelations.entries());
+                }
+                if (processedUserData.coOccurrenceData instanceof Map) {
+                    processedUserData.coOccurrenceData = Array.from(processedUserData.coOccurrenceData.entries());
+                }
+                dataToSave[userKey] = processedUserData;
+                if (userData && userData.userRelations) {
+                    totalRelationsCount += (userData.userRelations instanceof Map) ? userData.userRelations.size : Object.keys(userData.userRelations).length;
+                }
+                this.userRelationsCache.set(userKey, userData);
             }
             
             fs.writeFileSync(this.userRelationsPath, JSON.stringify(dataToSave, null, 2));
-            console.log(`💾 ユーザー関係性保存: ${Object.keys(dataToSave).length}件`);
+            console.log(`💾 ユーザー関係性保存: ${Object.keys(dataToSave).length}件のユーザー, ${totalRelationsCount}件の関係性`);
             
             // 統計更新
-            this.statsCache.totalRelationsLearned = Object.keys(dataToSave).length;
+            this.statsCache.totalRelationsLearned = totalRelationsCount;
             this.statsCache.lastLearningDate = Date.now();
             await this.saveLearningStats();
             
@@ -389,17 +494,14 @@ export class PersistentLearningDB {
      */
     async saveConceptLearning(conceptData) {
         try {
-            const dataToSave = {};
-            for (const [key, value] of conceptData) {
-                dataToSave[key] = value;
-                this.conceptLearningCache.set(key, value);
-            }
+            const dataToSave = Array.from(conceptData.entries());
             
             fs.writeFileSync(this.conceptLearningPath, JSON.stringify(dataToSave, null, 2));
-            console.log(`🧠 概念学習データ保存: ${Object.keys(dataToSave).length}件`);
+            this.conceptLearningCache = conceptData;
+            console.log(`🧠 概念学習データ保存: ${conceptData.size}件`);
             
             // 統計更新
-            this.statsCache.totalConceptsLearned = Object.keys(dataToSave).length;
+            this.statsCache.totalConceptsLearned = conceptData.size;
             await this.saveLearningStats();
             
         } catch (error) {
@@ -512,7 +614,8 @@ export class PersistentLearningDB {
      */
     getUserSpecificRelations(userId) {
         const userKey = `user_${userId}`;
-        return this.userRelationsCache.get(userKey) || {};
+        const data = this.userRelationsCache.get(userKey);
+        return data || { userRelations: {}, coOccurrenceData: {}, learningConfig: {} }; // Ensure a consistent structure is returned
     }
 
     /**
@@ -575,6 +678,29 @@ export class PersistentLearningDB {
         
         await this.saveLearningStats();
         await this.recordLearningEvent('quality_update', { score: newScore });
+    }
+
+    /**
+     * 品質スコアの統計情報を取得
+     */
+    async getQualityStats() {
+        if (this.conversationCache.length === 0) {
+            return { average: 0.5, stdDev: 0.1, count: 0 }; // デフォルト値
+        }
+
+        const scores = this.conversationCache.map(c => c.qualityScore).filter(s => typeof s === 'number');
+
+        if (scores.length === 0) {
+            return { average: 0.5, stdDev: 0.1, count: 0 };
+        }
+
+        const sum = scores.reduce((acc, score) => acc + score, 0);
+        const average = sum / scores.length;
+
+        const variance = scores.reduce((acc, score) => acc + Math.pow(score - average, 2), 0) / scores.length;
+        const stdDev = Math.sqrt(variance);
+
+        return { average, stdDev, count: scores.length };
     }
 
     /**
@@ -819,6 +945,71 @@ export class PersistentLearningDB {
             
         } catch (error) {
             console.warn('⚠️ 学習イベントログ記録エラー:', error.message);
+        }
+    }
+
+    /**
+     * 品質予測訓練データの保存
+     */
+    async saveQualityTrainingData(trainingData) {
+        try {
+            fs.writeFileSync(this.qualityTrainingDataPath, JSON.stringify(trainingData, null, 2));
+            console.log('💾 品質訓練データ保存完了');
+        } catch (error) {
+            console.warn('⚠️ 品質訓練データ保存エラー:', error.message);
+            throw error;
+        }
+    }
+
+    /**
+     * 品質予測訓練データの読み込み
+     */
+    async loadQualityTrainingData() {
+        try {
+            if (fs.existsSync(this.qualityTrainingDataPath)) {
+                const data = JSON.parse(fs.readFileSync(this.qualityTrainingDataPath, 'utf8'));
+                if (data && Array.isArray(data.data)) { // data.dataが配列であることを確認
+                    console.log(`📊 品質訓練データ読み込み完了: ${data.data.length}件`);
+                    return data;
+                } else {
+                    console.warn('⚠️ 品質訓練データが不正な形式です。空のデータで初期化します。');
+                    return { data: [], lastUpdated: 0, dataCount: 0, modelTrained: false, accuracy: 0 };
+                }
+            }
+            return null;
+        } catch (error) {
+            console.warn('⚠️ 品質訓練データ読み込みエラー:', error.message);
+            return null;
+        }
+    }
+
+    /**
+     * システムデータ読み込み
+     */
+    async loadSystemData(key) {
+        const filePath = path.join(this.systemDataDir, `${key}.json`);
+        try {
+            if (fs.existsSync(filePath)) {
+                const data = fs.readFileSync(filePath, 'utf8');
+                return JSON.parse(data);
+            }
+            return null;
+        } catch (error) {
+            console.warn(`⚠️ システムデータ読み込みエラー (${key}):`, error.message);
+            return null;
+        }
+    }
+
+    /**
+     * システムデータ保存
+     */
+    async saveSystemData(key, data) {
+        const filePath = path.join(this.systemDataDir, `${key}.json`);
+        try {
+            fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+        } catch (error) {
+            console.error(`❌ システムデータ保存エラー (${key}):`, error.message);
+            throw error;
         }
     }
 }

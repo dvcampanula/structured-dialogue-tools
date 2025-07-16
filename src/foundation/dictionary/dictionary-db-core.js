@@ -7,37 +7,25 @@
  * ⚡ 即座利用可能・ゼロセットアップ
  */
 
-/**
- * 軽量辞書エントリ構造
- */
-export class DictionaryEntry {
-    constructor(word, reading = null, definitions = [], synonyms = [], antonyms = [], pos = [], quality = 0, synonymQualities) {
-        this.word = word;           // 単語
-        this.reading = reading;     // 読み（ひらがな）
-        this.definitions = definitions; // 定義・意味
-        this.synonyms = synonyms;   // 同義語
-        this.antonyms = antonyms;   // 反義語
-        this.pos = pos;            // 品詞 (part of speech)
-        this.frequency = 0;        // 使用頻度
-        this.level = 'common';     // 語彙レベル
-        this.quality = quality;    // 品質スコア
-        this.synonymQualities = synonymQualities || []; // 同義語ペアの品質スコアリスト
-    }
-}
+import { DictionaryEntry } from './dictionary-entry.js';
 
 /**
  * 軽量辞書データベース（コア版）
  * 配布済みDB読み込み専用・解析機能なし
  */
-export class DictionaryDBCore {
+/**
+ * 軽量辞書データベース基底クラス
+ * 共通機能を集約・重複除去
+ */
+export class DictionaryDBBase {
     constructor() {
-        // メインデータ構造
+        // 共通メインデータ構造
         this.entries = new Map();        // word -> DictionaryEntry
         this.synonymMap = new Map();     // word -> Set(synonyms)
         this.readingMap = new Map();     // reading -> Set(words)
         this.posMap = new Map();         // pos -> Set(words)
         
-        // 統計・メタデータ
+        // 共通統計・メタデータ
         this.stats = {
             totalEntries: 0,
             loadedSources: [],
@@ -45,6 +33,85 @@ export class DictionaryDBCore {
             lastUpdated: null,
             version: '1.0.0'
         };
+    }
+
+    /**
+     * 単語の同義語取得
+     */
+    getSynonyms(word, maxResults = 5) {
+        const synonymSet = this.synonymMap.get(word);
+        if (!synonymSet || synonymSet.size === 0) {
+            return [];
+        }
+        
+        const synonymsArray = Array.from(synonymSet);
+        return synonymsArray.slice(0, maxResults);
+    }
+
+    /**
+     * 文脈を考慮した同義語選択
+     */
+    getContextualSynonym(word, context = {}) {
+        const synonyms = this.getSynonyms(word, 10);
+        if (synonyms.length === 0) return word;
+        
+        // デフォルトはランダム選択
+        return synonyms[Math.floor(Math.random() * synonyms.length)];
+    }
+
+    /**
+     * エントリ取得
+     */
+    getEntry(word) {
+        return this.entries.get(word);
+    }
+
+    /**
+     * データベースサイズ取得
+     */
+    getSize() {
+        return this.entries.size;
+    }
+
+    /**
+     * 品詞による検索
+     */
+    getWordsByPOS(pos) {
+        return Array.from(this.posMap.get(pos) || []);
+    }
+
+    /**
+     * メモリ使用量推定
+     */
+    estimateMemoryUsage() {
+        const avgEntrySize = 200; // バイト
+        return (this.getSize() * avgEntrySize) / (1024 * 1024);
+    }
+
+    /**
+     * 統計情報取得
+     */
+    getStatistics() {
+        return {
+            ...this.stats,
+            memoryUsage: this.estimateMemoryUsage(),
+            synonymMapSize: this.synonymMap.size,
+            readingMapSize: this.readingMap.size,
+            posMapSize: this.posMap.size
+        };
+    }
+}
+
+/**
+ * 軽量辞書データベース（コア版）
+ * 配布済みDB読み込み専用・解析機能なし
+ */
+export class DictionaryDBCore extends DictionaryDBBase {
+    constructor() {
+        super(); // 基底クラスの初期化
+        
+        // コア版専用データ構造
+        this.semanticGraph = new Map();  // word -> Map(relatedWord -> weight)
         
         console.log('📚 DictionaryDB Core初期化完了（軽量版）');
     }
@@ -206,8 +273,10 @@ export class DictionaryDBCore {
     async loadFromCacheData(cacheData) {
         this.entries = cacheData.entries;
         this.synonymMap = cacheData.synonymMap;
-        console.log('--- DEBUG: Synonym Map after loading from cacheData ---');
-        console.log(Array.from(this.synonymMap.keys()).slice(0, 5));
+        if (process.env.DEBUG_VERBOSE === 'true') {
+            console.log('--- DEBUG: Synonym Map after loading from cacheData ---');
+            console.log(Array.from(this.synonymMap.keys()).slice(0, 5));
+        }
         this.readingMap = cacheData.readingMap;
         this.posMap = cacheData.posMap;
         this.stats = {
@@ -268,81 +337,6 @@ export class DictionaryDBCore {
         console.log(`📖 サンプルデータ読み込み完了: ${this.stats.totalEntries}エントリ`);
     }
 
-    /**
-     * 単語の同義語取得
-     */
-    getSynonyms(word, maxResults = 5) {
-        const synonymSet = this.synonymMap.get(word);
-        if (!synonymSet || synonymSet.size === 0) {
-            return [];
-        }
-        
-        const synonymsArray = Array.from(synonymSet);
-        return synonymsArray.slice(0, maxResults);
-    }
-
-    /**
-     * 文脈を考慮した同義語選択
-     */
-    getContextualSynonym(word, context = {}) {
-        const synonyms = this.getSynonyms(word, 10);
-        if (synonyms.length === 0) return word;
-        
-        // フォーマリティ考慮
-        // if (context.formality === 'formal') {
-        //     const formalSynonyms = synonyms.filter(s => 
-        //         s.includes('ございま') || s.includes('いたしま') || s.length > word.length
-        //     );
-        //     if (formalSynonyms.length > 0) {
-        //         return formalSynonyms[Math.floor(Math.random() * formalSynonyms.length)];
-        //     }
-        // }
-        
-        // デフォルトはランダム選択
-        return synonyms[Math.floor(Math.random() * synonyms.length)];
-    }
-
-    /**
-     * エントリ取得
-     */
-    getEntry(word) {
-        return this.entries.get(word);
-    }
-
-    /**
-     * データベースサイズ取得
-     */
-    getSize() {
-        return this.entries.size;
-    }
-
-    /**
-     * 品詞による検索
-     */
-    getWordsByPOS(pos) {
-        return Array.from(this.posMap.get(pos) || []);
-    }
-
-    /**
-     * 統計情報取得
-     */
-    getStatistics() {
-        return {
-            ...this.stats,
-            memoryUsage: this.estimateMemoryUsage(),
-            synonymMapSize: this.synonymMap.size,
-            readingMapSize: this.readingMap.size,
-            posMapSize: this.posMap.size
-        };
-    }
-
-    /**
-     * メモリ使用量推定
-     */
-    estimateMemoryUsage() {
-        const avgEntrySize = 200; // バイト
-        return (this.stats.totalEntries * avgEntrySize) / (1024 * 1024);
-    }
 
     /**
      * 単語情報取得（VocabularyDiversifier互換）
@@ -383,22 +377,22 @@ export class DictionaryDBCore {
         let quality = 0;
 
         // 品詞一致度 (40点満点)
-        // const posOverlap = entry1.pos.filter(pos => entry2.pos.includes(pos)).length;
-        // quality += Math.min(posOverlap * 20, 40);
+        const posOverlap = entry1.pos.filter(pos => entry2.pos.includes(pos)).length;
+        quality += Math.min(posOverlap * 20, 40);
 
         // 頻度類似度 (30点満点)
-        // const freqDiff = Math.abs((entry1.frequency || 0) - (entry2.frequency || 0));
-        // quality += Math.max(0, 30 - freqDiff);
+        const freqDiff = Math.abs((entry1.frequency || 0) - (entry2.frequency || 0));
+        quality += Math.max(0, 30 - freqDiff);
 
         // 定義類似度 (30点満点)
-        // const defs1 = entry1.definitions || [];
-        // const defs2 = entry2.definitions || [];
-        // if (defs1.length > 0 && defs2.length > 0) {
-        //     const similarity = this.calculateDefinitionSimilarityFast(
-        //         defs1, defs2
-        //     );
-        //     quality += similarity * 30;
-        // }
+        const defs1 = entry1.definitions || [];
+        const defs2 = entry2.definitions || [];
+        if (defs1.length > 0 && defs2.length > 0) {
+            const similarity = this.calculateDefinitionSimilarityFast(
+                defs1, defs2
+            );
+            quality += similarity * 30;
+        }
 
         return quality;
     }
@@ -455,6 +449,10 @@ export class DictionaryDBCore {
                             synonymEntry.synonymQualities.push(quality);
                         }
                         similarityPairs++;
+
+                        // 意味グラフにエッジを追加
+                        this.addSemanticEdge(word, synonym, quality);
+                        this.addSemanticEdge(synonym, word, quality);
                     }
                     groupSynonyms++;
                 }
@@ -467,6 +465,56 @@ export class DictionaryDBCore {
             console.warn('⚠️ 同義語マッピング強化エラー:', error.message);
             return { enhancedCount: 0, totalSynonyms: this.synonymMap.size };
         }
+    }
+
+    /**
+     * 意味グラフにエッジを追加
+     * @param {string} word1 - 単語1
+     * @param {string} word2 - 単語2
+     * @param {number} weight - 関係性の重み (品質スコア)
+     */
+    addSemanticEdge(word1, word2, weight) {
+        if (!this.semanticGraph.has(word1)) {
+            this.semanticGraph.set(word1, new Map());
+        }
+        this.semanticGraph.get(word1).set(word2, weight);
+    }
+
+    /**
+     * 意味グラフから関連語彙を探索
+     * @param {string} startWord - 探索開始単語
+     * @param {number} depth - 探索深さ
+     * @param {number} minWeight - 最小重み閾値
+     * @returns {Array<Object>} 関連語彙のリスト (word, weight)
+     */
+    exploreSemanticGraph(startWord, depth = 2, minWeight = 50) {
+        const visited = new Set();
+        const queue = [{ word: startWord, currentWeight: 100, currentDepth: 0 }];
+        const relatedWords = new Map(); // word -> maxWeight
+
+        while (queue.length > 0) {
+            const { word, currentWeight, currentDepth } = queue.shift();
+
+            if (visited.has(word) || currentDepth > depth) {
+                continue;
+            }
+            visited.add(word);
+
+            if (word !== startWord) {
+                relatedWords.set(word, Math.max(relatedWords.get(word) || 0, currentWeight));
+            }
+
+            const neighbors = this.semanticGraph.get(word);
+            if (neighbors) {
+                for (const [neighborWord, edgeWeight] of neighbors.entries()) {
+                    const newWeight = currentWeight * (edgeWeight / 100); // 重みを伝播
+                    if (newWeight >= minWeight) {
+                        queue.push({ word: neighborWord, currentWeight: newWeight, currentDepth: currentDepth + 1 });
+                    }
+                }
+            }
+        }
+        return Array.from(relatedWords.entries()).map(([word, weight]) => ({ word, weight })).sort((a, b) => b.weight - a.weight);
     }
 }
 

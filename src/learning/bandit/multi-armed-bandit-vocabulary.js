@@ -13,12 +13,18 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  * ユーザーのフィードバックに基づいて最適な語彙を選択・学習します。
  */
 export class MultiArmedBanditVocabularyAI {
-  constructor(persistentDB) {
-    this.persistentLearningDB = persistentDB || persistentLearningDB; // 依存性注入またはデフォルトを使用
+  constructor(persistentDB, learningConfig = {}) {
+    this.persistentLearningDB = persistentDB;
     this.vocabularyStats = new Map(); // Map<vocabulary: string, { rewards: number, selections: number }>
     this.totalSelections = 0;
     this.explorationConstant = Math.sqrt(2); // UCBアルゴリズムの探索定数
     this.isInitialized = false;
+    this.learningConfig = { // 動的設定
+      initialExplorationBonus: 5, // 冷開始時の初期探索ボーナス
+      explorationDecayRate: 0.99, // 探索定数の減衰率
+      minExplorationConstant: 0.1 // 探索定数の最小値
+    };
+    Object.assign(this.learningConfig, learningConfig); // 外部設定で上書き可能
   }
 
   async initialize() {
@@ -52,13 +58,20 @@ export class MultiArmedBanditVocabularyAI {
     }
 
     if (!this.vocabularyStats.has(vocabulary)) {
-      // 未選択の語彙は無限大のUCB値を持つとみなし、優先的に選択されるようにする
-      return Infinity;
+      // 未選択の語彙は初期探索ボーナスを付与
+      return Infinity; // 非常に高いUCB値を与え、優先的に選択されるようにする
     }
 
     const stats = this.vocabularyStats.get(vocabulary);
     const averageReward = stats.rewards / stats.selections;
-    const explorationTerm = this.explorationConstant * Math.sqrt(Math.log(this.totalSelections) / stats.selections);
+
+    // 動的な探索定数
+    const dynamicExplorationConstant = Math.max(
+      this.learningConfig.minExplorationConstant,
+      this.explorationConstant * Math.pow(this.learningConfig.explorationDecayRate, this.totalSelections)
+    );
+
+    const explorationTerm = dynamicExplorationConstant * Math.sqrt(Math.log(this.totalSelections + 1) / stats.selections);
 
     return averageReward + explorationTerm;
   }
@@ -125,7 +138,7 @@ export class MultiArmedBanditVocabularyAI {
       const stats = this.vocabularyStats.get(vocabulary);
       // 報酬を0-1の範囲に正規化することを保証
       const normalizedRating = Math.max(0, Math.min(1, userRating));
-      stats.rewards += normalizedRating;
+      stats.rewards += Math.round(normalizedRating * 10000) / 10000;
       await this._saveData();
     }
   }
@@ -147,6 +160,6 @@ export class MultiArmedBanditVocabularyAI {
       totalSelections: this.totalSelections,
     };
     await this.persistentLearningDB.saveBanditData(dataToSave);
-    console.log('💾 バンディットデータ保存完了');
+    // console.log('💾 バンディットデータ保存完了'); // ログを削除
   }
 }

@@ -6,11 +6,58 @@
 import { parentPort, workerData } from 'worker_threads';
 import fs from 'fs';
 import path from 'path';
+import { PersistentLearningDB } from '../data/persistent-learning-db.js';
 
 const workerId = workerData.workerId;
+const learningDB = new PersistentLearningDB();
 
 // ワーカー初期化
 console.log(`🔧 学習ワーカー${workerId}初期化中...`);
+
+// 感情・トピックパターンの動的読み込み
+let sentimentPatterns = {};
+let topicPatterns = {};
+
+async function loadPatterns() {
+    try {
+        const sentimentData = await learningDB.loadSystemData('sentiment_intensifiers');
+        sentimentPatterns = sentimentData || await _initializeDefaultSentimentPatterns();
+
+        const topicData = await learningDB.loadSystemData('topic_categories');
+        topicPatterns = topicData || await _initializeDefaultTopicPatterns();
+        
+        console.log(`✅ ワーカー${workerId}: 学習パターン読み込み完了`);
+    } catch (error) {
+        console.error(`❌ ワーカー${workerId}: 学習パターン読み込みエラー:`, error);
+        sentimentPatterns = await _initializeDefaultSentimentPatterns();
+        topicPatterns = await _initializeDefaultTopicPatterns();
+    }
+}
+
+async function _initializeDefaultSentimentPatterns() {
+    const defaults = {
+        positive: ['嬉しい', '楽しい', '良い', '素晴らしい', '感謝'],
+        negative: ['悲しい', '辛い', '困る', 'だめ', '嫌い']
+    };
+    try {
+        await learningDB.saveSystemData('sentiment_intensifiers', defaults);
+    } catch (e) { console.error(e); }
+    return defaults;
+}
+
+async function _initializeDefaultTopicPatterns() {
+    const defaults = {
+        technology: ['プログラミング', 'AI', 'システム', 'データ'],
+        daily_life: ['生活', '家族', '友達', '食事'],
+        work: ['仕事', '会社', 'ビジネス', '会議']
+    };
+    try {
+        await learningDB.saveSystemData('topic_categories', defaults);
+    } catch (e) { console.error(e); }
+    return defaults;
+}
+
+loadPatterns();
 
 // タスク処理関数マップ
 const taskHandlers = {
@@ -288,8 +335,8 @@ async function handleFeatureExtraction(data, options) {
 
 // 感情分析
 async function analyzeSentiment(text) {
-    const positiveWords = ['嬉しい', '楽しい', '良い', '素晴らしい', '感謝'];
-    const negativeWords = ['悲しい', '辛い', '困る', 'だめ', '嫌い'];
+    const positiveWords = sentimentPatterns.positive || [];
+    const negativeWords = sentimentPatterns.negative || [];
     
     let positiveScore = 0;
     let negativeScore = 0;
@@ -325,11 +372,7 @@ async function analyzeSentiment(text) {
 
 // トピック分類
 async function classifyTopic(text) {
-    const topics = {
-        technology: ['プログラミング', 'AI', 'システム', 'データ'],
-        daily_life: ['生活', '家族', '友達', '食事'],
-        work: ['仕事', '会社', 'ビジネス', '会議']
-    };
+    const topics = topicPatterns || {};
     
     const scores = {};
     let maxScore = 0;
@@ -337,10 +380,19 @@ async function classifyTopic(text) {
     
     for (const [topic, keywords] of Object.entries(topics)) {
         let score = 0;
-        for (const keyword of keywords) {
-            if (text.includes(keyword)) score++;
+        // keywordsが配列であることを確認
+        if (Array.isArray(keywords)) {
+            for (const keyword of keywords) {
+                if (text.includes(keyword)) score++;
+            }
+            scores[topic] = keywords.length > 0 ? score / keywords.length : 0;
+        } else if (keywords && Array.isArray(keywords.keywords)) {
+            // topic_categoriesの構造に対応
+            for (const keyword of keywords.keywords) {
+                if (text.includes(keyword)) score++;
+            }
+            scores[topic] = keywords.keywords.length > 0 ? score / keywords.keywords.length : 0;
         }
-        scores[topic] = score / keywords.length;
         
         if (scores[topic] > maxScore) {
             maxScore = scores[topic];

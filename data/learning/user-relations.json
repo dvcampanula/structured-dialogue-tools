@@ -1,5 +1,265 @@
 {
-  "user_default": {
+  "user_ai_processor_user": {
+    "userRelations": {
+      "Object": [
+        {
+          "term": "object",
+          "strength": 0.42760000000000004,
+          "count": 1,
+          "firstSeen": 1752669744584,
+          "lastUpdated": 1752669744585,
+          "pos": "unknown"
+        },
+        {
+          "term": "について",
+          "strength": 0.5400255144404728,
+          "count": 1,
+          "firstSeen": 1752670151663,
+          "lastUpdated": 1752670151663,
+          "pos": "unknown"
+        }
+      ],
+      "について": [
+        {
+          "term": "object",
+          "strength": 0.42550000000000004,
+          "count": 1,
+          "firstSeen": 1752669744585,
+          "lastUpdated": 1752669744585,
+          "pos": "unknown"
+        },
+        {
+          "term": "Object",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1752670121522,
+          "lastUpdated": 1752670121522,
+          "pos": "unknown"
+        },
+        {
+          "term": "構造",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670138150,
+          "lastUpdated": 1752670138150,
+          "pos": "unknown"
+        }
+      ],
+      "検討": [
+        {
+          "term": "object",
+          "strength": 0.42430000000000007,
+          "count": 1,
+          "firstSeen": 1752669744585,
+          "lastUpdated": 1752669744585,
+          "pos": "unknown"
+        },
+        {
+          "term": "Object",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1752670121522,
+          "lastUpdated": 1752670121522,
+          "pos": "unknown"
+        },
+        {
+          "term": "について",
+          "strength": 0.6695782147707274,
+          "count": 1,
+          "firstSeen": 1752670151663,
+          "lastUpdated": 1752670151663,
+          "pos": "unknown"
+        }
+      ],
+      "可能": [
+        {
+          "term": "object",
+          "strength": 0.4237000000000001,
+          "count": 1,
+          "firstSeen": 1752669744585,
+          "lastUpdated": 1752669744585,
+          "pos": "unknown"
+        },
+        {
+          "term": "Object",
+          "strength": 0.7,
+          "count": 1,
+          "firstSeen": 1752670121522,
+          "lastUpdated": 1752670121522,
+          "pos": "unknown"
+        },
+        {
+          "term": "について",
+          "strength": 0.6695779500009958,
+          "count": 1,
+          "firstSeen": 1752670151663,
+          "lastUpdated": 1752670151663,
+          "pos": "unknown"
+        }
+      ],
+      "object": [
+        {
+          "term": "Object",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670121521,
+          "lastUpdated": 1752670121521,
+          "pos": "unknown"
+        },
+        {
+          "term": "について",
+          "strength": 0.6303592481981924,
+          "count": 1,
+          "firstSeen": 1752670151663,
+          "lastUpdated": 1752670151663,
+          "pos": "unknown"
+        }
+      ],
+      "undefined": [],
+      "対話": [
+        {
+          "term": "構造",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670138149,
+          "lastUpdated": 1752670138149,
+          "pos": "unknown"
+        }
+      ],
+      "教え": [
+        {
+          "term": "構造",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670138150,
+          "lastUpdated": 1752670138150,
+          "pos": "unknown"
+        }
+      ],
+      "良い": [
+        {
+          "term": "もっと",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670151626,
+          "lastUpdated": 1752670151626,
+          "pos": "unknown"
+        }
+      ],
+      "方法": [
+        {
+          "term": "もっと",
+          "strength": 0.4,
+          "count": 1,
+          "firstSeen": 1752670151626,
+          "lastUpdated": 1752670151626,
+          "pos": "unknown"
+        }
+      ]
+    },
+    "coOccurrenceData": {
+      "Object|object": {
+        "count": 2,
+        "contexts": [
+          "",
+          ""
+        ]
+      },
+      "object|について": {
+        "count": 2,
+        "contexts": [
+          "",
+          ""
+        ]
+      },
+      "object|検討": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "object|可能": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "Object|について": {
+        "count": 2,
+        "contexts": [
+          "",
+          ""
+        ]
+      },
+      "Object|検討": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "Object|可能": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "対話|構造": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "について|構造": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "教え|構造": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "もっと|良い": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "もっと|方法": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "について|検討": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      },
+      "について|可能": {
+        "count": 1,
+        "contexts": [
+          ""
+        ]
+      }
+    },
+    "learningConfig": {
+      "minCoOccurrence": 2,
+      "strengthThreshold": 0.3,
+      "maxRelationsPerTerm": 10,
+      "decayFactor": 0.95,
+      "learningRate": 0.1,
+      "forgettingThreshold": 0.1,
+      "maxMemorySize": 1000,
+      "batchSaveInterval": 5,
+      "qualityThreshold": 0.6
+    },
+    "lastSaved": 1752705240685
+  },
+  "user_quality_predictor_user": {
     "userRelations": {},
     "coOccurrenceData": {},
     "learningConfig": {
@@ -13,6 +273,6 @@
       "batchSaveInterval": 5,
       "qualityThreshold": 0.6
     },
-    "lastSaved": 1752298404371
+    "lastSaved": 1752705240678
   }
 }

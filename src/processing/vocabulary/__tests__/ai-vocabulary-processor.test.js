@@ -25,6 +25,7 @@ const mockDynamicRelationshipLearner = {
   analyze: jest.fn(),
   learnFromFeedback: jest.fn(),
   getLearningStats: jest.fn(),
+  getUserRelationsData: jest.fn().mockReturnValue({}), // Added for AIVocabularyProcessor
 };
 
 const mockQualityPredictionModel = {
@@ -45,7 +46,7 @@ const mockDictionaryDB = {
 describe('AIVocabularyProcessor', () => {
   let processor;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // 各モックのリセット
     mockMultiArmedBanditVocabularyAI.initialize.mockReset().mockResolvedValue(undefined);
     mockMultiArmedBanditVocabularyAI.selectVocabulary.mockReset().mockResolvedValue('optimizedWord');
@@ -115,10 +116,22 @@ describe('AIVocabularyProcessor', () => {
       mockEnhancedHybridLanguageProcessor,
       mockDictionaryDB
     );
+    await processor.initialize('testUser'); // Added initialization
+  });
+
+  afterEach(() => {
+    // Jestのタイマーをクリア
+    jest.clearAllTimers();
+    // 依存するAIモジュールのタイマーをクリア
+    // DynamicRelationshipLearnerがsetIntervalを使用しているため、そのタイマーをクリア
+    if (mockDynamicRelationshipLearner.autoSaveInterval) {
+      clearInterval(mockDynamicRelationshipLearner.autoSaveInterval);
+      mockDynamicRelationshipLearner.autoSaveInterval = null; // 参照をクリア
+    }
   });
 
   test('初期化時にすべての依存AIモジュールが初期化されるべき', async () => {
-    await processor.initialize();
+    await processor.initialize('testUser');
 
     expect(mockMultiArmedBanditVocabularyAI.initialize).toHaveBeenCalledTimes(1);
     expect(mockNgramContextPatternAI.initialize).toHaveBeenCalledTimes(1);
@@ -131,7 +144,7 @@ describe('AIVocabularyProcessor', () => {
   });
 
   test('テキスト処理がすべてのAIモジュールを連携させるべき', async () => {
-    await processor.initialize(); // プロセッサを初期化
+    await processor.initialize('testUser'); // プロセッサを初期化
     const text = 'これはテストの文章です';
     const userId = 'user123';
 
@@ -150,7 +163,7 @@ describe('AIVocabularyProcessor', () => {
     expect(result.optimizedVocabulary).toBe('optimizedWord');
     expect(result.predictedContext.confidence).toBe(0.7);
     expect(result.adaptedContent.adaptationScore).toBe(0.9);
-    expect(result.cooccurrenceAnalysis.totalTerms).toBe(10);
+    expect(result.cooccurrenceAnalysis.learningStats.totalTerms).toBe(10);
     expect(result.qualityPrediction.qualityScore).toBe(0.85);
     expect(result.processingTime).toBeGreaterThanOrEqual(0);
     expect(result.processedTokens).toHaveLength(2);
@@ -158,7 +171,7 @@ describe('AIVocabularyProcessor', () => {
   });
 
   test('フィードバック伝播がすべての関連AIモジュールを更新すべき', async () => {
-    await processor.initialize(); // プロセッサを初期化
+    await processor.initialize('testUser'); // プロセッサを初期化
     
     // propagateFeedback内でprocessTextが呼ばれるため、processTextの戻り値を上書き設定
     const mockProcessTextResult = {
@@ -202,7 +215,7 @@ describe('AIVocabularyProcessor', () => {
   });
 
   test('テキスト処理中にエラーが発生した場合、適切なフォールバックを返すはず', async () => {
-    await processor.initialize();
+    await processor.initialize('testUser');
     mockEnhancedHybridLanguageProcessor.processText.mockRejectedValue(new Error('解析エラー'));
 
     const result = await processor.processText('エラーテスト', 'userError');

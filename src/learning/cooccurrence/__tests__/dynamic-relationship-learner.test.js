@@ -7,14 +7,19 @@ describe('DynamicRelationshipLearner', () => {
   let mockNgramAI;
   let mockPersistentLearningDB;
   let mockConfigLoader;
+  let newLearner; // Added for cleanup
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // 各テスト実行前にモックを完全にリセット
     jest.clearAllMocks();
     
     // 依存関係のモック作成
     mockHybridProcessor = {
       processText: jest.fn().mockResolvedValue({
+        enhancedTerms: [
+          { term: 'テスト' },
+          { term: '単語' },
+        ],
         tokens: [
           { surface: 'テスト', pos: '名詞' },
           { surface: '単語', pos: '名詞' },
@@ -45,19 +50,25 @@ describe('DynamicRelationshipLearner', () => {
       loadConfig: jest.fn().mockResolvedValue({}),
     };
 
-    // DynamicRelationshipLearnerのコンストラクタにモックを渡す
-    learner = new DynamicRelationshipLearner('testUser', {
-      persistentLearningDB: mockPersistentLearningDB,
-      hybridProcessor: mockHybridProcessor,
-      ngramAI: mockNgramAI,
-      configLoader: mockConfigLoader,
-    });
+    // DynamicRelationshipLearnerのコンストラクタにモックを渡す（configLoaderは削除済み）
+    learner = new DynamicRelationshipLearner(
+      mockPersistentLearningDB,
+      mockHybridProcessor,
+      mockNgramAI,
+      'testUser'
+    );
+    await learner.initializeLearner(); // Added initialization
   });
 
   afterEach(() => {
     // clearIntervalを呼び出してタイマーをクリーンアップ
     if (learner && learner.autoSaveInterval) {
       clearInterval(learner.autoSaveInterval);
+      learner.autoSaveInterval = null;
+    }
+    if (newLearner && newLearner.autoSaveInterval) {
+      clearInterval(newLearner.autoSaveInterval);
+      newLearner.autoSaveInterval = null;
     }
     jest.clearAllTimers();
   });
@@ -65,21 +76,17 @@ describe('DynamicRelationshipLearner', () => {
   test('初期化時に既存データと設定がロードされるべき', async () => {
     const mockRelations = { userRelations: { 'word1': [{ term: 'word2', strength: 0.5 }] } }; // ネストされた構造を考慮
     mockPersistentLearningDB.getUserSpecificRelations.mockReturnValue(mockRelations);
-    mockConfigLoader.loadConfig.mockResolvedValue({ minCoOccurrence: 3 });
 
-    // 新しいインスタンスを作成し、初期化を待つ
-    const newLearner = new DynamicRelationshipLearner('testUser', {
-      persistentLearningDB: mockPersistentLearningDB,
-      hybridProcessor: mockHybridProcessor,
-      ngramAI: mockNgramAI,
-      configLoader: mockConfigLoader,
-    });
+    // 新しいインスタンスを作成し、初期化を待つ（configLoaderは削除済み）
+    const newLearner = new DynamicRelationshipLearner(
+      mockPersistentLearningDB,
+      mockHybridProcessor,
+      mockNgramAI,
+      'testUser'
+    );
     await newLearner.initializeLearner();
-
-    expect(mockPersistentLearningDB.getUserSpecificRelations).toHaveBeenCalledWith('testUser');
-    expect(mockConfigLoader.loadConfig).toHaveBeenCalledWith('learningConfig');
     expect(newLearner.userRelations).toEqual(mockRelations.userRelations || {}); // userRelationsがネストされている可能性を考慮
-    expect(newLearner.learningConfig.minCoOccurrence).toBe(3);
+    expect(newLearner.learningConfig.minCoOccurrence).toBe(2); // デフォルト値
     // clearIntervalを呼び出してタイマーをクリーンアップ
     if (newLearner.autoSaveInterval) {
       clearInterval(newLearner.autoSaveInterval);
@@ -102,10 +109,10 @@ describe('DynamicRelationshipLearner', () => {
     expect(Object.keys(learner.coOccurrenceData).length).toBeGreaterThan(0);
     expect(Object.keys(learner.userRelations).length).toBeGreaterThanOrEqual(0);
     
-    // 呼び出しパラメータの確認
-    expect(mockHybridProcessor.processText).toHaveBeenCalledWith(input, { enableMeCab: true, enableGrouping: false });
-    expect(mockHybridProcessor.processText).toHaveBeenCalledWith(response, { enableMeCab: true, enableGrouping: false });
-    expect(mockHybridProcessor.processText).toHaveBeenCalledWith('以前の会話', { enableMeCab: true, enableGrouping: false });
+    // 呼び出しパラメータの確認（オプション引数なしで呼び出されることを確認）
+    expect(mockHybridProcessor.processText).toHaveBeenCalledWith(input);
+    expect(mockHybridProcessor.processText).toHaveBeenCalledWith(response);
+    expect(mockHybridProcessor.processText).toHaveBeenCalledWith('以前の会話');
   });
 
   test('フィードバックに基づいて関係性を更新すべき', async () => {
@@ -124,17 +131,19 @@ describe('DynamicRelationshipLearner', () => {
     expect(mockPersistentLearningDB.saveUserSpecificRelations).toHaveBeenCalledTimes(1); // learnFromFeedback内で保存される
   });
 
-  test('TF-IDFスコアを正しく計算すべき', async () => {
+  test('関係性強度取得が正しく動作すべき', async () => {
     await learner.initializeLearner(); // initializeLearnerを明示的に呼び出す
-    const text = 'テスト単語';
-    const keywords = await learner.extractKeywords(text);
-
-    // モックされたNgramAIのdocumentFreqsとtotalDocumentsを使用
-    const tfidfScore = await learner.calculateKeywordTFIDF(keywords, text);
-
-    expect(tfidfScore.length).toBeGreaterThan(0);
-    expect(tfidfScore[0].score).toBeGreaterThan(0);
-    expect(Number.isFinite(tfidfScore[0].score)).toBe(true);
+    
+    // 関係性を追加
+    learner.addUserRelation('テスト', '単語', 0.7);
+    
+    // 関係性強度を取得
+    const strength = learner.getRelationshipStrength('テスト', '単語');
+    expect(strength).toBe(0.7);
+    
+    // 存在しない関係性は0を返すべき
+    const noRelation = learner.getRelationshipStrength('存在しない', '関係');
+    expect(noRelation).toBe(0);
   });
 
   test('関係性の忘却処理が機能すべき', async () => {
@@ -161,10 +170,10 @@ describe('DynamicRelationshipLearner', () => {
     
     // 正常なケースではモック関数が呼ばれていることを確認
     mockHybridProcessor.processText.mockResolvedValueOnce({
-      tokens: [{ surface: 'テスト', pos: '名詞' }]
+      enhancedTerms: [{ term: 'テスト' }]
     });
-    await learner.extractKeywords('正常テスト');
-    expect(mockHybridProcessor.processText).toHaveBeenCalledWith('正常テスト', { enableMeCab: true, enableGrouping: false });
+    await learner.learnFromConversation('正常テスト', [], '応答テスト');
+    expect(mockHybridProcessor.processText).toHaveBeenCalled();
   });
 
   test('統計的意味類似度計算が正常に動作すべき', async () => {

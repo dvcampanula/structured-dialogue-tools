@@ -1,0 +1,6 @@
+{
+  "STRENGTH_MEDIAN": 0.7,
+  "STRENGTH_IQR": 0.071,
+  "MAX_COUNT": 5,
+  "MAX_RELATIONS": 10
+}

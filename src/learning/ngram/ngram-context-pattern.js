@@ -13,8 +13,8 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  * テキストの文脈パターンを学習し、予測します。
  */
 export class NgramContextPatternAI {
-  constructor(maxNgramOrder = 3, discountParameter = 0.75, persistentDB) {
-    this.persistentLearningDB = persistentDB || persistentLearningDB;
+  constructor(maxNgramOrder = 3, discountParameter = 0.75, persistentDB, learningConfig = {}) {
+    this.persistentLearningDB = persistentDB;
     this.ngramFrequencies = new Map(); // Map<ngram: string, frequency: number>
     this.contextFrequencies = new Map(); // Map<context: string, frequency: number>
     this.continuationCounts = new Map(); // Map<ngram: string, unique_continuation_count: number>
@@ -30,6 +30,16 @@ export class NgramContextPatternAI {
     this.semanticCache = new Map(); // 類似度計算キャッシュ
     this.vectorDimensions = 50; // 軽量ベクトル次元数
     this.similarityThreshold = null; // 動的計算される類似度閾値
+
+    this.learningConfig = { // 動的設定
+      minVectorDimensions: 10, // 最小ベクトル次元数
+      maxVectorDimensions: 100, // 最大ベクトル次元数
+      dimensionGrowthFactor: 0.1, // 次元成長率
+      minSimilarityThreshold: 0.3, // 最小類似度閾値
+      maxSimilarityThreshold: 0.8, // 最大類似度閾値
+      similarityThresholdGrowthFactor: 0.01 // 類似度閾値成長率
+    };
+    Object.assign(this.learningConfig, learningConfig); // 外部設定で上書き可能
     
     this.isInitialized = false;
   }
@@ -40,7 +50,15 @@ export class NgramContextPatternAI {
     try {
       const loadedData = await this.persistentLearningDB.loadNgramData();
       if (loadedData) {
-        this.ngramFrequencies = new Map(loadedData.ngramFrequencies);
+        const combinedFrequencies = new Map(loadedData.ngramFrequencies || []);
+        if (loadedData.extendedPatterns) {
+          for (const [pattern, data] of Object.entries(loadedData.extendedPatterns)) {
+            if (!combinedFrequencies.has(pattern)) {
+              combinedFrequencies.set(pattern, data.count || 1);
+            }
+          }
+        }
+        this.ngramFrequencies = combinedFrequencies;
         this.contextFrequencies = new Map(loadedData.contextFrequencies);
         // continuationCountsの復元時にSetオブジェクトを再構築
         this.continuationCounts = new Map();
@@ -236,7 +254,8 @@ export class NgramContextPatternAI {
       // Unigram: 継続カウントベースの確率
       const continuationCount = this.getContinuationCount(ngram);
       const totalContinuations = this.getTotalContinuations();
-      return totalContinuations > 0 ? continuationCount / totalContinuations : 1e-10;
+      const prob = totalContinuations > 0 ? continuationCount / totalContinuations : 1e-10;
+      return Math.round(prob * 1e6) / 1e6;
     }
     
     const tokens = ngram.split(' ');
@@ -248,13 +267,16 @@ export class NgramContextPatternAI {
     const ngramFreq = this.ngramFrequencies.get(ngram) || 0;
     
     if (prefixFreq === 0) {
-      // バックオフ: 低次のモデルを使用
-      return this.calculateKneserNeyProbability(tokens.slice(1).join(' '), order - 1);
+      // バックオフ: 低次のモデルを使用 (Kneser-Neyのバックオフは、現在のN-gramの最後の単語を削除し、そのプレフィックスの確率を計算する)
+      // ここでは、N-gramの最後の単語を除いたプレフィックスの確率を計算する
+      const backoffNgram = tokens.slice(0, order - 1).join(' ');
+      return this.calculateKneserNeyProbability(backoffNgram, order - 1);
     }
     
     // メインターム: max(count - d, 0) / count(prefix)
-    const discountedFreq = Math.max(ngramFreq - this.discountParameter, 0);
-    const mainTerm = discountedFreq / prefixFreq;
+    const dynamicDiscountParameter = this.calculateDynamicDiscountParameter();
+    const discountedFreq = Math.max(ngramFreq - dynamicDiscountParameter, 0);
+    const mainTerm = Math.round((discountedFreq / prefixFreq) * 1e6) / 1e6;
     
     // ラムダターム: バックオフ重み
     const lambda = this.calculateLambda(prefix);
@@ -278,7 +300,8 @@ export class NgramContextPatternAI {
     // プレフィックスに続くユニークな単語数
     const uniqueContinuations = this.continuationCounts.get(prefix)?.size || 0;
     
-    return (this.discountParameter * uniqueContinuations) / prefixFreq;
+    const lambda = (this.discountParameter * uniqueContinuations) / prefixFreq;
+    return Math.round(lambda * 1e6) / 1e6;
   }
   
   /**
@@ -322,13 +345,13 @@ export class NgramContextPatternAI {
     }
     
     // 正規化TF
-    const tf = termFreq / Math.max(1, tokens.length - ngramTokens.length + 1);
+    const tf = Math.round((termFreq / Math.max(1, tokens.length - ngramTokens.length + 1)) * 1e6) / 1e6;
     
     // IDF: 逆文書頻度
     const docFreq = this.documentFreqs.get(ngram) || 0;
     const idf = docFreq > 0 ? Math.log(this.totalDocuments / docFreq) : 0;
     
-    return tf * idf;
+    return Math.round((tf * idf) * 1e6) / 1e6;
   }
 
   /**
@@ -459,9 +482,18 @@ export class NgramContextPatternAI {
     }
     
     const termList = Array.from(allTerms);
+    // 動的にベクトル次元数を調整
+    this.vectorDimensions = Math.min(
+      this.learningConfig.maxVectorDimensions,
+      Math.max(
+        this.learningConfig.minVectorDimensions,
+        Math.floor(termList.length * this.learningConfig.dimensionGrowthFactor)
+      )
+    );
+    
     // 全共起総数を計算（PMI正規化用）
     const totalCooccurrences = Array.from(this.cooccurrenceMatrix.values()).reduce((sum, count) => sum + count, 0);
-    console.log(`📊 PMI計算用統計: 語彙数=${termList.length}, 共起総数=${totalCooccurrences}`);
+    console.log(`📊 PMI計算用統計: 語彙数=${termList.length}, 共起総数=${totalCooccurrences}, ベクトル次元=${this.vectorDimensions}`);
     
     // 各語彙の分布ベクトル生成
     for (const targetTerm of termList) {
@@ -554,7 +586,7 @@ export class NgramContextPatternAI {
       }
       
       // デバッグ: 最初の数語彙でベクトル詳細表示
-      if (this.contextVectors.size < 3) {
+      if (process.env.DEBUG_VERBOSE === 'true' && this.contextVectors.size < 3) {
         console.log(`🧮 ベクトル生成: ${targetTerm} (共起数=${termCooccurrences.length}, 非ゼロ=${nonZeroValues}, norm=${norm.toFixed(3)})`);
         console.log(`  ベクトル例: [${vector.slice(0, 5).map(v => v.toFixed(3)).join(', ')}]`);
       }
@@ -583,15 +615,13 @@ export class NgramContextPatternAI {
       return 0;
     }
     
-    // マンハッタン距離とコサイン類似度のハイブリッド計算
+    // コサイン類似度
     let dotProduct = 0;
-    let manhattanDistance = 0;
     let norm1 = 0;
     let norm2 = 0;
     
     for (let i = 0; i < vector1.length; i++) {
       dotProduct += vector1[i] * vector2[i];
-      manhattanDistance += Math.abs(vector1[i] - vector2[i]);
       norm1 += vector1[i] * vector1[i];
       norm2 += vector2[i] * vector2[i];
     }
@@ -599,22 +629,50 @@ export class NgramContextPatternAI {
     norm1 = Math.sqrt(norm1);
     norm2 = Math.sqrt(norm2);
     
-    // コサイン類似度
-    const cosine = (norm1 > 0 && norm2 > 0) ? dotProduct / (norm1 * norm2) : 0;
-    
-    // マンハッタン距離ベース類似度（逆距離）
-    const manhattan = 1 / (1 + manhattanDistance);
-    
-    // 語彙特性による重み付け
-    const termDistance = Math.abs(term1.length - term2.length);
-    const lengthSimilarity = 1 / (1 + termDistance * 0.1);
-    
-    // ハイブリッド類似度：コサイン60% + マンハッタン30% + 語彙特性10%
-    const hybridSimilarity = (cosine * 0.6) + (manhattan * 0.3) + (lengthSimilarity * 0.1);
+    const cosine = (norm1 > 0 && norm2 > 0) ? Math.round((dotProduct / (norm1 * norm2)) * 1e6) / 1e6 : 0;
+
+    // Word Mover's Distance (WMD) の簡易版を導入
+    // 語彙の「移動コスト」を考慮した類似度
+    const wmdSimilarity = this.calculateSimplifiedWMDSimilarity(term1, term2, vector1, vector2);
+
+    // ハイブリッド類似度：コサイン80% + WMD20%
+    const hybridSimilarity = (cosine * 0.8) + (wmdSimilarity * 0.2);
     
     const similarity = Math.max(0, Math.min(1, hybridSimilarity)); // [0,1]に正規化
     this.semanticCache.set(cacheKey, similarity);
     return similarity;
+  }
+
+  /**
+   * 簡易版 Word Mover's Distance (WMD) 類似度計算
+   * @param {string} term1 - 単語1
+   * @param {string} term2 - 単語2
+   * @param {Array<number>} vector1 - 単語1のベクトル
+   * @param {Array<number>} vector2 - 単語2のベクトル
+   * @returns {number} WMD類似度スコア (0-1)
+   */
+  calculateSimplifiedWMDSimilarity(term1, term2, vector1, vector2) {
+    // ユークリッド距離
+    let euclideanDistance = 0;
+    for (let i = 0; i < vector1.length; i++) {
+      euclideanDistance += Math.pow(vector1[i] - vector2[i], 2);
+    }
+    euclideanDistance = Math.sqrt(euclideanDistance);
+
+    // 単語の頻度情報（簡易的に単語の長さを使用）
+    const freq1 = term1.length;
+    const freq2 = term2.length;
+
+    // 頻度と距離を組み合わせた「移動コスト」の簡易的な表現
+    // 頻度が近いほど、移動コストが低いとみなす
+    const frequencyCost = Math.abs(freq1 - freq2) / Math.max(freq1, freq2, 1);
+
+    // 距離と頻度コストを統合
+    // 距離が小さいほど、頻度コストが低いほど類似度が高い
+    const combinedCost = euclideanDistance * 0.7 + frequencyCost * 0.3;
+
+    // 類似度スコアに変換
+    return 1 / (1 + combinedCost);
   }
 
   /**
@@ -727,11 +785,14 @@ export class NgramContextPatternAI {
     // 意味的類似度順にソート
     const sortedCandidates = candidateTerms
       .map(term => ({ term, semanticScore: semanticScores.get(term) || 0 }))
-      .sort((a, b) => b.semanticScore - a.semanticScore)
-      .slice(0, maxResults);
-    
-    console.log('🎯 意味的語彙選択完了:', sortedCandidates.map(c => `${c.term}(${c.semanticScore.toFixed(3)})`));
-    return sortedCandidates;
+      .sort((a, b) => b.semanticScore - a.semanticScore);
+
+    // 動的類似度閾値に基づいてフィルタリング
+    const dynamicThreshold = this.calculateDynamicSimilarityThreshold(sortedCandidates.map(c => c.term));
+    const filteredCandidates = sortedCandidates.filter(c => c.semanticScore >= dynamicThreshold);
+
+    console.log('🎯 意味的語彙選択完了:', filteredCandidates.slice(0, maxResults).map(c => `${c.term}(${c.semanticScore.toFixed(3)})`));
+    return filteredCandidates.slice(0, maxResults);
   }
 
   // ===== ヘルパーメソッド =====
@@ -858,6 +919,22 @@ export class NgramContextPatternAI {
       console.error('❌ 分布意味論初期化エラー:', error.message);
       return false;
     }
+  }
+
+  /**
+   * 動的な割引パラメータを計算します。
+   * 学習データのスパース性に基づいて調整
+   * @returns {number} 動的な割引パラメータ
+   */
+  calculateDynamicDiscountParameter() {
+    // N-gramの総数とユニークなN-gramの数に基づいてスパース性を評価
+    const sparsity = 1 - (this.ngramFrequencies.size / Math.max(1, this.totalNgrams));
+
+    // スパース性が高いほど、より大きな割引パラメータを使用（よりスムージングを強くする）
+    // 0.5から0.95の範囲で調整
+    const dynamicDiscount = 0.5 + (0.45 * sparsity);
+
+    return Math.min(Math.max(dynamicDiscount, 0.5), 0.95); // 0.5から0.95の範囲にクランプ
   }
 
   /**

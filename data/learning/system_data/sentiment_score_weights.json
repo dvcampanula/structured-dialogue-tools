@@ -1,0 +1,7 @@
+{
+  "baseScore": 0.5,
+  "positiveRatio": 0.5,
+  "negativeRatio": 0.5,
+  "neutralConfidence": 0.6,
+  "defaultConfidence": 0.3
+}

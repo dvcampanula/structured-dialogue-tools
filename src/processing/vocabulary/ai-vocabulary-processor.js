@@ -7,14 +7,22 @@ import { EnhancedHybridLanguageProcessor } from '../../foundation/morphology/hyb
 import DictionaryDB from '../../foundation/dictionary/dictionary-db.js';
 
 export class AIVocabularyProcessor {
-  constructor(banditAI, ngramAI, bayesianAI, cooccurrenceLearner, qualityPredictor, hybridProcessor, dictionary) {
-    this.banditAI = banditAI || new MultiArmedBanditVocabularyAI();
-    this.ngramAI = ngramAI || new NgramContextPatternAI();
-    this.bayesianAI = bayesianAI || new BayesianPersonalizationAI();
-    this.cooccurrenceLearner = cooccurrenceLearner || new DynamicRelationshipLearner();
-    this.qualityPredictor = qualityPredictor || new QualityPredictionModel();
-    this.hybridProcessor = hybridProcessor || new EnhancedHybridLanguageProcessor();
-    this.dictionary = dictionary || new DictionaryDB();
+  constructor(banditAI, ngramAI, bayesianAI, cooccurrenceLearner, qualityPredictor, hybridProcessor, dictionary, userId = 'default') {
+    this.banditAI = banditAI;
+    this.ngramAI = ngramAI;
+    this.bayesianAI = bayesianAI;
+    this.cooccurrenceLearner = cooccurrenceLearner;
+    this.qualityPredictor = qualityPredictor;
+    this.hybridProcessor = hybridProcessor;
+    this.dictionary = dictionary;
+    this.userId = userId; // Add this line
+
+    // TF-IDF関連のプロパティ
+    this.documents = []; // 処理された文書の配列
+    this.vocabulary = new Set(); // 全てのユニークな単語
+    this.documentTermFrequencies = new Map(); // Map<documentId, Map<term, frequency>>
+    this.inverseDocumentFrequencies = new Map(); // Map<term, idf>
+    this.documentCount = 0; // 文書数
     
     this.isInitialized = false;
     console.log('🧠 AIVocabularyProcessor初期化中...');
@@ -28,7 +36,7 @@ export class AIVocabularyProcessor {
         this.banditAI.initialize(),
         this.ngramAI.initialize(),
         this.bayesianAI.initialize(),
-        this.cooccurrenceLearner.initializeLearner(),
+        this.cooccurrenceLearner.initializeLearner(this.userId), // userIdを渡す
         this.qualityPredictor.initializeAIModules(),
         this.hybridProcessor.initialize(),
         this.dictionary.initialize()
@@ -50,6 +58,11 @@ export class AIVocabularyProcessor {
   async processText(text, userId = 'default') {
     if (!this.isInitialized) {
       await this.initialize();
+    }
+
+    // cooccurrenceLearnerがまだ初期化されていない場合、ここで初期化
+    if (!this.cooccurrenceLearner.isInitialized) {
+        await this.cooccurrenceLearner.initializeLearner(userId);
     }
 
     console.log(`✨ AIVocabularyProcessor: テキスト処理開始 - "${text}"`);
@@ -86,7 +99,7 @@ export class AIVocabularyProcessor {
         result.dictionaryLookups = lookupResults.filter(Boolean);
         
         // 2. 多腕バンディットによる語彙最適化
-        const candidateVocabularies = tokens.map(t => t.surface || t.term);
+        const candidateVocabularies = tokens.filter(t => !['助詞', '助動詞', '記号'].includes(t.pos)).map(t => t.surface || t.term);
         result.optimizedVocabulary = await this.banditAI.selectVocabulary(candidateVocabularies);
         
         // 3. N-gramによる文脈予測
@@ -112,6 +125,9 @@ export class AIVocabularyProcessor {
             relevanceScore: result.predictedContext?.confidence || 0.5 // 文脈予測の信頼度を関連性スコアとして利用
           }
         });
+
+        // 7. TF-IDFスコア計算
+        result.tfidfScores = await this.calculateTfIdf(text, tokens);
         
         result.success = true;
       } else {
@@ -159,6 +175,44 @@ export class AIVocabularyProcessor {
   }
 
   /**
+   * TF-IDFスコアを計算し、結果に含めます。
+   * @param {string} text - 処理するテキスト
+   * @param {Array} tokens - 形態素解析されたトークン
+   * @returns {Object} TF-IDFスコアを含むオブジェクト
+   */
+  async calculateTfIdf(text, tokens) {
+    const documentId = this.documentCount++;
+    const termFrequencies = new Map();
+
+    for (const token of tokens) {
+      const term = token.surface || token.term;
+      termFrequencies.set(term, (termFrequencies.get(term) || 0) + 1);
+      this.vocabulary.add(term);
+    }
+    this.documentTermFrequencies.set(documentId, termFrequencies);
+    this.documents.push(text);
+
+    // IDFの更新
+    for (const term of this.vocabulary) {
+      let docCount = 0;
+      for (const [docId, tfMap] of this.documentTermFrequencies.entries()) {
+        if (tfMap.has(term)) {
+          docCount++;
+        }
+      }
+      this.inverseDocumentFrequencies.set(term, Math.log(this.documentCount / (docCount + 1)));
+    }
+
+    const tfidfScores = {};
+    for (const [term, tf] of termFrequencies.entries()) {
+      const idf = this.inverseDocumentFrequencies.get(term) || 0;
+      tfidfScores[term] = tf * idf;
+    }
+
+    return tfidfScores;
+  }
+
+  /**
    * ユーザーフィードバックを各AIモジュールに伝播します。
    * @param {string} userId - ユーザーID
    * @param {string} vocabulary - 評価された語彙
@@ -180,20 +234,24 @@ export class AIVocabularyProcessor {
       await this.ngramAI.learnPattern(contextText, { category: predictedContext.predictedCategory });
 
       // ベイジアンAIに学習させる
-      const features = {};
-      features[vocabulary] = 1; // 評価された語彙自体を特徴量とする
-      features.is_rated_positive = rating > 0.5 ? 1 : 0; // 評価がポジティブかどうかの特徴量
+      const features = new Map();
+      if (typeof vocabulary === 'string') {
+        features.set(vocabulary, 1); // 評価された語彙自体を特徴量とする
+      }
+      features.set('is_rated_positive', rating > 0.5 ? 1 : 0); // 評価がポジティブかどうかの特徴量
       // contextText からキーワードを抽出し、特徴量として追加することも可能
       const contextAnalysis = await this.processText(contextText);
       const contextKeywords = contextAnalysis.enhancedTerms ? contextAnalysis.enhancedTerms.map(term => term.term) : [];
-      contextKeywords.forEach(kw => features[`keyword_${kw}`] = 1);
+      contextKeywords.forEach(kw => features.set(`keyword_${kw}`, 1));
 
       await this.bayesianAI.learnUserBehavior(userId, {
         class: predictedContext.predictedCategory,
         features: features,
       });
       
-      await this.cooccurrenceLearner.learnFromFeedback(vocabulary, rating, contextText);
+      if (typeof vocabulary === 'string') {
+        await this.cooccurrenceLearner.learnFromFeedback(vocabulary, rating, contextText);
+      }
       
       // QualityPredictionModelのlearnFromFeedbackは直接呼ばれないため、ここでは呼び出さない
       // await this.qualityPredictor.learnFromFeedback(originalContent, appliedSuggestion, beforeScore, afterScore);

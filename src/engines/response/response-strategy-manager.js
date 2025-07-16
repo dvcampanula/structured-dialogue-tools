@@ -38,37 +38,60 @@ export class ResponseStrategyManager {
    * @param {Object} analysis - 5AI分析結果
    * @returns {string} 対話ステージ (例: 'greeting', 'information_request', 'problem_solving', 'confirmation', 'general')
    */
-  determineDialogueStage(analysis) {
+  async determineDialogueStage(analysis) {
     const { originalText, predictedContext, optimizedVocabulary, adaptedContent, cooccurrenceAnalysis } = analysis;
 
-    // 簡易的なステージ判定ロジック
-    // 実際のシステムでは、より複雑なルールや学習モデルを使用
-    if (originalText.match(/(こんにちは|こんばんは|おはよう|やあ|どうも)/)) {
-      return 'greeting';
-    }
-    if (originalText.match(/(何ができる|教えて|知りたい|について)/)) {
-      return 'information_request';
-    }
-    if (originalText.match(/(問題|エラー|うまくいかない|解決)/)) {
-      return 'problem_solving';
-    }
-    if (originalText.match(/(確認|合ってる|正しい|本当に)/)) {
-      return 'confirmation';
-    }
-    if (predictedContext?.confidence > 0.7) {
-      return 'context_driven';
-    }
-    if (optimizedVocabulary?.length > 0) {
-      return 'vocabulary_focused';
-    }
-    if (adaptedContent?.adaptationScore > 0.5) {
-      return 'personalized';
-    }
-    if (cooccurrenceAnalysis?.relatedTerms && Object.keys(cooccurrenceAnalysis.relatedTerms).length > 0) {
-      return 'relationship_exploration';
+    // 統計的ステージ判定ロジック
+    const stageScores = {};
+    const stageKeywords = await this.getDialogueStageKeywords();
+
+    for (const stage in stageKeywords) {
+      stageScores[stage] = 0;
+      for (const keyword in stageKeywords[stage]) {
+        if (originalText.includes(keyword)) {
+          stageScores[stage] += stageKeywords[stage][keyword];
+        }
+      }
     }
 
-    return 'general';
+    // 分析結果に基づく追加スコアリング
+    if (predictedContext?.confidence > 0.7) {
+      stageScores.context_driven = (stageScores.context_driven || 0) + 1;
+    }
+    if (optimizedVocabulary?.length > 0) {
+      stageScores.vocabulary_focused = (stageScores.vocabulary_focused || 0) + 1;
+    }
+    if (adaptedContent?.adaptationScore > 0.5) {
+      stageScores.personalized = (stageScores.personalized || 0) + 1;
+    }
+    if (cooccurrenceAnalysis?.relatedTerms && Object.keys(cooccurrenceAnalysis.relatedTerms).length > 0) {
+      stageScores.relationship_exploration = (stageScores.relationship_exploration || 0) + 1;
+    }
+
+    // 最高スコアのステージを選択
+    let bestStage = 'general';
+    let maxScore = 0;
+    for (const stage in stageScores) {
+      if (stageScores[stage] > maxScore) {
+        maxScore = stageScores[stage];
+        bestStage = stage;
+      }
+    }
+
+    return bestStage;
+  }
+
+  /**
+   * 対話ステージキーワード取得 (学習データから取得するように拡張可能)
+   */
+  async getDialogueStageKeywords() {
+    // 将来的にはlearningDBから動的に取得
+    return {
+      greeting: { 'こんにちは': 1, 'こんばんは': 1, 'おはよう': 1, 'やあ': 1, 'どうも': 1 },
+      information_request: { '何ができる': 1, '教えて': 1, '知りたい': 1, 'について': 1 },
+      problem_solving: { '問題': 1, 'エラー': 1, 'うまくいかない': 1, '解決': 1 },
+      confirmation: { '確認': 1, '合ってる': 1, '正しい': 1, '本当に': 1 }
+    };
   }
 
   /**
@@ -141,45 +164,42 @@ export class ResponseStrategyManager {
     const { predictedContext, optimizedVocabulary, adaptedContent, enhancedTerms } = analysis;
     
     try {
-      // 1. N-gram統計的信頼度
-      const ngramConfidence = predictedContext?.confidence || 0;
-      const ngramDataQuality = await this.calculateNgramDataQuality();
-      
-      // 2. 共起関係の統計的豊富さ
-      const cooccurrenceRichness = await this.calculateCooccurrenceRichness(enhancedTerms, analysis.userId); // userIdを渡す
-      
-      // 3. ベイジアン個人適応の統計的適用可能性
-      const personalAdaptationViability = await this.calculatePersonalAdaptationViability(adaptedContent);
-      
-      // 4. 語彙最適化の統計的効果性
-      const vocabularyOptimizationEffectiveness = await this.calculateVocabularyOptimizationEffectiveness(optimizedVocabulary);
-      
-      // 5. 品質予測の統計的確信度
-      const qualityPredictionConfidence = await this.calculateQualityPredictionConfidence(analysis);
-      
-      let scores = {
-        [ResponseStrategies.NGRAM_CONTINUATION]: ngramConfidence * ngramDataQuality,
-        [ResponseStrategies.COOCCURRENCE_EXPANSION]: cooccurrenceRichness * 2.0, // 学習データ活用を優先
-        [ResponseStrategies.PERSONAL_ADAPTATION]: personalAdaptationViability,
-        [ResponseStrategies.VOCABULARY_OPTIMIZATION]: vocabularyOptimizationEffectiveness,
-        [ResponseStrategies.QUALITY_FOCUSED]: qualityPredictionConfidence * 0.5 // 固定応答を避ける
+      // Phase 0 Critical Fix: 統計学習ベースの動的重み計算
+      const statisticalWeights = await this.calculateStatisticalStrategyWeights();
+
+      // 各種分析指標の計算
+      const analysisMetrics = {
+        ngram: (predictedContext?.confidence || 0) * (await this.calculateNgramDataQuality()),
+        cooccurrence: await this.calculateCooccurrenceRichness(enhancedTerms, analysis.userId),
+        personalization: await this.calculatePersonalAdaptationViability(adaptedContent),
+        vocabOptimization: await this.calculateVocabularyOptimizationEffectiveness(optimizedVocabulary),
+        quality: await this.calculateQualityPredictionConfidence(analysis)
       };
 
-      // 対話ステージに応じた戦略スコアの調整
+      // 統計的重みと分析指標を統合してスコアを計算
+      let scores = {
+        [ResponseStrategies.NGRAM_CONTINUATION]: statisticalWeights.ngram * analysisMetrics.ngram,
+        [ResponseStrategies.COOCCURRENCE_EXPANSION]: statisticalWeights.cooccurrence * analysisMetrics.cooccurrence,
+        [ResponseStrategies.PERSONAL_ADAPTATION]: statisticalWeights.personalization * analysisMetrics.personalization,
+        [ResponseStrategies.VOCABULARY_OPTIMIZATION]: statisticalWeights.vocabOptimization * analysisMetrics.vocabOptimization,
+        [ResponseStrategies.QUALITY_FOCUSED]: statisticalWeights.quality * analysisMetrics.quality
+      };
+
+      // 対話ステージに応じた戦略スコアの調整 (ヒューリスティックな調整として維持)
       switch (dialogueStage) {
         case 'greeting':
-          scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.5; // 挨拶ではN-gramを優先
+          scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.5;
           break;
         case 'information_request':
-          scores[ResponseStrategies.COOCCURRENCE_EXPANSION] *= 1.2; // 情報要求では共起を優先
+          scores[ResponseStrategies.COOCCURRENCE_EXPANSION] *= 1.2;
           scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.1;
           break;
         case 'problem_solving':
-          scores[ResponseStrategies.QUALITY_FOCUSED] *= 1.5; // 問題解決では品質重視を優先
+          scores[ResponseStrategies.QUALITY_FOCUSED] *= 1.5;
           scores[ResponseStrategies.COOCCURRENCE_EXPANSION] *= 1.3;
           break;
         case 'confirmation':
-          scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.3; // 確認ではN-gramを優先
+          scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.3;
           break;
         case 'context_driven':
           scores[ResponseStrategies.NGRAM_CONTINUATION] *= 1.2;
@@ -196,7 +216,7 @@ export class ResponseStrategyManager {
           break;
         case 'general':
         default:
-          // 一般的な対話では均等に
+          // No change
           break;
       }
 
@@ -204,10 +224,45 @@ export class ResponseStrategyManager {
       
     } catch (error) {
       console.warn('動的戦略スコア計算エラー:', error.message);
-      // エラー時は均等スコア
-      // エラー時も統計的フォールバックを使用
       return await this.calculateStatisticalFallbackWeights();
     }
+  }
+
+  /**
+   * 統計的戦略重み計算
+   * @returns {Promise<Object>} 各戦略の統計的重み
+   */
+  async calculateStatisticalStrategyWeights() {
+    const weights = {};
+    let totalReward = 0;
+
+    // 各戦略の平均報酬を取得
+    for (const strategy of Object.values(ResponseStrategies)) {
+      const stats = this.strategyStats.get(strategy);
+      weights[strategy] = stats.averageReward > 0 ? stats.averageReward : 0.1; // ゼロ報酬を避ける
+      totalReward += weights[strategy];
+    }
+
+    // 正規化して重みを算出
+    if (totalReward > 0) {
+      for (const strategy in weights) {
+        weights[strategy] /= totalReward;
+      }
+    } else {
+      // 報酬データがない場合は均等に割り振る
+      const numStrategies = Object.keys(ResponseStrategies).length;
+      for (const strategy in weights) {
+        weights[strategy] = 1 / numStrategies;
+      }
+    }
+    
+    return {
+        ngram: weights[ResponseStrategies.NGRAM_CONTINUATION],
+        cooccurrence: weights[ResponseStrategies.COOCCURRENCE_EXPANSION],
+        personalization: weights[ResponseStrategies.PERSONAL_ADAPTATION],
+        vocabOptimization: weights[ResponseStrategies.VOCABULARY_OPTIMIZATION],
+        quality: weights[ResponseStrategies.QUALITY_FOCUSED]
+    };
   }
 
   /**

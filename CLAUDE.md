@@ -28,11 +28,18 @@ Node.js development environment with v22.17.0 available via NVM.
 **When starting a new session, always check these files for context:**
 
 1. **`docs/LATEST_SESSION.md`** - Current project status and recent achievements (PRIMARY - most concise)
-2. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation
-3. **`docs/UNIFIED_ROADMAP.md`** - Technical development roadmap and project phases
-4. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
+2. **`docs/NEXT_SESSION_HANDOVER.md`** - Specific instructions for next session continuation  
+3. **`docs/ROADMAP_REALITY_CHECK_v8.md`** - 現実的な段階的開発ロードマップ (最新版)
+4. **`docs/REDESIGN_REALITY_v2.md`** - 実装可能な段階的設計仕様書 (最新版)
+5. **`docs/DEVELOPMENT_LOG.md`** - Complete development history (DETAILED - for deep dive)
 
-**Current Status**: システム完全再設計完了 - 軽量統計学習型日本語処理AI設計仕様書完成
+**🚨 CRITICAL: 課題分析ドキュメント (必読)**
+- **`docs/CRITICAL_ISSUES_ANALYSIS.md`** - システム全体問題カタログ
+- **`docs/HARDCODE_ANALYSIS_REPORT.md`** - 327+ハードコード箇所分析
+- **`docs/LEARNING_DB_VALIDATION.md`** - 学習アルゴリズムの数学的妥当性検証
+- **`docs/LEARNING_DATA_QUALITY_ASSESSMENT.md`** - 学習データ品質評価
+
+**Current Status**: 設計vs実装の深刻なギャップを発見・課題整理完了 → 段階的改善計画策定済み
 
 ## 🎯 **System Redesign - New Architecture (2025-07-10)**
 
@@ -52,8 +59,9 @@ Node.js development environment with v22.17.0 available via NVM.
 4. **線形回帰品質予測** - 統計的品質評価・改善提案
 
 #### **設計ドキュメント**
-- **`docs/REDESIGN_SPECIFICATION.md`** - システム全体設計仕様書
-- **`docs/TECHNICAL_ARCHITECTURE.md`** - 詳細技術実装仕様書
+- **`docs/REDESIGN_REALITY_v2.md`** - 実装可能な段階的設計仕様書 (最新・推奨)
+- **`docs/TECHNICAL_ARCHITECTURE.md`** - 詳細技術実装仕様書 (参考用)
+- **`docs/REDESIGN_SPECIFICATION.md`** - 旧システム設計仕様書 (非推奨)
 
 #### **技術的特徴**
 - **完全ローカルAI**: プライバシー完全保護・データ送信なし

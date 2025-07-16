@@ -88,6 +88,8 @@ debug-*
 temp-*
 experiment-*
 poc-*
+sample-*
+demo-*
 
 # 個人メモ・ノート
 notes.md
@@ -95,16 +97,66 @@ notes-*.md
 todo-personal.*
 session-notes-*
 
-# 一時出力
+# 一時出力・ログファイル
 debug.txt
 output-*.json
 temp-output.*
+error-*.log
+crash-*.log
+performance-*.log
+*.dump
+*.trace
+
+# AI学習関連の一時ファイル
+learning-debug-*
+training-output-*
+model-temp-*
+stats-backup-*
 
 # 一時作業領域 (全体除外)
 workspace/
+
+# プライベート対話ログ (セキュリティ重要)
+data/logs/claude/
+data/logs/gemini/
+data/logs/chatgpt/
+data/logs/processed/
+data/logs/*.txt
+data/logs/*.log
+data/logs/*.md
+!data/logs/README.md
+
+# 対話学習システム関連の機密データ
+src/scripts/learn-logs-output.json
+data/learning/dialogue-statistics-backup*.json
+data/learning/temp-*
+data/learning/*.tmp
 
 # 大容量辞書ファイル (100MB制限対応)
 data/dictionaries/JMdict
 data/wiktionary/simple-wiktionary-extract.jsonl
 data/wiktionary/kaikki-*.jsonl
 archive/
+
+# セキュリティ・機密情報保護
+*.secret
+*.private
+*-credentials.*
+*-secrets.*
+api-keys.*
+tokens.*
+auth-*
+
+# 個人識別情報・プライバシー保護
+personal-*
+private-*
+confidential-*
+user-data-*
+session-data-*
+
+# バックアップ・復旧ファイル
+*.bak
+*.backup
+*~backup
+restore-*
+recovery-*

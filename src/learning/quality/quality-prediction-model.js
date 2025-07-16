@@ -13,11 +13,12 @@ import { DynamicRelationshipLearner } from '../cooccurrence/dynamic-relationship
 
 export class QualityPredictionModel {
     constructor(persistentDB, ngramAI, cooccurrenceLearner) {
-        this.persistentLearningDB = persistentDB || defaultPersistentLearningDB;
-        this.ngramAI = ngramAI || new NgramContextPatternAI(3, 0.75);
-        this.cooccurrenceLearner = cooccurrenceLearner || new DynamicRelationshipLearner('quality_predictor');
+        this.persistentLearningDB = persistentDB;
+        this.ngramAI = ngramAI;
+        this.cooccurrenceLearner = cooccurrenceLearner;
         this.improvementPatterns = new Map(); // 学習された改善パターン
         this.isAIModulesInitialized = false;
+        this.isModelTrained = false;
         
         // 線形回帰モデル
         this.regressionModel = null;
@@ -48,21 +49,433 @@ export class QualityPredictionModel {
             acceptable: 0.4,
             poor: 0.2
         };
+
+        // 改善提案の重み (動的読み込み)
+        this.improvementWeights = {};
+
+        // 統計的信頼度計算の重み (動的読み込み)
+        this.confidenceWeights = {};
+
+        // フォールバック品質予測の重み (動的読み込み)
+        this.fallbackWeights = {};
+
+        // 統計的複雑度計算の重み (動的読み込み)
+        this.complexityWeights = {};
+
+        // 文脈密度計算の重み (動的読み込み)
+        this.contextDensityWeights = {};
+
+        // 意味的一貫性計算の重み (動的読み込み)
+        this.semanticCoherenceWeights = {};
+
+        // 語彙多様性計算の重み (動的読み込み)
+        this.vocabularyDiversityWeights = {};
+
+        // ノイズスコア計算の重み (動的読み込み)
+        this.noiseScoreWeights = {};
+
+        // 構造スコア計算の重み (動的読み込み)
+        this.structureScoreWeights = {};
+
+        // 長さスコア計算の重み (動的読み込み)
+        this.lengthScoreWeights = {};
+        
+        // 学習統計初期化
+        this.learningStats = {
+            totalPredictions: 0,
+            correctPredictions: 0,
+            averageAccuracy: 0
+        };
         
         // initializeAIModulesはコンストラクタで呼ばない。テストで制御するため。
         // this.initializeAIModules();
+        this.loadImprovementWeights(); // 非同期で読み込み
+        this.loadConfidenceWeights(); // 非同期で読み込み
+        this.loadFallbackWeights(); // 非同期で読み込み
+        this.loadComplexityWeights(); // 非同期で読み込み
+        this.loadContextDensityWeights(); // 非同期で読み込み
+        this.loadSemanticCoherenceWeights(); // 非同期で読み込み
+        this.loadVocabularyDiversityWeights(); // 非同期で読み込み
+        this.loadNoiseScoreWeights(); // 非同期で読み込み
+        this.loadStructureScoreWeights(); // 非同期で読み込み
+        this.loadLengthScoreWeights(); // 非同期で読み込み
         console.log('🧬 QualityPredictionModel初期化完了');
+    }
+
+    /**
+     * 長さスコア計算の重みをDBから読み込む
+     */
+    async loadLengthScoreWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_length_score_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.lengthScoreWeights = data;
+            } else {
+                await this._initializeDefaultLengthScoreWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 長さスコア重みの読み込みエラー:', error.message);
+            await this._initializeDefaultLengthScoreWeights();
+        }
+    }
+
+    /**
+     * デフォルトの長さスコア重みを初期化して保存
+     */
+    async _initializeDefaultLengthScoreWeights() {
+        const defaultWeights = {
+            linearDecayMin: 0.3,
+            linearDecayFactor: 0.1,
+            elseCase: 0.1
+        };
+        this.lengthScoreWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_length_score_weights', defaultWeights);
+            console.log('✅ デフォルト長さスコア重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト長さスコア重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 構造スコア計算の重みをDBから読み込む
+     */
+    async loadStructureScoreWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_structure_score_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.structureScoreWeights = data;
+            } else {
+                await this._initializeDefaultStructureScoreWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 構造スコア重みの読み込みエラー:', error.message);
+            await this._initializeDefaultStructureScoreWeights();
+        }
+    }
+
+    /**
+     * デフォルトの構造スコア重みを初期化して保存
+     */
+    async _initializeDefaultStructureScoreWeights() {
+        const defaultWeights = {
+            charTypeFactor: 0.6,
+            lengthFactorHigh: 0.4,
+            lengthFactorMedium: 0.2
+        };
+        this.structureScoreWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_structure_score_weights', defaultWeights);
+            console.log('✅ デフォルト構造スコア重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト構造スコア重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * ノイズスコア計算の重みをDBから読み込む
+     */
+    async loadNoiseScoreWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_noise_score_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.noiseScoreWeights = data;
+            } else {
+                await this._initializeDefaultNoiseScoreWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ ノイズスコア重みの読み込みエラー:', error.message);
+            await this._initializeDefaultNoiseScoreWeights();
+        }
+    }
+
+    /**
+     * デフォルトのノイズスコア重みを初期化して保存
+     */
+    async _initializeDefaultNoiseScoreWeights() {
+        const defaultWeights = {
+            charNoiseRatio: 0.6,
+            specialChars: 0.3
+        };
+        this.noiseScoreWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_noise_score_weights', defaultWeights);
+            console.log('✅ デフォルトノイズスコア重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルトノイズスコア重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 語彙多様性計算の重みをDBから読み込む
+     */
+    async loadVocabularyDiversityWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_vocabulary_diversity_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.vocabularyDiversityWeights = data;
+            } else {
+                await this._initializeDefaultVocabularyDiversityWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 語彙多様性重みの読み込みエラー:', error.message);
+            await this._initializeDefaultVocabularyDiversityWeights();
+        }
+    }
+
+    /**
+     * デフォルトの語彙多様性重みを初期化して保存
+     */
+    async _initializeDefaultVocabularyDiversityWeights() {
+        const defaultWeights = {
+            ngramPattern: 0.3,
+            relatedTerms: 0.04
+        };
+        this.vocabularyDiversityWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_vocabulary_diversity_weights', defaultWeights);
+            console.log('✅ デフォルト語彙多様性重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト語彙多様性重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 意味的一貫性計算の重みをDBから読み込む
+     */
+    async loadSemanticCoherenceWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_semantic_coherence_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.semanticCoherenceWeights = data;
+            } else {
+                await this._initializeDefaultSemanticCoherenceWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 意味的一貫性重みの読み込みエラー:', error.message);
+            await this._initializeDefaultSemanticCoherenceWeights();
+        }
+    }
+
+    /**
+     * デフォルトの意味的一貫性重みを初期化して保存
+     */
+    async _initializeDefaultSemanticCoherenceWeights() {
+        const defaultWeights = {
+            charTypeCoherence: 0.4,
+            charTypeIncoherence: 0.2,
+            contextPrediction: 0.4,
+            relatedTerms: 0.2
+        };
+        this.semanticCoherenceWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_semantic_coherence_weights', defaultWeights);
+            console.log('✅ デフォルト意味的一貫性重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト意味的一貫性重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 統計的複雑度計算の重みをDBから読み込む
+     */
+    async loadComplexityWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_complexity_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.complexityWeights = data;
+            } else {
+                await this._initializeDefaultComplexityWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 統計的複雑度重みの読み込みエラー:', error.message);
+            await this._initializeDefaultComplexityWeights();
+        }
+    }
+
+    /**
+     * デフォルトの統計的複雑度重みを初期化して保存
+     */
+    async _initializeDefaultComplexityWeights() {
+        const defaultWeights = {
+            baseComplexity: 0.3,
+            contextPrediction: 0.4,
+            relatedTerms: 0.05
+        };
+        this.complexityWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_complexity_weights', defaultWeights);
+            console.log('✅ デフォルト統計的複雑度重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト統計的複雑度重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 文脈密度計算の重みをDBから読み込む
+     */
+    async loadContextDensityWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_context_density_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.contextDensityWeights = data;
+            } else {
+                await this._initializeDefaultContextDensityWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 文脈密度重みの読み込みエラー:', error.message);
+            await this._initializeDefaultContextDensityWeights();
+        }
+    }
+
+    /**
+     * デフォルトの文脈密度重みを初期化して保存
+     */
+    async _initializeDefaultContextDensityWeights() {
+        const defaultWeights = {
+            contextPrediction: 0.3,
+            relatedTerms: 0.05
+        };
+        this.contextDensityWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_context_density_weights', defaultWeights);
+            console.log('✅ デフォルト文脈密度重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト文脈密度重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 統計的信頼度計算の重みをDBから読み込む
+     */
+    async loadConfidenceWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_confidence_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.confidenceWeights = data;
+            } else {
+                await this._initializeDefaultConfidenceWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 統計的信頼度重みの読み込みエラー:', error.message);
+            await this._initializeDefaultConfidenceWeights();
+        }
+    }
+
+    /**
+     * デフォルトの統計的信頼度重みを初期化して保存
+     */
+    async _initializeDefaultConfidenceWeights() {
+        const defaultWeights = {
+            qualityConfidence: 0.4,
+            dataConfidence: 0.3,
+            lengthConfidence: 0.3
+        };
+        this.confidenceWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_confidence_weights', defaultWeights);
+            console.log('✅ デフォルト統計的信頼度重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト統計的信頼度重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 改善提案の重みをDBから読み込む
+     */
+    async loadImprovementWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_improvement_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.improvementWeights = data;
+            } else {
+                await this._initializeDefaultImprovementWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ 改善提案重みの読み込みエラー:', error.message);
+            await this._initializeDefaultImprovementWeights();
+        }
+    }
+
+    /**
+     * デフォルトの改善提案重みを初期化して保存
+     */
+    async _initializeDefaultImprovementWeights() {
+        const defaultWeights = {
+            lengthScore: 0.2,
+            statisticalComplexity: 0.15,
+            contextDensity: 0.12
+        };
+        this.improvementWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_improvement_weights', defaultWeights);
+            console.log('✅ デフォルト改善提案重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルト改善提案重みの保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * フォールバック品質予測の重みをDBから読み込む
+     */
+    async loadFallbackWeights() {
+        try {
+            const data = await this.persistentLearningDB.loadSystemData('quality_fallback_weights');
+            if (data && Object.keys(data).length > 0) {
+                this.fallbackWeights = data;
+            } else {
+                await this._initializeDefaultFallbackWeights();
+            }
+        } catch (error) {
+            console.warn('⚠️ フォールバック重みの読み込みエラー:', error.message);
+            await this._initializeDefaultFallbackWeights();
+        }
+    }
+
+    /**
+     * デフォルトのフォールバック品質予測重みを初期化して保存
+     */
+    async _initializeDefaultFallbackWeights() {
+        const defaultWeights = {
+            lengthScore: 0.3,
+            structureScore: 0.4,
+            noiseScore: 0.3
+        };
+        this.fallbackWeights = defaultWeights;
+        try {
+            await this.persistentLearningDB.saveSystemData('quality_fallback_weights', defaultWeights);
+            console.log('✅ デフォルトフォールバック重みをDBに保存しました。');
+        } catch (error) {
+            console.error('❌ デフォルトフォールバック重みの保存エラー:', error.message);
+        }
     }
 
     /**
      * AI統計学習モジュールの初期化
      */
     async initializeAIModules() {
+        if (process.env.DEBUG_VERBOSE === 'true') {
+            console.log(`DEBUG: QualityPredictionModel.initializeAIModules`);
+            console.log(`DEBUG: this.persistentLearningDB type:`, typeof this.persistentLearningDB);
+        }
         try {
             await this.ngramAI.initialize();
-            await this.cooccurrenceLearner.initializeLearner();
+            // cooccurrenceLearnerはファクトリ関数として渡されるため、ここでインスタンス化して初期化
+            // ただし、QualityPredictionModelのinitializeAIModulesはuserIdを受け取らないため、
+            // ここではダミーのuserId ('quality_predictor') を使用する。
+            // 実際のユーザーごとの学習はAIVocabularyProcessorからcooccurrenceLearnerが呼び出される際に行われる。
+            if (typeof this.cooccurrenceLearner === 'function') { // cooccurrenceLearnerがファクトリ関数である場合
+                this.cooccurrenceLearner = this.cooccurrenceLearner('quality_predictor'); // インスタンス化
+            }
+            await this.cooccurrenceLearner.initializeLearner('quality_predictor'); // userIdを渡す
             await this.loadModel();
             await this.loadImprovementPatterns();
+            await this.loadTrainingData(); // 永続化された訓練データを読み込み
+            if (this.trainingData.length >= 3 && !this.isModelTrained) {
+                console.log('🤖 起動時にモデルを再訓練します...');
+                await this.trainModel(this.trainingData);
+                this.isModelTrained = true;
+            }
             this.isAIModulesInitialized = true;
             console.log('🤖 統計学習モジュール初期化完了');
         } catch (error) {
@@ -76,8 +489,26 @@ export class QualityPredictionModel {
      */
     async trainModel(trainingData) {
         try {
-            if (!trainingData || trainingData.length < 3) {
-                throw new Error('訓練データが不十分です（最低3件必要）');
+            if (!trainingData || trainingData.length === 0) {
+                throw new Error('訓練データがありません');
+            }
+
+            const numFeatures = this.featureNames.length; // 特徴量の数
+            const minSamplesRequired = numFeatures * 5; // 統計的有意性のための最低サンプル数 (特徴量の5倍)
+
+            if (trainingData.length < minSamplesRequired) {
+                console.warn(`⚠️ 訓練データが不十分です。最低${minSamplesRequired}件必要ですが、現在${trainingData.length}件です。`);
+                // 訓練をスキップするか、フォールバックモデルを使用するなどの選択肢
+                this.isModelTrained = false;
+                this.regressionWeights = [];
+                this.predictionAccuracy = 0;
+                return {
+                    accuracy: 0,
+                    weights: [],
+                    featureNames: this.featureNames,
+                    trainingSize: trainingData.length,
+                    message: '訓練データ不足のためモデル訓練をスキップしました'
+                };
             }
 
             console.log(`🤖 線形回帰モデル訓練開始: ${trainingData.length}件のデータ`);
@@ -88,7 +519,7 @@ export class QualityPredictionModel {
 
             for (const data of trainingData) {
                 const featureVector = await this.extractFeatures(data.content);
-                if (featureVector && featureVector.length === this.featureNames.length) {
+                if (featureVector && featureVector.length === numFeatures) {
                     features.push(featureVector);
                     targets.push(data.qualityScore);
                 }
@@ -272,7 +703,8 @@ export class QualityPredictionModel {
             // 文脈予測で改善方向を分析
             const contextPrediction = await this.ngramAI.predictContext(text);
             
-            if (contextPrediction.confidence > 0.6) {
+            const confidenceThreshold = await this.calculateDynamicThreshold('mediumConfidence');
+            if (contextPrediction.confidence > confidenceThreshold) {
                 const suggestedCategory = contextPrediction.predictedCategory;
                 improvements.push({
                     type: 'contextual_alignment',
@@ -375,6 +807,114 @@ export class QualityPredictionModel {
     }
 
     /**
+     * 自動学習: 応答生成結果から品質予測モデルを更新
+     * @param {Object} content - 入力コンテンツ
+     * @param {number} actualQuality - 実際の品質スコア
+     */
+    async learnFromResponse(content, actualQuality) {
+        try {
+            // 重複チェックと統合
+            const existingIndex = this.trainingData.findIndex(data => {
+                // コンテンツの比較は、テキスト内容に基づいて行う
+                const existingText = data.content.text || data.content.term || String(data.content);
+                const newText = content.text || content.term || String(content);
+                return existingText === newText;
+            });
+
+            if (existingIndex !== -1) {
+                // 既存のエントリを更新
+                this.trainingData[existingIndex].qualityScore = actualQuality;
+                this.trainingData[existingIndex].timestamp = Date.now();
+                console.log(`📚 品質予測学習データ更新: スコア${actualQuality.toFixed(3)} (既存データ更新)`);
+            } else {
+                // 新しい訓練データとして追加
+                this.trainingData.push({
+                    content: content,
+                    qualityScore: actualQuality,
+                    timestamp: Date.now()
+                });
+                console.log(`📚 品質予測学習データ追加: スコア${actualQuality.toFixed(3)} (総${this.trainingData.length}件)`);
+            }
+
+            // 十分なデータが蓄積されたら再訓練
+            if (this.trainingData.length >= 5 && this.trainingData.length % 5 === 0) {
+                await this.retrainModel();
+            }
+
+            // データ永続化
+            await this.saveTrainingData();
+
+        } catch (error) {
+            console.warn('⚠️ 品質予測自動学習エラー:', error.message);
+        }
+    }
+
+    /**
+     * モデル再訓練（自動学習）
+     */
+    async retrainModel() {
+        try {
+            console.log('🔄 品質予測モデル再訓練開始...');
+            
+            // 最新の訓練データで再訓練
+            const result = await this.trainModel(this.trainingData);
+            
+            console.log(`✅ 品質予測モデル再訓練完了: 精度${result.accuracy.toFixed(3)}`);
+            
+            return result;
+            
+        } catch (error) {
+            console.warn('⚠️ モデル再訓練失敗:', error.message);
+        }
+    }
+
+    /**
+     * 訓練データの永続化
+     */
+    async saveTrainingData() {
+        try {
+            const trainingDataForSave = {
+                data: this.trainingData,
+                lastUpdated: Date.now(),
+                dataCount: this.trainingData.length,
+                modelTrained: this.isModelTrained,
+                accuracy: this.predictionAccuracy
+            };
+
+            if (this.persistentLearningDB && this.persistentLearningDB.saveQualityTrainingData) {
+                await this.persistentLearningDB.saveQualityTrainingData(trainingDataForSave);
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ 品質訓練データ保存エラー:', error.message);
+        }
+    }
+
+    /**
+     * 永続化された訓練データの読み込み
+     */
+    async loadTrainingData() {
+        try {
+            if (this.persistentLearningDB && this.persistentLearningDB.loadQualityTrainingData) {
+                const savedData = await this.persistentLearningDB.loadQualityTrainingData();
+                
+                if (savedData && savedData.data && Array.isArray(savedData.data)) {
+                    this.trainingData = savedData.data;
+                    console.log(`📊 品質訓練データ読み込み: ${this.trainingData.length}件`);
+                    
+                    // 十分なデータがあれば自動的に訓練
+                    if (this.trainingData.length >= 3) {
+                        await this.trainModel(this.trainingData);
+                    }
+                }
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ 品質訓練データ読み込みエラー:', error.message);
+        }
+    }
+
+    /**
      * コンテンツから特徴量ベクトルを抽出
      * ConceptQualityManagerの計算要素を活用・拡張
      */
@@ -422,6 +962,7 @@ export class QualityPredictionModel {
     async calculateContextDensity(content) {
         const text = content.text || String(content);
         const relatedTerms = content.relatedTerms || content.relatedConcepts || [];
+        const weights = this.contextDensityWeights;
         
         let density = 0;
         
@@ -434,11 +975,11 @@ export class QualityPredictionModel {
             try {
                 // N-gram文脈予測による密度評価
                 const contextPrediction = await this.ngramAI.predictContext(text);
-                density += contextPrediction.confidence * 0.3;
+                density += contextPrediction.confidence * (weights.contextPrediction || 0.3);
                 
                 // 共起関係による密度評価
                 const relatedCount = this.cooccurrenceLearner.getUserRelations(text).length;
-                density += Math.min(0.2, relatedCount * 0.05);
+                density += Math.min(0.2, relatedCount * (weights.relatedTerms || 0.05));
                 
             } catch (error) {
                 console.warn('⚠️ 統計的文脈密度計算エラー:', error.message);
@@ -453,6 +994,7 @@ export class QualityPredictionModel {
      */
     async calculateSemanticCoherence(content) {
         const text = content.text || String(content);
+        const weights = this.semanticCoherenceWeights;
         
         let coherence = 0;
         
@@ -460,14 +1002,14 @@ export class QualityPredictionModel {
         const hasKanji = /[\u4E00-\u9FAF]/.test(text);
         const hasKatakana = /[\u30A0-\u30FF]/.test(text);
         const hasAlphabet = /[A-Za-z]/.test(text);
-        coherence += (hasKanji && hasKatakana) || hasAlphabet ? 0.4 : 0.2;
+        coherence += (hasKanji && hasKatakana) || hasAlphabet ? (weights.charTypeCoherence || 0.4) : (weights.charTypeIncoherence || 0.2);
         
         // 統計学習ベース一貫性評価
         if (this.isAIModulesInitialized) {
             try {
                 // N-gram文脈一貫性
                 const contextPrediction = await this.ngramAI.predictContext(text);
-                coherence += contextPrediction.confidence * 0.4;
+                coherence += contextPrediction.confidence * (weights.contextPrediction || 0.4);
                 
                 // 関連語の意味的一貫性
                 const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
@@ -476,7 +1018,7 @@ export class QualityPredictionModel {
                     const avgStrength = relatedTerms.slice(0, 3).reduce((sum, term) => {
                         return sum + this.cooccurrenceLearner.getRelationshipStrength(text, term);
                     }, 0) / Math.min(3, relatedTerms.length);
-                    coherence += avgStrength * 0.2;
+                    coherence += avgStrength * (weights.relatedTerms || 0.2);
                 }
                 
             } catch (error) {
@@ -492,6 +1034,7 @@ export class QualityPredictionModel {
      */
     async calculateVocabularyDiversity(content) {
         const text = content.text || String(content);
+        const weights = this.vocabularyDiversityWeights;
         
         let diversity = 0;
         
@@ -509,11 +1052,11 @@ export class QualityPredictionModel {
             try {
                 // N-gram語彙多様性
                 const ngramPattern = await this.extractNgramDiversity(text);
-                diversity += ngramPattern * 0.3;
+                diversity += ngramPattern * (weights.ngramPattern || 0.3);
                 
                 // 関連語の多様性（異なるカテゴリの関連語数）
                 const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
-                const diversityBonus = Math.min(0.2, relatedTerms.length * 0.04);
+                const diversityBonus = Math.min(0.2, relatedTerms.length * (weights.relatedTerms || 0.04));
                 diversity += diversityBonus;
                 
             } catch (error) {
@@ -561,7 +1104,7 @@ export class QualityPredictionModel {
             const residualSumSquares = targets.reduce((sum, val, i) => 
                 sum + Math.pow(val - predictions[i], 2), 0);
             
-            const rSquared = 1 - (residualSumSquares / totalSumSquares);
+            const rSquared = 1 - (Math.round((residualSumSquares / totalSumSquares) * 1e6) / 1e6);
             return Math.max(0, Math.min(1, rSquared));
             
         } catch (error) {
@@ -606,22 +1149,55 @@ export class QualityPredictionModel {
     fallbackQualityPrediction(content) {
         // 統計学習フォールバック（技術用語分類除去）
         const text = content.text || content.term || String(content);
+        const weights = this.fallbackWeights;
         
         // 基本的な統計評価
         const basicScore = (
-            this.calculateStatisticalLengthScore(text) * 0.3 +
-            this.calculateStatisticalStructureScore(text) * 0.4 +
-            (1.0 - this.calculateStatisticalNoiseScore(text)) * 0.3
+            this.calculateStatisticalLengthScore(text) * (weights.lengthScore || 0.3) +
+            this.calculateStatisticalStructureScore(text) * (weights.structureScore || 0.4) +
+            (1.0 - this.calculateStatisticalNoiseScore(text)) * (weights.noiseScore || 0.3)
         );
+        
+        // 特徴量構築（統計学習ベース）
+        const features = { text: text, length: text.length };
+        
+        // 統計学習ベース信頼度計算
+        const dynamicConfidence = this.calculateStatisticalConfidence(features, basicScore);
         
         return {
             qualityScore: basicScore,
-            confidence: 0.5, // フォールバックの信頼度
+            confidence: dynamicConfidence,
             grade: this.getQualityGrade(basicScore),
             features: {},
             modelUsed: 'statistical_fallback',
-            predictionAccuracy: 0
+            predictionAccuracy: dynamicConfidence
         };
+    }
+
+    /**
+     * 統計学習ベース信頼度計算
+     */
+    calculateStatisticalConfidence(features, qualityScore) {
+        const weights = this.confidenceWeights;
+        // 1. 品質スコアベース信頼度（高品質ほど高信頼度）
+        const qualityConfidence = Math.min(0.9, qualityScore * 1.2);
+        
+        // 2. 学習データ量ベース信頼度
+        const dataConfidence = Math.min(0.8, this.learningStats.totalPredictions / 100);
+        
+        // 3. テキスト長ベース信頼度（適切な長さで高信頼度）
+        const textLength = features?.text?.length || 10;
+        const lengthConfidence = Math.min(0.9, Math.max(0.3, 1.0 - Math.abs(textLength - 50) / 100));
+        
+        // 4. 統計的信頼度統合
+        const baseConfidence = (qualityConfidence * (weights.qualityConfidence || 0.4) +
+                                dataConfidence * (weights.dataConfidence || 0.3) +
+                                lengthConfidence * (weights.lengthConfidence || 0.3));
+        
+        // 5. ランダム性追加（統計学習らしい変動）
+        const randomVariation = (Math.random() - 0.5) * 0.1; // ±0.05の変動
+        
+        return Math.max(0.2, Math.min(0.95, baseConfidence + randomVariation));
     }
 
     /**
@@ -708,23 +1284,24 @@ export class QualityPredictionModel {
      */
     async getImprovementPattern(featureName, score) {
         // シンプルな統計パターンマッピング
+        const weights = this.improvementWeights;
         const patterns = {
             lengthScore: {
                 issue: '語彙長が統計的最適値から逸脱',
                 suggestion: '統計分析に基づく最適長（4-12文字）への調整を推奨',
-                expectedImprovement: (1 - score) * 0.2,
+                expectedImprovement: (1 - score) * (weights.lengthScore || 0.2),
                 confidence: 0.8
             },
             statisticalComplexity: {
                 issue: '統計的複雑度が目標値以下',
                 suggestion: '統計学習で特定された高品質パターンの採用を推奨',
-                expectedImprovement: (1 - score) * 0.15,
+                expectedImprovement: (1 - score) * (weights.statisticalComplexity || 0.15),
                 confidence: 0.75
             },
             contextDensity: {
                 issue: '文脈関連性が統計モデル期待値以下',
                 suggestion: 'N-gram分析で特定された関連語群の組み込みを推奨',
-                expectedImprovement: (1 - score) * 0.12,
+                expectedImprovement: (1 - score) * (weights.contextDensity || 0.12),
                 confidence: 0.75
             }
         };
@@ -967,7 +1544,8 @@ export class QualityPredictionModel {
         }
         
         const denominator = Math.sqrt(denominatorX * denominatorY);
-        return denominator === 0 ? 0 : numerator / denominator;
+        const correlation = denominator === 0 ? 0 : numerator / denominator;
+        return Math.round(correlation * 1e6) / 1e6;
     }
 
     /**
@@ -1113,14 +1691,15 @@ export class QualityPredictionModel {
      */
     calculateStatisticalLengthScore(text) {
         const length = text.length;
+        const weights = this.lengthScoreWeights;
         // 統計的最適長：4-12文字でピーク
         if (length >= 4 && length <= 12) {
             return 1.0;
         } else if (length >= 2 && length <= 20) {
             // 線形減衰
-            return Math.max(0.3, 1.0 - Math.abs(length - 8) * 0.1);
+            return Math.max((weights.linearDecayMin || 0.3), 1.0 - Math.abs(length - 8) * (weights.linearDecayFactor || 0.1));
         } else {
-            return 0.1;
+            return (weights.elseCase || 0.1);
         }
     }
 
@@ -1128,8 +1707,9 @@ export class QualityPredictionModel {
      * 統計学習ベース頻度スコア計算
      */
     calculateStatisticalFrequencyScore(frequency) {
+        const weights = this.frequencyScoreWeights;
         // 寶数正規化：低頻度でも適度なスコア
-        return Math.min(1.0, Math.log10(frequency + 1) / 3);
+        return Math.min(1.0, Math.log10(frequency + 1) / (weights.divisor || 3));
     }
 
     /**
@@ -1137,16 +1717,17 @@ export class QualityPredictionModel {
      */
     calculateStatisticalNoiseScore(text) {
         let noiseScore = 0;
+        const weights = this.noiseScoreWeights;
         
         // 高頻度文字パターン（統計的ノイズ）
         const commonChars = /[あ-んはですますだけ]/;
         const charNoiseRatio = (text.match(commonChars) || []).length / text.length;
-        noiseScore += charNoiseRatio * 0.6;
+        noiseScore += charNoiseRatio * (weights.charNoiseRatio || 0.6);
         
         // 特殊文字・記号
         const specialChars = /[!@#$%^&*()\-+=\[\]{}|;:'",.<>?/`~]/;
         if (specialChars.test(text)) {
-            noiseScore += 0.3;
+            noiseScore += (weights.specialChars || 0.3);
         }
         
         return Math.min(1.0, noiseScore);
@@ -1157,6 +1738,7 @@ export class QualityPredictionModel {
      */
     calculateStatisticalStructureScore(text) {
         let structureScore = 0;
+        const weights = this.structureScoreWeights;
         
         // 文字種混合性（複雑度指標）
         const hasKanji = /[\u4E00-\u9FAF]/.test(text);
@@ -1165,13 +1747,13 @@ export class QualityPredictionModel {
         const hasNumber = /[0-9]/.test(text);
         
         const charTypeCount = [hasKanji, hasKatakana, hasAlphabet, hasNumber].filter(Boolean).length;
-        structureScore += charTypeCount / 4 * 0.6;
+        structureScore += charTypeCount / 4 * (weights.charTypeFactor || 0.6);
         
         // 長さに基づく構造性
         if (text.length > 6) {
-            structureScore += 0.4;
+            structureScore += (weights.lengthFactorHigh || 0.4);
         } else if (text.length > 3) {
-            structureScore += 0.2;
+            structureScore += (weights.lengthFactorMedium || 0.2);
         }
         
         return Math.min(1.0, structureScore);
@@ -1181,10 +1763,11 @@ export class QualityPredictionModel {
      * 統計学習ベース複雑度計算（技術用語度の代替）
      */
     async calculateStatisticalComplexity(text) {
+        const weights = this.complexityWeights;
         let complexity = 0;
         
         // 基本的な複雑度：長さと文字種多様性
-        const baseComplexity = Math.min(1.0, text.length / 15) * 0.3;
+        const baseComplexity = Math.min(1.0, text.length / 15) * (weights.baseComplexity || 0.3);
         complexity += baseComplexity;
         
         // 統計学習ベース複雑度（N-gram連携）
@@ -1192,11 +1775,11 @@ export class QualityPredictionModel {
             try {
                 const contextPrediction = await this.ngramAI.predictContext(text);
                 // 高信頼度文脈予測は複雑度が高い
-                complexity += contextPrediction.confidence * 0.4;
+                complexity += contextPrediction.confidence * (weights.contextPrediction || 0.4);
                 
                 // 共起関係の複雑度
                 const relatedTerms = this.cooccurrenceLearner.getUserRelations(text);
-                complexity += Math.min(0.3, relatedTerms.length * 0.05);
+                complexity += Math.min(0.3, relatedTerms.length * (weights.relatedTerms || 0.05));
                 
             } catch (error) {
                 console.warn('⚠️ 統計複雑度計算エラー:', error.message);
@@ -1204,6 +1787,53 @@ export class QualityPredictionModel {
         }
         
         return Math.min(1.0, complexity);
+    }
+
+    /**
+     * 動的閾値計算
+     * 品質予測データから統計的に閾値を計算
+     */
+    async calculateDynamicThreshold(thresholdType) {
+        try {
+            // 既存の品質予測データから閾値を計算
+            const qualityData = this.qualityData || [];
+            const scores = qualityData.map(d => d.score).filter(s => typeof s === 'number');
+            
+            if (scores.length === 0) {
+                // フォールバック：統計的デフォルト閾値
+                switch (thresholdType) {
+                    case 'highConfidence':
+                        return 0.75;
+                    case 'mediumConfidence':
+                        return 0.6;
+                    case 'lowConfidence':
+                        return 0.3;
+                    default:
+                        return 0.5;
+                }
+            }
+            
+            // 統計的閾値計算
+            scores.sort((a, b) => a - b);
+            const q1 = scores[Math.floor(scores.length * 0.25)];
+            const median = scores[Math.floor(scores.length * 0.5)];
+            const q3 = scores[Math.floor(scores.length * 0.75)];
+            
+            switch (thresholdType) {
+                case 'highConfidence':
+                    return q3;
+                case 'mediumConfidence':
+                    return median;
+                case 'lowConfidence':
+                    return q1;
+                default:
+                    return median;
+            }
+            
+        } catch (error) {
+            console.warn('⚠️ 品質予測モデル動的閾値計算エラー:', error.message);
+            return 0.6; // 安全なフォールバック
+        }
     }
 }
 

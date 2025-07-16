@@ -7,5 +7,12 @@
   "forgettingThreshold": 0.1,
   "maxMemorySize": 1000,
   "batchSaveInterval": 5,
-  "qualityThreshold": 0.6
+  "qualityThreshold": 0.6,
+  "qualityScoreWeights": {
+    "vocabularyRichness": 0.4,
+    "avgWordLength": 0.3,
+    "uniqueWordRatio": 0.3
+  },
+  "qualityScoreMin": 0.1,
+  "qualityScoreMax": 0.9
 }

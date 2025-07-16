@@ -1,37 +1,50 @@
 import { EnhancedHybridLanguageProcessor } from '../../foundation/morphology/hybrid-processor.js';
 import fs from 'fs';
 import path from 'path';
-import { persistentLearningDB as defaultPersistentLearningDB } from '../../data/persistent-learning-db.js';
+import { persistentLearningDB as defaultPersistentLearningDB, PersistentLearningDB } from '../../data/persistent-learning-db.js';
 import { NgramContextPatternAI as defaultNgramContextPatternAI } from '../ngram/ngram-context-pattern.js';
 
 export class DynamicRelationshipLearner {
-    constructor(userId = 'default', dependencies = {}) {
-        this.userId = userId;
+    constructor(persistentLearningDB, hybridProcessor, ngramAI, userId) {
+        this.userId = userId; // userIdをインスタンスプロパティとして保存
         this.userRelations = {};
         this.coOccurrenceData = {};
         this.contextStrengths = {};
+        this.termFrequencies = {}; // Initialize termFrequencies
         
-        this.persistentLearningDB = dependencies.persistentLearningDB || defaultPersistentLearningDB;
-        this.hybridProcessor = dependencies.hybridProcessor || new EnhancedHybridLanguageProcessor();
-        this.ngramAI = dependencies.ngramAI || new defaultNgramContextPatternAI(3, 0.75);
+        this.persistentLearningDB = persistentLearningDB;
+        this.hybridProcessor = hybridProcessor;
+        this.ngramAI = ngramAI;
 
         this.semanticCache = new Map(); // 意味類似度キャッシュ
         this.tfIdfCache = new Map(); // TF-IDFキャッシュ
         
-        // 学習パラメータ
+        // Phase 0: 統計的学習パラメータ (ハードコード除去)
         this.learningConfig = {
             minCoOccurrence: 2,        // 最小共起回数
-            strengthThreshold: 0.3,    // 関係性強度閾値
+            strengthThreshold: 0.3,    // 関係性強度閾値 (動的調整予定)
             maxRelationsPerTerm: 10,   // 1語あたり最大関係数
             decayFactor: 0.95,         // 忘却係数
             learningRate: 0.1          // 学習率
         };
         
-        // initializeLearnerはコンストラクタで呼ばない。テストで制御するため。
-        // this.initializeLearner();
+        // Phase 0: PMI計算・統計的有意性検定用
+        this.pmiCache = new Map();
+        this.statisticalValidation = new Map();
+        this.cooccurrenceMatrix = new Map();
+        this.wordProbabilities = new Map();
+        
+        this.isInitialized = false; // 追加
     }
 
     async initializeLearner() {
+        if (this.isInitialized) return;
+        
+        if (process.env.DEBUG_VERBOSE === 'true') {
+            console.log(`DEBUG: DynamicRelationshipLearner.initializeLearner for userId: ${this.userId}`);
+            console.log(`DEBUG: this.persistentLearningDB type:`, typeof this.persistentLearningDB);
+        }
+        
         try {
             // 永続化DBから既存の学習データ読み込み
             const loadedRelations = await this.persistentLearningDB.getUserSpecificRelations(this.userId);
@@ -53,18 +66,16 @@ export class DynamicRelationshipLearner {
                 console.warn('⚠️ 学習設定読み込み失敗:', error.message);
             }
             
-            await this.hybridProcessor.initialize();
-            await this.ngramAI.initialize();
             console.log(`✅ DynamicRelationshipLearner初期化完了 (ユーザー: ${this.userId})`);
             console.log(`📊 既存関係数: ${Object.keys(this.userRelations).length}件`);
             
             // 定期保存タイマー（5分間隔）
             this.autoSaveInterval = setInterval(() => {
-                this.saveUserData().catch(err => 
+                this.saveUserData(this.userId).catch(err => 
                     console.warn('⚠️ 定期保存エラー:', err.message)
                 );
             }, 5 * 60 * 1000);
-            
+            this.isInitialized = true; // 追加
         } catch (error) {
             console.warn('⚠️ 学習データ読み込み失敗、新規作成:', error.message);
             this.userRelations = {};
@@ -77,15 +88,22 @@ export class DynamicRelationshipLearner {
      */
     async learnFromConversation(input, history, response) {
         try {
-            // 全テキストからキーワード抽出
-            const inputKeywords = await this.extractKeywords(input);
-            const responseKeywords = await this.extractKeywords(response);
-            
-            // 履歴キーワード
+            // hybridProcessorからキーワードを抽出
+            const inputProcessed = await this.hybridProcessor.processText(input);
+            const inputKeywords = inputProcessed.enhancedTerms ? 
+                inputProcessed.enhancedTerms.map(term => term.term) : [];
+
+            const responseProcessed = await this.hybridProcessor.processText(response);
+            const responseKeywords = responseProcessed.enhancedTerms ? 
+                responseProcessed.enhancedTerms.map(term => term.term) : [];
+
             const historyKeywords = [];
             for (const turn of history) {
                 const turnText = turn.content || turn.message || turn;
-                historyKeywords.push(...await this.extractKeywords(turnText));
+                const historyProcessed = await this.hybridProcessor.processText(turnText);
+                if (historyProcessed.enhancedTerms) {
+                    historyKeywords.push(...historyProcessed.enhancedTerms.map(term => term.term));
+                }
             }
             
             // 共起分析
@@ -134,7 +152,9 @@ export class DynamicRelationshipLearner {
     async learnFromFeedback(vocabulary, rating, contextText) {
         try {
             // 評価された語彙と文脈テキスト内のキーワードとの関係性を強化/弱化
-            const contextKeywords = await this.extractKeywords(contextText);
+            const contextProcessed = await this.hybridProcessor.processText(contextText);
+            const contextKeywords = contextProcessed.enhancedTerms ? 
+                contextProcessed.enhancedTerms.map(term => term.term) : [];
             
             for (const kw of contextKeywords) {
                 if (vocabulary !== kw) {
@@ -156,29 +176,33 @@ export class DynamicRelationshipLearner {
     /**
      * 共起キーワード分析
      */
+    /**
+     * 共起キーワード分析
+     */
     async analyzeCoOccurrence(keywords1, keywords2, fullText = '') {
+        // Update term frequencies for keywords1
+        for (const kw of keywords1) {
+            this.termFrequencies[kw] = (this.termFrequencies[kw] || 0) + 1;
+        }
+        // Update term frequencies for keywords2
+        for (const kw of keywords2) {
+            this.termFrequencies[kw] = (this.termFrequencies[kw] || 0) + 1;
+        }
+
         for (const kw1 of keywords1) {
             for (const kw2 of keywords2) {
                 if (kw1 !== kw2) {
                     const pairKey = this.createPairKey(kw1, kw2);
+                    const currentData = this.coOccurrenceData[pairKey] || { count: 0, contexts: [] };
+                    currentData.count++;
+                    currentData.contexts.push(fullText); // 文脈を保存
+                    this.coOccurrenceData[pairKey] = currentData; // coOccurrenceData を更新
+                    // 関係性強度を仮計算（ここでは保存しない）
+                    const strength = await this.calculateContextualStrength(kw1, kw2, fullText, fullText);
                     
-                    // 共起回数増加
-                    if (!this.coOccurrenceData[pairKey]) {
-                        this.coOccurrenceData[pairKey] = {
-                            term1: kw1,
-                            term2: kw2,
-                            count: 0,
-                            strength: 0,
-                            contexts: []
-                        };
-                    }
-                    
-                    this.coOccurrenceData[pairKey].count++;
-                    // 共起が発生した文脈を記録
-                    if (fullText) {
-                        this.coOccurrenceData[pairKey].contexts.push(fullText.substring(0, 100)); // テキストの冒頭100文字を記録
-                        // 重複する文脈を避けるためにSetを使用することも検討
-                        this.coOccurrenceData[pairKey].contexts = [...new Set(this.coOccurrenceData[pairKey].contexts)];
+                    // フィルタを通過する可能性のある関係のみを学習
+                    if (strength > this.learningConfig.strengthThreshold * 0.5) {
+                        this.addUserRelation(kw1, kw2, strength);
                     }
                 }
             }
@@ -190,8 +214,19 @@ export class DynamicRelationshipLearner {
      */
     async analyzeContextualRelationships(input, history, response, inputKeywords, responseKeywords) {
         // キーワードが未提供の場合のみ抽出（重複回避）
-        const finalInputKeywords = inputKeywords || await this.extractKeywords(input);
-        const finalResponseKeywords = responseKeywords || await this.extractKeywords(response);
+        let finalInputKeywords = inputKeywords;
+        if (!finalInputKeywords) {
+            const inputProcessed = await this.hybridProcessor.processText(input);
+            finalInputKeywords = inputProcessed.enhancedTerms ? 
+                inputProcessed.enhancedTerms.map(term => term.term) : [];
+        }
+        
+        let finalResponseKeywords = responseKeywords;
+        if (!finalResponseKeywords) {
+            const responseProcessed = await this.hybridProcessor.processText(response);
+            finalResponseKeywords = responseProcessed.enhancedTerms ? 
+                responseProcessed.enhancedTerms.map(term => term.term) : [];
+        }
         
         for (const inputKw of finalInputKeywords) {
             for (const responseKw of finalResponseKeywords) {
@@ -280,12 +315,14 @@ export class DynamicRelationshipLearner {
             // 同じ文脈カテゴリーの場合、信頼度に基づいてスコア計算
             if (context1.predictedCategory === context2.predictedCategory) {
                 const avgConfidence = (context1.confidence + context2.confidence) / 2;
-                similarity = avgConfidence * 0.8; // 同一文脈ボーナス
+                const contextBonus = this.calculateDynamicContextBonus(avgConfidence);
+                similarity = avgConfidence * contextBonus;
             } else {
                 // 異なる文脈でも信頼度が低い場合は一定の類似度を付与
                 const minConfidence = Math.min(context1.confidence, context2.confidence);
-                if (minConfidence < 0.5) {
-                    similarity = 0.2; // 不確実性ボーナス
+                const uncertaintyThreshold = this.calculateDynamicUncertaintyThreshold();
+                if (minConfidence < uncertaintyThreshold) {
+                    similarity = this.calculateDynamicUncertaintyBonus(minConfidence);
                 }
             }
             
@@ -369,9 +406,6 @@ export class DynamicRelationshipLearner {
         this.applyDecay();
     }
 
-    /**
-     * ユーザー関係性追加
-     */
     addUserRelation(term1, term2, strength) {
         if (!this.userRelations[term1]) {
             this.userRelations[term1] = [];
@@ -391,7 +425,8 @@ export class DynamicRelationshipLearner {
                 strength: strength,
                 count: 1,
                 firstSeen: Date.now(),
-                lastUpdated: Date.now()
+                lastUpdated: Date.now(),
+                pos: term2.pos || 'unknown' // 品詞情報を追加
             });
         }
         
@@ -449,7 +484,10 @@ export class DynamicRelationshipLearner {
     /**
      * 学習データ保存
      */
-    async saveUserData() {
+    async saveUserData(userId = this.userId) {
+        if (process.env.DEBUG_VERBOSE === 'true') {
+            console.log(`DEBUG: saveUserData called for userId: ${userId}`);
+        }
         try {
             const dataToSave = {
                 userRelations: this.userRelations,
@@ -459,7 +497,7 @@ export class DynamicRelationshipLearner {
             };
             
             // 永続化DBに保存
-            await this.persistentLearningDB.saveUserSpecificRelations(this.userId, dataToSave);
+            await this.persistentLearningDB.saveUserSpecificRelations(userId, dataToSave);
             
             console.log(`💾 学習データ永続化完了: ${Object.keys(this.userRelations).length}語の関係性`);
             
@@ -499,103 +537,12 @@ export class DynamicRelationshipLearner {
     }
 
     // ヘルパーメソッド
+    
     /**
-     * 統計的キーワード抽出（TF-IDF強化版）
+     * 全てのユーザー関係性データを取得
      */
-    async extractKeywords(text) {
-        if (!text || typeof text !== 'string') return [];
-        
-        try {
-            const processedResult = await this.hybridProcessor.processText(text, {
-                enableMeCab: true,
-                enableGrouping: false
-            });
-
-            // 名詞と動詞を抽出（より幅広いキーワード抽出）
-            const candidates = processedResult.tokens
-                .filter(token => ['名詞', '動詞'].includes(token.pos))
-                .map(token => token.surface);
-            
-            // TF-IDFスコアでキーワードをランキング
-            const keywordsWithScore = await this.calculateKeywordTFIDF(candidates, text);
-            
-            // 高スコアのキーワードを選択
-            return keywordsWithScore
-                .sort((a, b) => b.score - a.score)
-                .slice(0, Math.min(20, keywordsWithScore.length)) // 上位20キーワード
-                .filter(item => item.score > 0.1) // 低スコアを除外
-                .map(item => item.word);
-                
-        } catch (error) {
-            console.error('❌ キーワード抽出エラー:', error.message);
-            return [];
-        }
-    }
-
-    /**
-     * TF-IDFスコア計算
-     */
-    async calculateKeywordTFIDF(candidates, text) {
-        const wordFreq = new Map();
-        const totalWords = candidates.length;
-        
-        // TF計算
-        candidates.forEach(word => {
-            wordFreq.set(word, (wordFreq.get(word) || 0) + 1);
-        });
-        
-        const keywordsWithScore = [];
-        
-        for (const [word, freq] of wordFreq.entries()) {
-            if (word.length < 2 || this.isStopWord(word)) continue;
-            
-            // TF: 正規化された頻度
-            const tf = freq / totalWords;
-            
-            // IDF: N-gramモジュールから文書頻度を取得
-            const idf = await this.calculateIDF(word);
-            
-            const score = tf * idf;
-            if (score > 0) {
-                keywordsWithScore.push({ word, score, tf, idf });
-            }
-        }
-        
-        return keywordsWithScore;
-    }
-
-    /**
-     * IDF計算（N-gramモジュールと連携）
-     */
-    async calculateIDF(word) {
-        if (this.tfIdfCache.has(word)) {
-            return this.tfIdfCache.get(word);
-        }
-        
-        try {
-            // N-gramモジュールのドキュメント頻度情報を使用
-            const docFreq = this.ngramAI.documentFreqs.get(word) || 1;
-            const totalDocs = Math.max(this.ngramAI.totalDocuments, 1);
-            
-            const idf = Math.log(totalDocs / docFreq);
-            this.tfIdfCache.set(word, idf);
-            return idf;
-            
-        } catch (error) {
-            return 1; // フォールバック
-        }
-    }
-
-    /**
-     * ストップワード判定
-     */
-    isStopWord(word) {
-        const stopWords = [
-            'こと', 'もの', 'ため', 'よう', 'そう', 'これ', 'それ', 'あれ', 'どれ',
-            'できる', 'する', 'なる', 'いる', 'ある', 'ない', 'いう', '見る',
-            '今日', '今', 'とき', '時', '日', '年', '月', '分', '秒'
-        ];
-        return stopWords.includes(word);
+    getUserRelationsData() {
+        return this.userRelations;
     }
 
     createPairKey(term1, term2) {
@@ -612,7 +559,86 @@ export class DynamicRelationshipLearner {
         return (countStrength * 0.7 + contextDiversity * 0.3);
     }
 
-    
+    /**
+     * PMI (Point-wise Mutual Information) 計算
+     * PMI(x,y) = log2(P(x,y) / (P(x) * P(y)))
+     * @param {string} term1 - 用語1
+     * @param {string} term2 - 用語2
+     * @returns {number} PMIスコア
+     */
+    calculatePMI(term1, term2) {
+        const pairKey = this.createPairKey(term1, term2);
+        const coOccurrenceCount = this.coOccurrenceData[pairKey] ? this.coOccurrenceData[pairKey].count : 0;
+        const totalCoOccurrences = Object.values(this.coOccurrenceData).reduce((sum, data) => sum + data.count, 0);
+
+        const freq1 = this.termFrequencies[term1] || 0;
+        const freq2 = this.termFrequencies[term2] || 0;
+        const totalTerms = Object.values(this.termFrequencies).reduce((sum, count) => sum + count, 0);
+
+        if (coOccurrenceCount === 0 || freq1 === 0 || freq2 === 0 || totalTerms === 0) {
+            return -Infinity; // 共起がない場合や単語が出現しない場合は負の無限大
+        }
+
+        const p_xy = Math.round((coOccurrenceCount / totalCoOccurrences) * 1e6) / 1e6;
+        const p_x = Math.round((freq1 / totalTerms) * 1e6) / 1e6;
+        const p_y = Math.round((freq2 / totalTerms) * 1e6) / 1e6;
+
+        if (p_x === 0 || p_y === 0) {
+            return -Infinity;
+        }
+
+        const pmi = Math.log2(p_xy / (p_x * p_y));
+        return isFinite(pmi) ? pmi : -Infinity;
+    }
+
+    /**
+     * 統計的有意性検定 (簡易的なカイ二乗検定)
+     * @param {string} term1 - 用語1
+     * @param {string} term2 - 用語2
+     * @returns {Object} 有意性結果 ({ isSignificant: boolean, pValue: number })
+     */
+    calculateStatisticalSignificance(term1, term2) {
+        const pairKey = this.createPairKey(term1, term2);
+        const observedCoOccurrence = this.coOccurrenceData[pairKey] ? this.coOccurrenceData[pairKey].count : 0;
+        
+        const freq1 = this.termFrequencies[term1] || 0;
+        const freq2 = this.termFrequencies[term2] || 0;
+        const totalTerms = Object.values(this.termFrequencies).reduce((sum, count) => sum + count, 0);
+
+        if (totalTerms === 0 || freq1 === 0 || freq2 === 0) {
+            return { isSignificant: false, pValue: 1.0 };
+        }
+
+        // 期待共起頻度 (Expected Co-occurrence)
+        const expectedCoOccurrence = Math.round(((freq1 * freq2) / totalTerms) * 1e6) / 1e6;
+
+        if (expectedCoOccurrence === 0) {
+            return { isSignificant: false, pValue: 1.0 };
+        }
+
+        // カイ二乗統計量
+        const chiSquare = Math.pow(observedCoOccurrence - expectedCoOccurrence, 2) / expectedCoOccurrence;
+
+        // 自由度1の場合のP値の簡易推定を改善
+        let pValue;
+        if (chiSquare >= 10.83) { // p < 0.001
+            pValue = 0.0009;
+        } else if (chiSquare >= 6.63) { // p < 0.01
+            pValue = 0.009;
+        } else if (chiSquare >= 3.84) { // p < 0.05
+            pValue = 0.049;
+        } else if (chiSquare >= 2.71) { // p < 0.1
+            pValue = 0.09;
+        } else {
+            pValue = 0.99; // 有意でない場合
+        }
+
+        return {
+            isSignificant: pValue < 0.05,
+            pValue: pValue,
+            chiSquare: chiSquare
+        };
+    }
 
     /**
      * 文字列の全出現位置取得
@@ -689,7 +715,70 @@ export class DynamicRelationshipLearner {
         
         return indexes;
     }
+
+    /**
+     * 動的文脈ボーナス計算
+     * 信頼度に基づいて適応的なボーナス係数を決定
+     */
+    calculateDynamicContextBonus(avgConfidence) {
+        // 学習データから統計的にボーナス係数を計算
+        const relationshipCount = Object.keys(this.userRelations).length;
+        
+        if (relationshipCount === 0) {
+            return 0.8; // デフォルト値
+        }
+        
+        // 関係性の豊富さに基づく適応的係数
+        const diversityFactor = Math.min(1.0, relationshipCount / 1000); // 1000関係を最大値とする
+        const confidenceBonus = 0.6 + (avgConfidence * 0.4); // 0.6-1.0範囲
+        
+        return Math.max(0.5, Math.min(1.0, confidenceBonus * (1 + diversityFactor * 0.2)));
+    }
+
+    /**
+     * 動的不確実性閾値計算
+     * 学習データの品質分布から閾値を統計的に決定
+     */
+    calculateDynamicUncertaintyThreshold() {
+        const confidenceValues = [];
+        
+        // 文脈強度データから信頼度分布を収集
+        for (const [, strengthArray] of Object.entries(this.contextStrengths)) {
+            if (Array.isArray(strengthArray)) {
+                for (const strength of strengthArray) {
+                    if (typeof strength === 'number' && strength >= 0 && strength <= 1) {
+                        confidenceValues.push(strength);
+                    }
+                }
+            }
+        }
+        
+        if (confidenceValues.length === 0) {
+            return 0.5; // デフォルト閾値
+        }
+        
+        // 統計的計算：第2四分位点（中央値）を使用
+        confidenceValues.sort((a, b) => a - b);
+        const medianIndex = Math.floor(confidenceValues.length * 0.5);
+        const median = confidenceValues[medianIndex];
+        
+        // 実用的範囲に制限
+        return Math.max(0.3, Math.min(0.7, median));
+    }
+
+    /**
+     * 動的不確実性ボーナス計算
+     * 最小信頼度に基づいて適応的なボーナスを決定
+     */
+    calculateDynamicUncertaintyBonus(minConfidence) {
+        // 不確実性が高いほど探索的ボーナスを付与
+        const explorationFactor = 1 - minConfidence; // 0-1範囲
+        const baseBonus = 0.1; // 最小ボーナス
+        const maxBonus = 0.3; // 最大ボーナス
+        
+        return baseBonus + (explorationFactor * (maxBonus - baseBonus));
+    }
 }
 
 // デフォルトインスタンス
-export const dynamicLearner = new DynamicRelationshipLearner();
+// export const dynamicLearner = new DynamicRelationshipLearner();

@@ -93,7 +93,7 @@ export class ResponseAssembler {
   async generateVocabularyOptimizedResponse(analysis, userId = 'default') {
     const { optimizedVocabulary, originalText } = analysis;
     
-    return await this.generateBanditStatisticalResponse(originalText, optimizedVocabulary);
+    return await this.generateMinimalBanditResponse(originalText, optimizedVocabulary);
   }
 
   /**
@@ -110,84 +110,68 @@ export class ResponseAssembler {
    * 純粋統計学習ベース応答生成（テンプレート完全回避）
    */
   async generateStatisticalResponse(analysis, strategy = null, userId = 'default', generateSyntacticStructure, evaluateSentenceQuality, calculateResponseMetrics, extractRelationshipPatterns, buildSemanticContext, filterKeywordsByStatisticalQuality, getLearnedRelatedTerms) {
-    const { originalText, processedTokens, optimizedVocabulary, predictedContext, adaptedContent, cooccurrenceAnalysis, qualityPrediction } = analysis;
+    const { originalText, processedTokens, cooccurrenceAnalysis } = analysis;
     
-    // 戦略別処理の分岐
-    if (strategy) {
-      switch (strategy) {
-        case ResponseStrategies.NGRAM_CONTINUATION:
-          return this.generateNgramBasedResponse(analysis, userId);
-        case ResponseStrategies.COOCCURRENCE_EXPANSION:
-          return this.generateCooccurrenceResponse(analysis, userId);
-        case ResponseStrategies.PERSONAL_ADAPTATION:
-          return this.generatePersonalizedResponse(analysis, userId);
-        case ResponseStrategies.VOCABULARY_OPTIMIZATION:
-          return this.generateVocabularyOptimizedResponse(analysis, userId);
-        case ResponseStrategies.QUALITY_FOCUSED:
-          return this.generateQualityFocusedResponse(analysis, userId);
-      }
-    }
-    
-    let semanticContext = []; // Initialize semanticContext outside the try block
-
-    const inputKeywords = processedTokens.map(t => t.surface || t.word || t.term || t).filter(Boolean);
-    const allRelatedTerms = Object.values(cooccurrenceAnalysis?.relatedTerms || {}).flat();
-    semanticContext = await buildSemanticContext(inputKeywords, allRelatedTerms);
-    console.log('📊 generateStatisticalResponse: semanticContext', semanticContext);
-
     try {
+      // 1. 複数の応答候補を生成
+      const candidateResponses = await this.generateCandidateResponses(analysis, userId, generateSyntacticStructure, extractRelationshipPatterns, buildSemanticContext, filterKeywordsByStatisticalQuality, getLearnedRelatedTerms);
+
+      if (candidateResponses.length === 0) {
+        return await this.generateMinimalStatisticalResponse(originalText, []);
+      }
+
+      // 2. 各候補を評価
+      const evaluatedCandidates = await Promise.all(candidateResponses.map(async (candidate) => {
+          const qualityScore = await this.qualityEvaluator.evaluateSentenceQuality(candidate.response, candidate.confidence);
+          const metrics = await this.qualityEvaluator.calculateResponseMetrics(candidate.response, candidate.syntacticStructure, candidate.responseTokens);
+          const totalScore = qualityScore * 0.6 + metrics.diversityScore * 0.2 + metrics.coherenceScore * 0.2;
+          return { ...candidate, totalScore };
+      }));
+
+      // 3. 最適な応答を選択
+      const bestResponse = evaluatedCandidates.reduce((best, current) => {
+          return current.totalScore > best.totalScore ? current : best;
+      });
+
+      return bestResponse.response || await this.generateMinimalStatisticalResponse(originalText, []);
+
+    } catch (error) {
+      console.warn('統計的応答生成エラー:', error.message);
+      return await this.generateMinimalStatisticalResponse(originalText, []);
+    }
+  }
+
+  /**
+   * 応答候補の生成
+   */
+  async generateCandidateResponses(analysis, userId, generateSyntacticStructure, extractRelationshipPatterns, buildSemanticContext, filterKeywordsByStatisticalQuality, getLearnedRelatedTerms) {
+      const { originalText, processedTokens, cooccurrenceAnalysis } = analysis;
+      const inputKeywords = processedTokens.map(t => t.surface || t.word || t.term || t).filter(Boolean);
+      const allRelatedTerms = Object.values(cooccurrenceAnalysis?.relatedTerms || {}).flat();
+      const semanticContext = await buildSemanticContext(inputKeywords, allRelatedTerms);
+      
       const candidateResponses = [];
-      const numCandidates = 3; // 生成する応答候補の数
+      const numCandidates = 1; // 3重処理を回避してパフォーマンス向上
 
       for (let i = 0; i < numCandidates; i++) {
-        // 1. 学習データから語彙関係性の統計的パターンを抽出
-        const relationshipPatterns = await this.extractRelationshipPatterns(semanticContext);
-        
-        // 2. 統計的文脈から文構造を生成
+        const relationshipPatterns = await extractRelationshipPatterns(semanticContext);
         const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(inputKeywords, relationshipPatterns, userId);
-        
-        // 3. 統計的語彙選択による語句生成
         const responseTokens = await this.generateResponseTokens(syntacticStructure, semanticContext);
         
-        // 4. 統計的文連結による自然文生成
-        const generatedResponse = await this.assembleSentence(responseTokens, originalText);
+        // assembleSentenceのロジックをここに統合・リファクタリング
+        const { primary, support, structure, confidence, finalResponse } = responseTokens;
+        if (!primary) continue;
 
-        // 候補と評価情報を保存
+        let generatedResponse = finalResponse; // SyntacticStructureGeneratorが生成した最終応答を使用
+
         candidateResponses.push({
           response: generatedResponse,
           syntacticStructure: syntacticStructure,
           responseTokens: responseTokens,
-          qualityScore: 0, // 後で評価
-          metrics: {} // 後で評価
+          confidence: confidence,
         });
       }
-
-      // 5. 複数の応答候補を評価し、最適なものを選択
-      let bestResponse = null;
-      let highestScore = -1;
-
-      for (const candidate of candidateResponses) {
-        const qualityScore = await this.qualityEvaluator.evaluateSentenceQuality(candidate.response, candidate.syntacticStructure.confidence);
-        const metrics = await this.qualityEvaluator.calculateResponseMetrics(candidate.response, candidate.syntacticStructure, candidate.responseTokens);
-
-        candidate.qualityScore = qualityScore;
-        candidate.metrics = metrics;
-
-        // 総合スコア計算（品質、多様性、一貫性などを考慮）
-        const totalScore = qualityScore * 0.6 + metrics.diversityScore * 0.2 + metrics.coherenceScore * 0.2;
-
-        if (totalScore > highestScore) {
-          highestScore = totalScore;
-          bestResponse = candidate.response;
-        }
-      }
-
-      return bestResponse || await this.generateMinimalStatisticalResponse(originalText, semanticContext);
-      
-    } catch (error) {
-      console.warn('統計的応答生成エラー:', error.message);
-      return await this.generateMinimalStatisticalResponse(originalText, semanticContext);
-    }
+      return candidateResponses;
   }
 
   /**
@@ -238,100 +222,53 @@ export class ResponseAssembler {
    * PCFGによって生成された文構造タイプと統計的語彙を組み合わせて、より自然な応答を生成
    */
   async assembleSentence(responseTokens, originalText) {
-    const { primary, support, structure, confidence, generatedSentence, phase3Enhanced, semanticStrength } = responseTokens;
+    const { primary, finalResponse, confidence } = responseTokens; // Use finalResponse directly
 
-    // generatedSentence は structuralInfo オブジェクトになった
-    const structuralInfo = generatedSentence;
-
-    if (!structuralInfo || !structuralInfo.primary) {
+    if (!primary) {
       return await this.generateMinimalStatisticalResponse(originalText, []);
     }
 
-    const terms = [structuralInfo.primary, ...structuralInfo.support].filter(Boolean);
-    const joinedTerms = terms.join('、');
-    
-    // Phase 3意味的強化情報を表示メッセージに反映
-    if (phase3Enhanced && semanticStrength > 0.7) {
-      console.log(`🧠 高い意味的類似度(${semanticStrength.toFixed(3)})で応答生成`);
-    }
-
-    // 統計的確信度に基づく応答の調整
-    const confidenceThresholds = await this.calculateDynamicWeights('confidenceThresholds');
-
-    let finalResponse = '';
-
-    // Phase 3強化時の追加情報
-    const phase3Indicator = phase3Enhanced ? '意味的に関連する' : '統計的に関連する';
-    
-    // ここで、structuralInfo と統計的確信度に基づいて動的に応答を生成
-    // ハードコードされたテンプレートを排除し、より柔軟な生成ロジックを実装
-    const primaryTerm = structuralInfo.primary;
-    const supportTerms = structuralInfo.support;
-
-    let generatedResponse = '';
-
-    // 確信度とPhase 3強化の度合いに応じて応答の基本形を決定
-    if (phase3Enhanced && semanticStrength > 0.8) {
-      generatedResponse = `${primaryTerm}は、意味的に非常に高い関連性を持つ重要な概念です。`;
-    } else if (confidence > confidenceThresholds.highConfidence) {
-      generatedResponse = `${primaryTerm}について、${supportTerms.length > 0 ? supportTerms[0] : '詳しく'}説明できます。`;
-    } else if (confidence > confidenceThresholds.mediumConfidence) {
-      generatedResponse = `${primaryTerm}に関連する${phase3Indicator}情報が見つかりました。`;
-    } else {
-      generatedResponse = `${primaryTerm}について、何か統計的に分析できることはありますか？`;
-    }
-
-    // 構造タイプに応じた追加の調整（より汎用的な表現に）
-    // switch文を排除し、より動的な文生成ロジックを実装
-    if (structuralInfo.type === 'subject_predicate' && supportTerms.length > 0) {
-      generatedResponse += ` ${primaryTerm}は${supportTerms[0]}です。`;
-    } else if (structuralInfo.type === 'topic_focus' && supportTerms.length > 0) {
-      generatedResponse += ` 主な焦点は${supportTerms[0]}です。`;
-    } else if (structuralInfo.type === 'topic_comment' && supportTerms.length > 0) {
-      generatedResponse += ` ${primaryTerm}に関する${supportTerms[0]}という見方があります。`;
-    } else if (structuralInfo.type === 'topic_formal' && supportTerms.length > 0) {
-      generatedResponse += ` ${primaryTerm}に関して、${supportTerms[0]}という考察が可能です。`;
-    } else if (structuralInfo.type === 'object_focus' && supportTerms.length > 0) {
-      generatedResponse += ` ${primaryTerm}を${supportTerms[0]}として分析できます。`;
-    }
-    // minimal, fallback, default のケースは、上記の基本形と品質評価で対応されるため、ここでは特別な追加は不要
-
-    finalResponse = generatedResponse;
+    // Use finalResponse directly as the generated sentence
+    const generatedSentence = finalResponse;
 
     // 最終的な応答の品質を統計的に評価し、必要に応じて調整
-    const finalQualityScore = await this.evaluateSentenceQuality(finalResponse, confidence);
+    const finalQualityScore = await this.qualityEvaluator.evaluateSentenceQuality(generatedSentence, confidence);
+    const confidenceThresholds = await this.calculateDynamicWeights('confidenceThresholds');
+
     if (finalQualityScore < confidenceThresholds.lowConfidence) {
-      return await this.generateMinimalStatisticalResponse(originalText, []); // 品質が低い場合は最小応答にフォールバック
+      return await this.generateMinimalStatisticalResponse(originalText, [{ term: primary }]);
     }
 
-    return finalResponse;
+    return generatedSentence;
   }
+
+  
 
   /**
    * 最小統計応答生成
    */
   async generateMinimalStatisticalResponse(originalText, semanticContext) {
-    const text = typeof originalText === 'string' ? originalText : 'そのテーマ';
+    const text = typeof originalText === 'string' ? originalText : '情報';
     
     if (Array.isArray(semanticContext) && semanticContext.length > 0) {
       const term = semanticContext[0].term;
-      return `${term}について。`;
+      return `${term}について、何かお手伝いできることはありますか？`;
     }
-    return `${text}について検討中です。`;
+    return `${text}について、何かお手伝いできることはありますか？`;
   }
 
   /**
    * N-gram最小応答
    */
   async generateMinimalNgramResponse(originalText, nextWord) {
-    return `${nextWord}に関連して。`;
+    return `${nextWord}について、さらに情報が必要ですか？`;
   }
 
   /**
    * ベイジアン最小応答
    */
   async generateMinimalBayesianResponse(originalText, userCategory) {
-    return `${userCategory}の観点から。`;
+    return `${userCategory}の観点から、何かお手伝いできることはありますか？`;
   }
 
   /**
@@ -339,7 +276,7 @@ export class ResponseAssembler {
    */
   async generateMinimalBanditResponse(originalText, optimizedVocabulary) {
     const term = Array.isArray(optimizedVocabulary) ? optimizedVocabulary[0] : optimizedVocabulary;
-    return `${term}について。`;
+    return `${term}について、何かお手伝いできることはありますか？`;
   }
 
   /**
@@ -372,10 +309,11 @@ export class ResponseAssembler {
   /**
    * 品質レベルに応じた統計的応答戦略選択
    */
-  async selectQualityStrategy(qualityMetrics) {
-    // 簡易的な実装
-    if (qualityMetrics.score > 0.7) return 'high_quality';
-    if (qualityMetrics.score > 0.4) return 'medium_quality';
+  async selectQualityStrategy(qualityMetrics, userId = 'default') {
+    // Phase 0 Fix: 動的品質閾値計算
+    const qualityThresholds = await this.calculateDynamicQualityThresholds(userId);
+    if (qualityMetrics.score > qualityThresholds.high) return 'high_quality';
+    if (qualityMetrics.score > qualityThresholds.medium) return 'medium_quality';
     return 'low_quality';
   }
 
@@ -385,11 +323,11 @@ export class ResponseAssembler {
   async generateQualityAdaptedSentence(originalText, qualityStrategy, qualityMetrics) {
     // 簡易的な実装
     if (qualityStrategy === 'high_quality') {
-      return `${originalText}について、非常に質の高い情報を提供できます。`;
+      return `${originalText}について、非常に質の高い情報を提供できます。さらに詳細が必要ですか？`;
     } else if (qualityStrategy === 'medium_quality') {
-      return `${originalText}について、関連情報を提供できます。`;
+      return `${originalText}について、関連情報を提供できます。何か特定の情報をお探しですか？`;
     } else {
-      return `${originalText}について、もう少し情報が必要です。`;
+      return `${originalText}について、もう少し情報が必要です。どのような点に関心がありますか？`;
     }
   }
 
@@ -1284,6 +1222,280 @@ export class ResponseAssembler {
         minStrength: 0.3,
         qualityThreshold: 0.5
       };
+    }
+  }
+
+  
+
+  /**
+   * 学習データベースから成功応答パターンを抽出
+   */
+  async extractSuccessfulResponsePatterns(primary, userId) {
+    const patterns = [];
+    
+    try {
+      // 永続学習DBからユーザー関係性データを取得
+      const userRelations = await this.persistentLearningDB.getUserSpecificRelations(userId);
+      
+      if (userRelations && userRelations.userRelations) {
+        for (const [term, relations] of Object.entries(userRelations.userRelations)) {
+          for (const relation of relations) {
+            // 高強度関係性（成功パターン）を抽出
+            if (relation.strength > 0.6) {
+              patterns.push({
+                primary: term,
+                related: relation.term,
+                strength: relation.strength,
+                pattern: this.inferResponsePattern(term, relation.term),
+                lastUsed: relation.lastUpdated
+              });
+            }
+          }
+        }
+      }
+      
+      // 関連性でソート
+      patterns.sort((a, b) => b.strength - a.strength);
+      
+    } catch (error) {
+      console.warn('⚠️ 成功パターン抽出エラー:', error.message);
+    }
+    
+    return patterns;
+  }
+
+  /**
+   * 統計的信頼度に基づく応答戦略選択
+   */
+  async selectResponseStrategy(confidence, patterns) {
+    // 動的閾値計算（固定値除去）
+    const thresholds = await this.calculateDynamicConfidenceThresholds(patterns);
+    
+    if (confidence >= thresholds.high) {
+      return 'high_confidence_detailed';
+    } else if (confidence >= thresholds.medium) {
+      return 'medium_confidence_explanatory';
+    } else {
+      return 'low_confidence_exploratory';
+    }
+  }
+
+  /**
+   * N-gramベース動的文生成
+   */
+  async generateNgramBasedResponse(primary, support, strategy, patterns) {
+    // 成功パターンからN-gramを構築
+    const ngramModel = this.buildNgramModel(patterns);
+    
+    // 戦略に基づく文構造生成
+    const baseStructure = this.selectStructureByStrategy(strategy);
+    
+    // N-gramモデルを使用した語彙選択
+    const filledStructure = this.fillStructureWithNgrams(baseStructure, primary, support, ngramModel);
+    
+    return filledStructure;
+  }
+
+  /**
+   * 動的信頼度閾値計算
+   */
+  async calculateDynamicConfidenceThresholds(patterns) {
+    if (patterns.length === 0) {
+      // デフォルト分布ベース
+      return { high: 0.75, medium: 0.45, low: 0.15 };
+    }
+    
+    const strengths = patterns.map(p => p.strength);
+    const sortedStrengths = strengths.sort((a, b) => b - a);
+    
+    // パーセンタイル計算
+    const high = this.calculatePercentile(sortedStrengths, 80);
+    const medium = this.calculatePercentile(sortedStrengths, 50);
+    const low = this.calculatePercentile(sortedStrengths, 20);
+    
+    return { high, medium, low };
+  }
+
+  /**
+   * N-gramモデル構築
+   */
+  buildNgramModel(patterns) {
+    const ngramCounts = new Map();
+    
+    for (const pattern of patterns) {
+      const words = pattern.pattern.split(' ');
+      
+      // バイグラム生成
+      for (let i = 0; i < words.length - 1; i++) {
+        const bigram = `${words[i]} ${words[i + 1]}`;
+        ngramCounts.set(bigram, (ngramCounts.get(bigram) || 0) + pattern.strength);
+      }
+    }
+    
+    return ngramCounts;
+  }
+
+  /**
+   * 戦略別構造選択
+   */
+  selectStructureByStrategy(strategy) {
+    const structures = {
+      'high_confidence_detailed': '{primary}については、{detail}について{conclusion}',
+      'medium_confidence_explanatory': '{primary}と{support}の関連性について{explanation}',
+      'low_confidence_exploratory': '{primary}について{exploration}可能性があります'
+    };
+    
+    return structures[strategy] || structures['medium_confidence_explanatory'];
+  }
+
+  /**
+   * N-gramを使用した構造埋め込み
+   */
+  fillStructureWithNgrams(structure, primary, support, ngramModel) {
+    let filled = structure;
+    
+    // プライマリー語彙
+    filled = filled.replace('{primary}', primary);
+    
+    // サポート語彙
+    const supportText = support.length > 0 ? support[0] : '関連事項';
+    filled = filled.replace('{support}', supportText);
+    
+    // N-gramモデルから文脈に適した語彙を選択
+    const contextWords = this.selectContextualWords(ngramModel, [primary, ...support]);
+    
+    filled = filled.replace('{detail}', contextWords.detail || '詳細');
+    filled = filled.replace('{conclusion}', contextWords.conclusion || '言える');
+    filled = filled.replace('{explanation}', contextWords.explanation || '考察でき');
+    filled = filled.replace('{exploration}', contextWords.exploration || '検討');
+    
+    return filled;
+  }
+
+  /**
+   * 文脈的語彙選択
+   */
+  selectContextualWords(ngramModel, contextTerms) {
+    const contextWords = { detail: '', conclusion: '', explanation: '', exploration: '' };
+    
+    for (const [bigram, weight] of ngramModel) {
+      const words = bigram.split(' ');
+      
+      // 文脈語彙との関連性をチェック
+      for (const term of contextTerms) {
+        if (words.includes(term)) {
+          if (words.includes('について') && !contextWords.detail) {
+            contextWords.detail = words[words.indexOf('について') + 1] || '詳細';
+          }
+          if (words.includes('関連') && !contextWords.explanation) {
+            contextWords.explanation = words[words.indexOf('関連') + 1] || '考察でき';
+          }
+        }
+      }
+    }
+    
+    return contextWords;
+  }
+
+  /**
+   * 統計的フォールバック生成
+   */
+  async generateStatisticalFallback(primary, support, userId) {
+    try {
+      // 過去の成功応答から最頻出パターンを選択
+      const patterns = await this.extractSuccessfulResponsePatterns(primary, userId);
+      
+      if (patterns.length > 0) {
+        // 最高強度パターンを基に生成
+        const bestPattern = patterns[0];
+        return `${primary}について、${bestPattern.related}との関連性を考慮できます。`;
+      }
+      
+      // 完全フォールバック：最小限の統計的生成
+      return `${primary}について、統計的分析を行っています。`;
+      
+    } catch (error) {
+      console.warn('⚠️ 統計的フォールバック生成エラー:', error.message);
+      return `${primary}について。`;
+    }
+  }
+
+  /**
+   * 応答パターン推定
+   */
+  inferResponsePattern(term1, term2) {
+    return `${term1}と${term2}の関連性について考察できます`;
+  }
+
+  /**
+   * パーセンタイル計算
+   */
+  calculatePercentile(sortedArray, percentile) {
+    const index = Math.floor((percentile / 100) * sortedArray.length);
+    return sortedArray[index] || 0.5;
+  }
+
+  /**
+   * Phase 0 Fix: 動的品質閾値計算
+   * 固定値(0.7, 0.4)を学習データベースから動的計算
+   */
+  async calculateDynamicQualityThresholds(userId) {
+    try {
+      // 過去の品質スコア履歴を取得
+      const qualityHistory = await this.getQualityHistory(userId);
+      
+      if (qualityHistory.length === 0) {
+        // 履歴なしの場合：保守的なデフォルト値
+        return { high: 0.75, medium: 0.45, low: 0.15 };
+      }
+      
+      const scores = qualityHistory.map(h => h.score).sort((a, b) => b - a);
+      
+      // パーセンタイルベース動的閾値
+      const high = this.calculatePercentile(scores, 75);   // 上位25%
+      const medium = this.calculatePercentile(scores, 50); // 中央値
+      const low = this.calculatePercentile(scores, 25);    // 下位25%
+      
+      return { high, medium, low };
+      
+    } catch (error) {
+      console.warn('⚠️ 動的品質閾値計算エラー:', error.message);
+      return { high: 0.70, medium: 0.40, low: 0.15 }; // フォールバック値
+    }
+  }
+
+  /**
+   * 品質スコア履歴取得
+   */
+  async getQualityHistory(userId) {
+    try {
+      // 永続学習DBから品質履歴を取得
+      const userRelations = await this.persistentLearningDB.getUserSpecificRelations(userId);
+      const qualityHistory = [];
+      
+      if (userRelations && userRelations.userRelations) {
+        for (const [term, relations] of Object.entries(userRelations.userRelations)) {
+          for (const relation of relations) {
+            // 関係性強度を品質スコアとして使用
+            qualityHistory.push({
+              score: relation.strength,
+              timestamp: relation.lastUpdated,
+              term: term,
+              context: relation.term
+            });
+          }
+        }
+      }
+      
+      // 最新順でソート
+      qualityHistory.sort((a, b) => b.timestamp - a.timestamp);
+      
+      // 最新100件に制限
+      return qualityHistory.slice(0, 100);
+      
+    } catch (error) {
+      console.warn('⚠️ 品質履歴取得エラー:', error.message);
+      return [];
     }
   }
 }

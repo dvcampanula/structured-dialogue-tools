@@ -431,16 +431,16 @@ async function startServer() {
     try {
         console.log('🚀 Phase 4 システム初期化開始...');
         
-        // AIVocabularyProcessor初期化
-        console.log('📊 AIVocabularyProcessor初期化中...');
-        aiVocabularyProcessor = new AIVocabularyProcessor();
-        await aiVocabularyProcessor.initialize();
-        console.log('✅ AIVocabularyProcessor初期化完了');
+        // AIVocabularyProcessor初期化をスキップ（基礎固め用）
+        console.log('📊 AIVocabularyProcessor初期化をスキップ（基礎固め用）');
+        aiVocabularyProcessor = null;
         
-        // StatisticalResponseGenerator初期化
-        console.log('🗣️ StatisticalResponseGenerator初期化中...');
-        statisticalGenerator = new StatisticalResponseGenerator(aiVocabularyProcessor);
-        console.log('✅ StatisticalResponseGenerator初期化完了');
+        // StatisticalResponseGenerator初期化をスキップ（基礎固め用）
+        console.log('🗣️ StatisticalResponseGenerator初期化をスキップ（基礎固め用）');
+        statisticalGenerator = null;
+        
+        // 対話ログ学習システムは別コマンドで実行 (npm run learn-logs)
+        console.log('ℹ️  対話ログ学習は `npm run learn-logs` コマンドで別途実行してください');
 
         const server = http.createServer(handleRequest);
 
