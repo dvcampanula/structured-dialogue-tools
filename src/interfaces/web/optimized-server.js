@@ -158,7 +158,8 @@ function registerComponents() {
         const aiVocabularyProcessor = await lazyInitManager.get('aiVocabularyProcessor');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const learningConfig = await persistentLearningDB.loadSystemData('learning-config'); // learningConfigを読み込む
-        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB, learningConfig);
+        const syntacticGenerator = await lazyInitManager.get('syntacticGenerator'); // syntacticGeneratorを読み込む
+        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB, learningConfig, syntacticGenerator);
     }, ['aiVocabularyProcessor', 'persistentLearningDB'], 2);
 
     console.log('✅ コンポーネント登録完了');

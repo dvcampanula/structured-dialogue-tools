@@ -2,41 +2,9 @@
   "totalConversations": 0,
   "totalRelationsLearned": 2,
   "totalConceptsLearned": 0,
-  "lastLearningDate": 1752706095624,
+  "lastLearningDate": 1752706664121,
   "qualityScore": 0.5,
   "learningEvents": [
-    {
-      "timestamp": 1752692129495,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality_predictor_user",
-        "relationsCount": 0
-      }
-    },
-    {
-      "timestamp": 1752692129502,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "ai_processor_user",
-        "relationsCount": 10
-      }
-    },
-    {
-      "timestamp": 1752692413955,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "quality_predictor_user",
-        "relationsCount": 0
-      }
-    },
-    {
-      "timestamp": 1752692413961,
-      "type": "user_relations_update",
-      "data": {
-        "userId": "ai_processor_user",
-        "relationsCount": 10
-      }
-    },
     {
       "timestamp": 1752692699996,
       "type": "user_relations_update",
@@ -799,6 +767,38 @@
     },
     {
       "timestamp": 1752706095624,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "ai_processor_user",
+        "relationsCount": 10
+      }
+    },
+    {
+      "timestamp": 1752706379060,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "quality_predictor_user",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752706379061,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "ai_processor_user",
+        "relationsCount": 10
+      }
+    },
+    {
+      "timestamp": 1752706664116,
+      "type": "user_relations_update",
+      "data": {
+        "userId": "quality_predictor_user",
+        "relationsCount": 0
+      }
+    },
+    {
+      "timestamp": 1752706664121,
       "type": "user_relations_update",
       "data": {
         "userId": "ai_processor_user",

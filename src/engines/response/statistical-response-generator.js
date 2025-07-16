@@ -27,11 +27,12 @@ export const ResponseStrategies = {
 
 
 class StatisticalResponseGenerator {
-  constructor(aiVocabularyProcessor, learningDB, learningConfig) {
+  constructor(aiVocabularyProcessor, learningDB, learningConfig, syntacticGenerator) {
     // コア依存関係
     this.aiProcessor = aiVocabularyProcessor;
     this.learningDB = learningDB;
     this.learningConfig = learningConfig; // 追加
+    this.syntacticGenerator = syntacticGenerator; // 追加
     this.dialogueLogProcessor = null; // 後で初期化
     // 応答戦略管理
     this.responseStrategies = new Map();
@@ -46,7 +47,7 @@ class StatisticalResponseGenerator {
 
     // 新しいモジュールのインスタンス化
     this.strategyManager = new ResponseStrategyManager(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this));
-    this.syntacticGenerator = new SyntacticStructureGenerator(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this), this.aiProcessor.hybridProcessor);
+    this.syntacticGenerator = new SyntacticStructureGenerator(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this), this.aiProcessor.hybridProcessor, this.learningConfig);
     this.qualityEvaluator = new ResponseQualityEvaluator(this.aiProcessor, this.learningDB);
     
     // ResponseAssemblerの初期化（他の依存関係が整った後）
@@ -740,8 +741,19 @@ class StatisticalResponseGenerator {
         const primaryKeyword = inputKeywords[0] || '内容';
         const relatedTerm = relatedTerms[0];
         
-        // 統計的関連性を基にした応答生成
-        return `${primaryKeyword}について、${relatedTerm}との関連性から考察を深めることができます。`;
+        // syntacticGeneratorを使用して文を生成
+        const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(
+          [primaryKeyword, relatedTerm], // キーワードとして渡す
+          [], // 関係性パターンはここでは使用しない
+          'default' // userId
+        );
+
+        if (syntacticStructure && syntacticStructure.finalResponse) {
+          return syntacticStructure.finalResponse;
+        } else {
+          // フォールバック: 従来のロジック
+          return `${primaryKeyword}について、${relatedTerm}との関連性から考察を深めることができます。`;
+        }
       }
       
       return null;
@@ -761,24 +773,59 @@ class StatisticalResponseGenerator {
     // 語彙長に基づく複雑度推定
     const complexity = this.estimateComplexity(primaryKeyword);
     
+    // syntacticGeneratorを使用して文を生成
+    const baseKeywords = [primaryKeyword];
+    let additionalKeywords = [];
+
     if (complexity > 0.7) {
-      return `${primaryKeyword}について、統計的分析を継続しています。`;
+      additionalKeywords = ['統計的分析', '継続'];
     } else if (complexity > 0.4) {
-      return `${primaryKeyword}に関する関連性を検討中です。`;
+      additionalKeywords = ['関連性', '検討'];
     } else {
-      return `${primaryKeyword}について、更なる情報を収集しています。`;
+      additionalKeywords = ['情報', '収集'];
+    }
+
+    const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(
+      [...baseKeywords, ...additionalKeywords], // キーワードとして渡す
+      [], // 関係性パターンはここでは使用しない
+      'default' // userId
+    );
+
+    if (syntacticStructure && syntacticStructure.finalResponse) {
+      return syntacticStructure.finalResponse;
+    } else {
+      // フォールバック: 従来のロジック
+      if (complexity > 0.7) {
+        return `${primaryKeyword}について、統計的分析を継続しています。`;
+      } else if (complexity > 0.4) {
+        return `${primaryKeyword}に関する関連性を検討中です。`;
+      } else {
+        return `${primaryKeyword}について、更なる情報を収集しています。`;
+      }
     }
   }
 
   /**
    * 完全フォールバック（入力活用）
    */
-  generateUltimateFallback(userInput) {
+  async generateUltimateFallback(userInput) {
     // 入力文から最初の名詞的語彙を抽出
     const words = userInput.split(/\s+/);
     const keyword = words.find(word => word.length > 1) || 'ご質問';
     
-    return `${keyword}について、検討を続けています。`;
+    // syntacticGeneratorを使用して文を生成
+    const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(
+      [keyword, '検討', '継続'], // キーワードとして渡す
+      [], // 関係性パターンはここでは使用しない
+      'default' // userId
+    );
+
+    if (syntacticStructure && syntacticStructure.finalResponse) {
+      return syntacticStructure.finalResponse;
+    } else {
+      // フォールバック: 従来のロジック
+      return `${keyword}について、検討を続けています。`;
+    }
   }
 
   /**
@@ -793,8 +840,8 @@ class StatisticalResponseGenerator {
         
         if (relations && relations.userRelations && relations.userRelations[keyword]) {
           for (const relation of relations.userRelations[keyword]) {
-            if (relation.strength > 0.3) {
-              relatedTerms.push(relation.term);
+            if (relation.strength > this.learningConfig.relatedTermsThreshold) {
+              relatedTerms.push(relation); // relationオブジェクト全体をpush
             }
           }
         }
@@ -807,7 +854,7 @@ class StatisticalResponseGenerator {
       console.warn('⚠️ 関連語彙取得エラー:', error.message);
     }
     
-    return relatedTerms.slice(0, 5); // 上位5語彙
+    return relatedTerms.slice(0, this.learningConfig.maxRelatedTerms); // 上位N語彙
   }
 
   /**
@@ -818,10 +865,10 @@ class StatisticalResponseGenerator {
     const hasKanji = /[一-龯]/.test(word);
     const hasKatakana = /[ア-ン]/.test(word);
     
-    let complexity = length / 10; // 基本長度
+    let complexity = length * this.learningConfig.complexityWeights.length; // 基本長度
     
-    if (hasKanji) complexity += 0.3;
-    if (hasKatakana) complexity += 0.1;
+    if (hasKanji) complexity += this.learningConfig.complexityWeights.kanji;
+    if (hasKatakana) complexity += this.learningConfig.complexityWeights.katakana;
     
     return Math.min(complexity, 1.0);
   }
@@ -829,32 +876,84 @@ class StatisticalResponseGenerator {
   /**
    * キーワード類似度計算
    */
-  calculateKeywordSimilarity(response, keywords) {
-    let similarity = 0;
-    
-    for (const keyword of keywords) {
-      if (response.includes(keyword)) {
-        similarity += 0.5;
+  async calculateKeywordSimilarity(response, keywords) {
+    try {
+      if (!this.syntacticGenerator) {
+        console.warn('⚠️ syntacticGeneratorが利用できません。簡易類似度計算を使用します。');
+        let similarity = 0;
+        for (const keyword of keywords) {
+          if (response.includes(keyword)) {
+            similarity += 0.5;
+          }
+        }
+        return similarity / Math.max(keywords.length, 1);
       }
+
+      // 応答とキーワードの意味埋め込みを計算
+      const responseTerms = await this.aiProcessor.processText(response);
+      const responseKeywords = responseTerms.enhancedTerms ? responseTerms.enhancedTerms.map(t => t.term) : [];
+
+      const allKeywords = [...new Set([...keywords, ...responseKeywords])];
+      const semanticEmbeddings = this.syntacticGenerator.calculateSemanticEmbeddings(allKeywords.map(k => ({ term: k, strength: 1 }))); // 簡易的な関係性パターン
+
+      if (Object.keys(semanticEmbeddings).length < 2) return 0; // 比較する埋め込みが2つ未満なら類似度0
+
+      let totalSimilarity = 0;
+      let count = 0;
+
+      for (const kw1 of keywords) {
+        for (const kw2 of responseKeywords) {
+          if (semanticEmbeddings[kw1] && semanticEmbeddings[kw2]) {
+            totalSimilarity += this.syntacticGenerator.cosineSimilarity(
+              semanticEmbeddings[kw1],
+              semanticEmbeddings[kw2]
+            );
+            count++;
+          }
+        }
+      }
+
+      return count > 0 ? totalSimilarity / count : 0;
+
+    } catch (error) {
+      console.warn('⚠️ キーワード類似度計算エラー:', error.message);
+      // エラー発生時も簡易的なフォールバック
+      let similarity = 0;
+      for (const keyword of keywords) {
+        if (response.includes(keyword)) {
+          similarity += 0.5;
+        }
+      }
+      return similarity / Math.max(keywords.length, 1);
     }
-    
-    return similarity / Math.max(keywords.length, 1);
   }
 
   /**
    * システムエラー応答生成
    */
   async generateSystemErrorResponse() {
-    const errorMessages = [
-      '処理中にエラーが発生しました',
-      'システムの調整が必要です',
-      '一時的な不具合が発生しています',
-      'データ処理に問題があります'
-    ];
-    
-    // ランダムだが統計的に選択
-    const randomIndex = Math.floor(Math.random() * errorMessages.length);
-    return errorMessages[randomIndex] + '。';
+    // syntacticGeneratorを使用してエラーメッセージを生成
+    const syntacticStructure = await this.syntacticGenerator.generateSyntacticStructure(
+      ['エラー', 'システム', '問題'], // キーワードとして渡す
+      [], // 関係性パターンはここでは使用しない
+      'default' // userId
+    );
+
+    if (syntacticStructure && syntacticStructure.finalResponse) {
+      return syntacticStructure.finalResponse;
+    } else {
+      // フォールバック: 従来のロジック
+      const errorMessages = [
+        '処理中にエラーが発生しました',
+        'システムの調整が必要です',
+        '一時的な不具合が発生しています',
+        'データ処理に問題があります'
+      ];
+      
+      // ランダムだが統計的に選択
+      const randomIndex = Math.floor(Math.random() * errorMessages.length);
+      return errorMessages[randomIndex] + '。';
+    }
   }
 }
 export { StatisticalResponseGenerator };

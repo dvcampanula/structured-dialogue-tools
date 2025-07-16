@@ -1,9 +1,10 @@
 export class SyntacticStructureGenerator {
-  constructor(learningDB, calculateDynamicWeights, getLearnedRelatedTerms, hybridProcessor) {
+  constructor(learningDB, calculateDynamicWeights, getLearnedRelatedTerms, hybridProcessor, learningConfig) {
     this.learningDB = learningDB;
     this.calculateDynamicWeights = calculateDynamicWeights;
     this.getLearnedRelatedTerms = getLearnedRelatedTerms;
     this.hybridProcessor = hybridProcessor; // 追加
+    this.learningConfig = learningConfig; // 追加
     console.log('🌳 SyntacticStructureGenerator初期化完了');
   }
 
@@ -322,7 +323,8 @@ export class SyntacticStructureGenerator {
     const classification = { abstract: 0, concrete: 0 };
     
     for (const term of relatedTerms) {
-      // 簡易的な抽象/具象分類
+      // 現在は簡易的な抽象/具象分類（接尾辞ベース）
+      // 将来的に、より高度なセマンティック分析や辞書情報（JMDictなど）を活用して拡張可能
       if (term.term.includes('的') || term.term.includes('性') || term.term.includes('論')) {
         classification.abstract++;
       } else {
@@ -418,8 +420,8 @@ export class SyntacticStructureGenerator {
    * パターンからキーワードを抽出（簡易版）
    */
   extractKeywordsFromPattern(pattern) {
-    // 例: "NP は VP" -> ["NP", "VP"]
-    // 実際には、より複雑なパターン解析が必要になる場合があります。
+    // 現在はPCFGシンボル（例: "NP", "VP"）を抽出
+    // 将来的に、より複雑な文法パターンから意味のあるキーワードを抽出するよう拡張可能
     return pattern.match(/\b[A-Z]+\b/g) || [];
   }
 
@@ -608,13 +610,9 @@ export class SyntacticStructureGenerator {
    */
   getFallbackGrammarRules() {
     return {
-      S: [
-        { pattern: 'NP について VP', probability: 0.5, type: 'topic_focus', learned: false },
-        { pattern: 'NP は VP', probability: 0.3, type: 'topic_comment', learned: false },
-        { pattern: 'NP が VP', probability: 0.2, type: 'subject_predicate', learned: false }
-      ],
-      NP: this.getMinimalNounPhrases(),
-      VP: this.getMinimalVerbPhrases(),
+      S: this.learningConfig.fallbackGrammarRules.S,
+      NP: this.learningConfig.fallbackGrammarRules.NP,
+      VP: this.learningConfig.fallbackGrammarRules.VP,
       QUESTION_PATTERNS: [
         { pattern: 'NP は何ですか？', probability: 0.5, type: 'what_question', learned: false },
         { pattern: 'NP についてどう思いますか？', probability: 0.5, type: 'opinion_question', learned: false }
@@ -627,12 +625,13 @@ export class SyntacticStructureGenerator {
    */
   createEmergencyGrammarPattern(inputKeywords) {
     const keyword = inputKeywords && inputKeywords.length > 0 ? inputKeywords[0] : '何か';
+    const emergencyPattern = this.learningConfig.emergencyGrammarPattern;
     return {
-      pattern: `${keyword}について。`,
-      probability: 0.1,
-      type: 'emergency_fallback',
+      pattern: emergencyPattern.template.replace('{keyword}', keyword),
+      probability: emergencyPattern.probability,
+      type: emergencyPattern.type,
       learned: false,
-      confidence: 0.1
+      confidence: emergencyPattern.confidence
     };
   }
 
@@ -889,13 +888,13 @@ export class SyntacticStructureGenerator {
       let totalSimilarity = 0;
       let validComparisons = 0;
       
-      for (const keyword of patternKeywords) {
-        if (semanticEmbeddings[keyword]) {
+      for (const pKeyword of patternKeywords) {
+        if (semanticEmbeddings[pKeyword]) {
           // 他のキーワードとの平均類似度を計算
           for (const otherKeyword of patternKeywords) {
-            if (keyword !== otherKeyword && semanticEmbeddings[otherKeyword]) {
+            if (pKeyword !== otherKeyword && semanticEmbeddings[otherKeyword]) {
               const similarity = this.cosineSimilarity(
-                semanticEmbeddings[keyword],
+                semanticEmbeddings[pKeyword],
                 semanticEmbeddings[otherKeyword]
               );
               totalSimilarity += similarity;

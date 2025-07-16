@@ -15,5 +15,33 @@
   },
   "qualityScoreMin": 0.1,
   "qualityScoreMax": 0.9,
-  "numResponseCandidates": 3
+  "numResponseCandidates": 3,
+  "complexityWeights": {
+    "length": 0.1,
+    "kanji": 0.3,
+    "katakana": 0.1
+  },
+  "relatedTermsThreshold": 0.3,
+  "maxRelatedTerms": 5,
+  "fallbackGrammarRules": {
+    "S": [
+      { "pattern": "NP について VP", "probability": 0.5, "type": "topic_focus" },
+      { "pattern": "NP は VP", "probability": 0.3, "type": "topic_comment" },
+      { "pattern": "NP が VP", "probability": 0.2, "type": "subject_predicate" }
+    ],
+    "NP": [
+      { "pattern": "テーマ", "probability": 1.0, "type": "default_noun" },
+      { "pattern": "情報", "probability": 0.8, "type": "default_noun" }
+    ],
+    "VP": [
+      { "pattern": "説明できます", "probability": 1.0, "type": "default_verb" },
+      { "pattern": "分析します", "probability": 0.8, "type": "default_verb" }
+    ]
+  },
+  "emergencyGrammarPattern": {
+    "template": "{keyword}について。",
+    "probability": 0.1,
+    "type": "emergency_fallback",
+    "confidence": 0.1
+  }
 }
