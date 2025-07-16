@@ -46,7 +46,7 @@ class StatisticalResponseGenerator {
 
     // 新しいモジュールのインスタンス化
     this.strategyManager = new ResponseStrategyManager(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this));
-    this.syntacticGenerator = new SyntacticStructureGenerator(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this));
+    this.syntacticGenerator = new SyntacticStructureGenerator(this.learningDB, this.calculateDynamicWeights.bind(this), this.getLearnedRelatedTerms.bind(this), this.aiProcessor.hybridProcessor);
     this.qualityEvaluator = new ResponseQualityEvaluator(this.aiProcessor, this.learningDB);
     
     // ResponseAssemblerの初期化（他の依存関係が整った後）

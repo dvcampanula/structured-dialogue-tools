@@ -1,8 +1,9 @@
 export class SyntacticStructureGenerator {
-  constructor(learningDB, calculateDynamicWeights, getLearnedRelatedTerms) {
+  constructor(learningDB, calculateDynamicWeights, getLearnedRelatedTerms, hybridProcessor) {
     this.learningDB = learningDB;
     this.calculateDynamicWeights = calculateDynamicWeights;
     this.getLearnedRelatedTerms = getLearnedRelatedTerms;
+    this.hybridProcessor = hybridProcessor; // 追加
     console.log('🌳 SyntacticStructureGenerator初期化完了');
   }
 
@@ -472,8 +473,9 @@ export class SyntacticStructureGenerator {
     let total = 0;
     
     for (const pattern of lexicalPatterns) {
-      if (pattern.usage_priority === 'high') {
-        const verb = this.extractVerbContext(pattern.term);
+      // 品詞情報を使用して動詞を抽出
+      if (pattern.usage_priority === 'high' && pattern.pos && pattern.pos.startsWith('動詞')) {
+        const verb = pattern.term;
         if (verb) {
           usage[verb] = usage[verb] || { frequency: 0, usage_count: 0, total: 0 };
           usage[verb].frequency += pattern.frequency;
@@ -491,31 +493,19 @@ export class SyntacticStructureGenerator {
     return usage;
   }
 
-  /**
-   * 動詞文脈抽出（簡易版）
-   */
-  extractVerbContext(term) {
-    // 実際の実装では、より高度な動詞抽出を行う
-    if (term.includes('説明') || term.includes('解説')) return '説明';
-    if (term.includes('分析') || term.includes('検討')) return '分析';
-    if (term.includes('関連') || term.includes('関係')) return '関連';
-    return null;
-  }
+  
 
   /**
    * 動詞句生成
    */
   async generateVerbPhrase(verb, confidence) {
     const confidenceThresholds = await this.calculateDynamicWeights('confidenceThresholds');
-    switch (verb) {
-      case '説明':
-        return confidence > confidenceThresholds.highConfidence ? '詳しく説明できます' : '説明できます';
-      case '分析':
-        return confidence > confidenceThresholds.highConfidence ? '詳細に分析します' : '分析します';
-      case '関連':
-        return '関連があります';
-      default:
-        return confidence > confidenceThresholds.mediumConfidence ? '詳しく検討します' : '検討します';
+    if (confidence > confidenceThresholds.highConfidence) {
+      return `${verb}できます`;
+    } else if (confidence > confidenceThresholds.mediumConfidence) {
+      return `${verb}します`;
+    } else {
+      return `${verb}ます`;
     }
   }
 
@@ -570,8 +560,8 @@ export class SyntacticStructureGenerator {
     let total = 0;
 
     for (const pattern of lexicalPatterns) {
-      // 簡易的に名詞を抽出
-      if (pattern.type === 'lexical_usage' && !this.isVerb(pattern.term)) {
+      // 品詞情報を使用して名詞を抽出
+      if (pattern.type === 'lexical_usage' && pattern.pos && pattern.pos.startsWith('名詞')) {
         const noun = pattern.term;
         if (noun) {
           usage[noun] = usage[noun] || { frequency: 0, usage_count: 0, total: 0 };
@@ -589,13 +579,7 @@ export class SyntacticStructureGenerator {
     return usage;
   }
 
-  /**
-   * 動詞判定（簡易版）
-   */
-  isVerb(term) {
-    // 実際には品詞情報を使用
-    return term.endsWith('する') || term.endsWith('れる') || term.endsWith('いる');
-  }
+  
 
   /**
    * 名詞タイプ分類
