@@ -5,6 +5,11 @@
  * テキストの文脈パターンを学習し、予測します。
  */
 import { persistentLearningDB } from '../../data/persistent-learning-db.js';
+import { SparseCooccurrenceMatrix } from '../../foundation/dictionary/sparse-matrix.js';
+import * as numeric from 'numeric';
+import minhash from 'minhash';
+const MinHash = minhash.Minhash;
+const LshIndex = minhash.LshIndex;
 
 /**
  * NgramContextPatternAI - N-gram言語モデルによる文脈パターン認識AI
@@ -13,21 +18,38 @@ import { persistentLearningDB } from '../../data/persistent-learning-db.js';
  * テキストの文脈パターンを学習し、予測します。
  */
 export class NgramContextPatternAI {
-  constructor(maxNgramOrder = 3, discountParameter = 0.75, persistentDB, learningConfig = {}) {
+  constructor(maxNgramOrder = 3, discountParameter = 0.75, persistentDB, learningConfig = {}, vocabularyBandit = null) {
     this.persistentLearningDB = persistentDB;
     this.ngramFrequencies = new Map(); // Map<ngram: string, frequency: number>
     this.contextFrequencies = new Map(); // Map<context: string, frequency: number>
     this.continuationCounts = new Map(); // Map<ngram: string, unique_continuation_count: number>
     this.totalNgrams = 0;
-    this.maxNgramOrder = maxNgramOrder;
+    
+    // UCB多腕バンディット統合
+    this.vocabularyBandit = vocabularyBandit;
+    this.banditIntegrationEnabled = !!vocabularyBandit;
+    
+    // N-gram設定の拡張
+    const ngramConfig = learningConfig.ngramConfig || {};
+    this.maxNgramOrder = ngramConfig.maxNgramOrder || maxNgramOrder;
+    this.minNgramOrder = ngramConfig.minNgramOrder || 2;
+    this.enableHighOrderNgrams = ngramConfig.enableHighOrderNgrams || false;
+    this.contextWindowSize = ngramConfig.contextWindowSize || 7;
+    this.logicalConnectorWeight = ngramConfig.logicalConnectorWeight || 1.5;
+    this.structurePreservationWeight = ngramConfig.structurePreservationWeight || 1.2;
+    
     this.discountParameter = discountParameter; // Kneser-Ney discount parameter
     this.documentFreqs = new Map(); // For TF-IDF: Map<term: string, doc_count: number>
     this.totalDocuments = 0;
+    this.totalCooccurrences = 0; // 追加
     
     // Phase 3: 分布意味論統合
+    this.cooccurrenceMatrix = new SparseCooccurrenceMatrix(); // Sparse Matrixに変更
     this.contextVectors = new Map(); // Map<term: string, vector: number[]>
-    this.cooccurrenceMatrix = new Map(); // Map<term1_term2: string, count: number>
     this.semanticCache = new Map(); // 類似度計算キャッシュ
+    this.lshIndex = new LshIndex(); // LSHインデックス
+    this.minHash = new MinHash(); // MinHashインスタンス
+    NgramContextPatternAI.termTotalCooccurrencesCache = NgramContextPatternAI.termTotalCooccurrencesCache || new Map(); // getTermTotalCooccurrencesのキャッシュ
     this.vectorDimensions = 50; // 軽量ベクトル次元数
     this.similarityThreshold = null; // 動的計算される類似度閾値
 
@@ -72,11 +94,13 @@ export class NgramContextPatternAI {
         this.totalDocuments = loadedData.totalDocuments || 0;
         console.log(`✅ NgramContextPatternAI初期化完了。${this.ngramFrequencies.size}件のN-gram統計を読み込みました。`);
         
-        // Phase 3: 分布意味論初期化
-        if (this.ngramFrequencies.size > 0) {
-          console.log('🚀 Phase 3分布意味論統合開始...');
-          await this.initializeDistributionalSemantics();
-        }
+        // Phase 3: 分布意味論初期化はlazyInitManagerで明示的に呼び出す
+        // if (this.ngramFrequencies.size > 0) {
+        //   console.log('🚀 Phase 3分布意味論統合開始...');
+        //   console.log('DEBUG: NgramContextPatternAI.initialize - cooccurrenceMatrix before initializeDistributionalSemantics:', this.cooccurrenceMatrix);
+        //   await this.initializeDistributionalSemantics();
+        //   console.log('DEBUG: NgramContextPatternAI.initialize - cooccurrenceMatrix after initializeDistributionalSemantics:', this.cooccurrenceMatrix);
+        // }
       } else {
         console.log('✅ NgramContextPatternAI初期化完了。新規データ。');
       }
@@ -107,10 +131,13 @@ export class NgramContextPatternAI {
     });
 
     // N-gramの生成と頻度学習
-    for (let n = 1; n <= this.maxNgramOrder; n++) {
+    for (let n = this.minNgramOrder; n <= this.maxNgramOrder; n++) {
       for (let i = 0; i <= tokens.length - n; i++) {
         const ngram = tokens.slice(i, i + n).join(' ');
-        this.updateNgramFrequency(ngram);
+        
+        // 高次N-gramの重み付け処理
+        const weight = this.calculateNgramWeight(ngram, n);
+        this.updateNgramFrequency(ngram, weight);
         
         // Kneser-Ney用の継続カウントを更新
         if (n > 1) {
@@ -128,12 +155,40 @@ export class NgramContextPatternAI {
   }
 
   /**
+   * N-gramの重みを計算します（論理構造・接続詞の重み付け）
+   * @param {string} ngram - 対象N-gram
+   * @param {number} order - N-gramの次数
+   * @returns {number} 重み
+   */
+  calculateNgramWeight(ngram, order) {
+    let weight = 1.0;
+    
+    // 論理接続詞の重み付け
+    const logicalConnectors = ['しかし', 'そこで', 'それで', 'しかも', 'また', 'さらに', 'つまり', 'すなわち', 'ただし', 'したがって', 'よって', 'だから', 'なぜなら', 'つまり', 'すると', 'まず', '次に', '最後に', 'そして', 'そうすると', 'このように', 'このため', 'その結果'];
+    
+    for (const connector of logicalConnectors) {
+      if (ngram.includes(connector)) {
+        weight *= this.logicalConnectorWeight;
+        break;
+      }
+    }
+    
+    // 高次N-gramの構造保持重み
+    if (order >= 4 && this.enableHighOrderNgrams) {
+      weight *= this.structurePreservationWeight;
+    }
+    
+    return weight;
+  }
+
+  /**
    * N-gramの頻度を更新します。
    * @param {string} ngram - 更新するN-gram
+   * @param {number} weight - 重み（デフォルト1.0）
    */
-  updateNgramFrequency(ngram) {
-    this.ngramFrequencies.set(ngram, (this.ngramFrequencies.get(ngram) || 0) + 1);
-    this.totalNgrams++;
+  updateNgramFrequency(ngram, weight = 1.0) {
+    this.ngramFrequencies.set(ngram, (this.ngramFrequencies.get(ngram) || 0) + weight);
+    this.totalNgrams += weight;
   }
 
   /**
@@ -172,6 +227,7 @@ export class NgramContextPatternAI {
   /**
    * テキストの文脈を予測します。
    * Kneser-NeyスムージングとTF-IDFを用いた統計的スコアリング
+   * UCB多腕バンディットによる語彙選択最適化を統合
    * @param {string} text - 予測対象のテキスト
    * @returns {object} 予測された文脈情報
    */
@@ -351,7 +407,7 @@ export class NgramContextPatternAI {
     const docFreq = this.documentFreqs.get(ngram) || 0;
     const idf = docFreq > 0 ? Math.log(this.totalDocuments / docFreq) : 0;
     
-    return Math.round((tf * idf) * 1e6) / 1e6;
+    return Math.max(0, tf * idf);
   }
 
   /**
@@ -449,9 +505,7 @@ export class NgramContextPatternAI {
           const term2 = terms[j];
           
           if (term1 !== term2) {
-            const key = this.getCooccurrenceKey(term1, term2);
-            const currentCount = this.cooccurrenceMatrix.get(key) || 0;
-            this.cooccurrenceMatrix.set(key, currentCount + frequency);
+            this.cooccurrenceMatrix.set(term1, term2, frequency);
             
             processedTerms.add(term1);
             processedTerms.add(term2);
@@ -460,8 +514,9 @@ export class NgramContextPatternAI {
       }
     }
     
-    console.log(`✅ 共起行列構築完了: ${this.cooccurrenceMatrix.size}組, ${processedTerms.size}語彙`);
-    return { pairCount: this.cooccurrenceMatrix.size, termCount: processedTerms.size };
+    console.log(`✅ 共起行列構築完了: ${this.cooccurrenceMatrix.size}組, ${this.cooccurrenceMatrix.vocabularySize}語彙`);
+    this.totalCooccurrences = Array.from(this.cooccurrenceMatrix).reduce((sum, [, , count]) => sum + count, 0); // Sparse Matrixのイテレータを使用
+    return { pairCount: this.cooccurrenceMatrix.size, termCount: this.cooccurrenceMatrix.vocabularySize };
   }
 
   /**
@@ -472,17 +527,122 @@ export class NgramContextPatternAI {
     console.log('🧮 分布ベクトル生成開始...');
     
     this.contextVectors.clear();
-    const allTerms = new Set();
     
-    // 全語彙収集
-    for (const key of this.cooccurrenceMatrix.keys()) {
-      const [term1, term2] = key.split('|||');
-      allTerms.add(term1);
-      allTerms.add(term2);
+    // 全共起総数を計算（PMI正規化用）
+    const totalCooccurrences = this.totalCooccurrences;
+    
+    // 🚀 根本的最適化: 全語彙の総共起数を事前計算
+    console.log('📊 語彙別総共起数の事前計算開始...');
+    const termTotalCooccurrences = new Map();
+    
+    for (const [term1, term2, coCount] of this.cooccurrenceMatrix) { // Sparse Matrixのイテレータを使用
+      // term1の総共起数を累積
+      termTotalCooccurrences.set(term1, (termTotalCooccurrences.get(term1) || 0) + coCount);
+      // term2の総共起数を累積
+      termTotalCooccurrences.set(term2, (termTotalCooccurrences.get(term2) || 0) + coCount);
     }
     
-    const termList = Array.from(allTerms);
-    // 動的にベクトル次元数を調整
+    console.log(`📊 語彙別総共起数計算完了: ${termTotalCooccurrences.size}語彙`);
+    
+    // 🚀 根本的最適化: 統計的フィルタリング（パーセンタイル法）
+    const cooccurrenceCounts = Array.from(this.cooccurrenceMatrix).map(([, , count]) => count); // Sparse Matrixのイテレータを使用
+    cooccurrenceCounts.sort((a, b) => b - a); // 降順ソート（高頻度から低頻度）
+    
+    // より厳密な統計的フィルタリング
+    const percentileIndex = Math.floor(cooccurrenceCounts.length * 0.15); // 上位15%を対象
+    const minCooccurrence = Math.max(cooccurrenceCounts[percentileIndex] || 1, 3); // 最小値保証
+    
+    const relevantEntries = Array.from(this.cooccurrenceMatrix) // Sparse Matrixのイテレータを使用
+      .filter(([, , coCount]) => coCount >= minCooccurrence);
+    
+    console.log(`📊 統計的フィルタリング: ${this.cooccurrenceMatrix.size}組 → ${relevantEntries.length}組`);
+    
+    // 各語彙の分布ベクトル生成
+    const termVectors = new Map();
+    
+    // 最大共起数を事前計算
+    const maxCooccurrence = relevantEntries.length > 0 ? relevantEntries[0][2] : 1; // relevantEntriesの構造変更
+    
+    // セマンティック多様性キャッシュ（計算量削減）
+    const diversityCache = new Map();
+    
+    // バッチ処理でスタックオーバーフロー防止
+    const batchSize = 5000; // 統計的フィルタリング後なので大きめに
+    for (let batchStart = 0; batchStart < relevantEntries.length; batchStart += batchSize) {
+      const batchEnd = Math.min(batchStart + batchSize, relevantEntries.length);
+      const batch = relevantEntries.slice(batchStart, batchEnd);
+      
+      for (const [term1, term2, coCount] of batch) { // relevantEntriesの構造変更
+
+        // 🚀 O(1)で総共起数を取得（事前計算済み）
+        const term1TotalCooccurrences = termTotalCooccurrences.get(term1) || 0;
+        const term2TotalCooccurrences = termTotalCooccurrences.get(term2) || 0;
+
+        // PMIとTF-IDFを計算
+        const pmi = this.calculatePMI(term1, term2, coCount, totalCooccurrences, term1TotalCooccurrences, term2TotalCooccurrences);
+        const tfidf = this.calculateTermTFIDF(term1, term2, coCount, term1TotalCooccurrences, term2TotalCooccurrences);
+
+        if (pmi > 0 || tfidf > 0) {
+          // 高度化ハイブリッドスコア: 動的重み付け + 正規化
+          const pmiNormalized = Math.min(1.0, pmi / 10.0); // PMI正規化
+          const tfidfNormalized = Math.min(1.0, tfidf); // TF-IDF正規化
+          
+          // 情報理論に基づく動的重み調整
+          const frequencyRatio = coCount / maxCooccurrence; // 0-1正規化
+          
+          // シグモイド関数による滑らかな重み遷移
+          const sigmoid = 1 / (1 + Math.exp(-5 * (frequencyRatio - 0.5))); // 中点0.5で遷移
+          const pmiWeight = 0.3 + (sigmoid * 0.4); // 0.3-0.7の理論的範囲
+          const tfidfWeight = 1.0 - pmiWeight;
+          
+          // 🚀 高速多様性計算（calculateSemanticDiversity回避）
+          const diversityKey = `${term1}|||${term2}`;
+          let diversityFactor = diversityCache.get(diversityKey);
+          if (diversityFactor === undefined) {
+            // 軽量多様性計算: 文字列長差 + 頻度差のみ
+            const lengthDiff = Math.abs(term1.length - term2.length) / Math.max(term1.length, term2.length, 1);
+            const freqDiff = Math.abs(Math.log(term1TotalCooccurrences + 1) - Math.log(term2TotalCooccurrences + 1)) / Math.log(Math.max(term1TotalCooccurrences, term2TotalCooccurrences) + 1);
+            diversityFactor = (lengthDiff + freqDiff) / 2;
+            
+            diversityCache.set(diversityKey, diversityFactor);
+            // キャッシュサイズ制限
+            if (diversityCache.size > 10000) {
+              diversityCache.clear();
+            }
+          }
+          
+          // 改善された品質スコア正規化
+          const baseScore = (pmiNormalized * pmiWeight + tfidfNormalized * tfidfWeight);
+          const diversityBonus = (1 + diversityFactor * 0.05); // 多様性ボーナス減少
+          const hybridScore = Math.tanh(baseScore * diversityBonus) * 50; // tanh正規化で0-50範囲
+
+          // term1のベクトルにcoTermとhybridScoreを追加
+          if (!termVectors.has(term1)) {
+            termVectors.set(term1, []);
+          }
+          termVectors.get(term1).push({ term: term2, score: hybridScore, pmi, tfidf, count: coCount });
+
+          // term2のベクトルにcoTermとhybridScoreを追加
+          if (!termVectors.has(term2)) {
+            termVectors.set(term2, []);
+          }
+          termVectors.get(term2).push({ term: term1, score: hybridScore, pmi, tfidf, count: coCount });
+        }
+      }
+      
+      // バッチ進捗報告
+      console.log(`📊 分布ベクトル生成進捗: ${batchEnd}/${relevantEntries.length}ペア (${((batchEnd / relevantEntries.length) * 100).toFixed(2)}%)`);
+      
+      // メモリ圧迫回避のため、バッチ間でガベージコレクションを促進
+      if (batchStart > 0 && batchStart % (batchSize * 10) === 0) {
+        if (global.gc) {
+          global.gc();
+        }
+      }
+    }
+
+    // 各語彙のベクトルを構築
+    const termList = Array.from(termVectors.keys());
     this.vectorDimensions = Math.min(
       this.learningConfig.maxVectorDimensions,
       Math.max(
@@ -490,111 +650,86 @@ export class NgramContextPatternAI {
         Math.floor(termList.length * this.learningConfig.dimensionGrowthFactor)
       )
     );
-    
-    // 全共起総数を計算（PMI正規化用）
-    const totalCooccurrences = Array.from(this.cooccurrenceMatrix.values()).reduce((sum, count) => sum + count, 0);
     console.log(`📊 PMI計算用統計: 語彙数=${termList.length}, 共起総数=${totalCooccurrences}, ベクトル次元=${this.vectorDimensions}`);
-    
-    // 各語彙の分布ベクトル生成
+
+    // ランダム射影のための行列を生成（一度だけ）
+    if (!this.randomProjectionMatrix || this.randomProjectionMatrix.length !== this.vectorDimensions) {
+      this.randomProjectionMatrix = Array(this.vectorDimensions).fill(0).map(() => 
+        Array(this.vectorDimensions).fill(0).map(() => (Math.random() * 2 - 1)) // -1から1の範囲でランダム
+      );
+    }
+
     for (const targetTerm of termList) {
-      const vector = new Array(this.vectorDimensions).fill(0);
-      const termCooccurrences = this.getTermCooccurrences(targetTerm);
-      
-      // PMI + TF-IDFハイブリッドベクトル生成（多様化改良版）
-      const hybridValues = [];
-      for (const [coTerm, coCount] of termCooccurrences) {
-        const pmi = this.calculatePMI(targetTerm, coTerm, coCount, totalCooccurrences);
-        const tfidf = this.calculateTermTFIDF(targetTerm, coTerm, coCount);
-        
-        if (pmi > 0 || tfidf > 0) {
-          // PMIとTF-IDFを統合したスコア
-          const hybridScore = (pmi * 0.7) + (tfidf * 0.3);
-          hybridValues.push({ 
-            term: coTerm, 
-            score: hybridScore,
-            pmi: pmi,
-            tfidf: tfidf,
-            count: coCount 
-          });
-        }
-      }
-      
-      // ハイブリッドスコアでソートして上位を選択
+      const originalVector = new Array(this.vectorDimensions).fill(0);
+      const hybridValues = termVectors.get(targetTerm) || [];
+
       hybridValues.sort((a, b) => b.score - a.score);
       
       // ベクトル各次元に多様化されたスコアを設定
       let nonZeroValues = 0;
       for (let i = 0; i < Math.min(this.vectorDimensions, hybridValues.length); i++) {
-        // 語彙頻度による重み付けで多様性を向上
         const frequencyWeight = Math.log(1 + hybridValues[i].count) / Math.log(10);
-        const diversityFactor = (i + 1) / this.vectorDimensions; // 次元位置による多様化
+        const diversityFactor = (i + 1) / this.vectorDimensions;
         
-        vector[i] = hybridValues[i].score * frequencyWeight * (1 + diversityFactor * 0.1);
-        nonZeroValues++;
+        const value = hybridValues[i].score * frequencyWeight * (1 + diversityFactor * 0.1);
+        originalVector[i] = value;
+        nonZeroValues++; // 常にインクリメント
       }
-      
-      // 適応的正規化（単一共起対策・NaN/負値対策）
-      if (nonZeroValues === 1) {
-        // 単一共起の場合、語彙特徴に基づく多様化
-        const termLength = Math.max(1, targetTerm.length);
-        const termComplexity = Math.min(1.0, termLength / 10); // 語彙複雑度 [0,1]
-        const baseValue = Math.abs(vector[0]) || 0.01; // 負値・NaN対策
-        
-        // 語彙固有のシード値でハッシュベース多様化
-        const termHash = this.calculateTermHash(targetTerm);
-        
-        for (let i = 1; i < Math.min(8, this.vectorDimensions); i++) {
-          // 語彙特性と位置ベースの多様化
-          const positionFactor = (i + 1) / this.vectorDimensions;
-          const hashVariation = (termHash * (i + 1) * 0.1) % 1; // 0-1範囲
-          const complexityVariation = termComplexity * (0.5 + hashVariation * 0.5);
-          
-          vector[i] = baseValue * complexityVariation * (0.05 + positionFactor * 0.2);
-        }
-        vector[0] = baseValue; // 基準値を正の値に設定
-        nonZeroValues = Math.min(8, this.vectorDimensions);
-      } else if (nonZeroValues > 1) {
-        // 複数共起の場合、安全な正規化
-        const validValues = vector.filter(v => !isNaN(v) && isFinite(v) && v > 0);
-        if (validValues.length > 0) {
-          const maxScore = Math.max(...validValues);
-          for (let i = 0; i < vector.length; i++) {
-            if (!isNaN(vector[i]) && isFinite(vector[i]) && vector[i] > 0) {
-              vector[i] = vector[i] / maxScore; // [0, 1]範囲に正規化
-            } else {
-              vector[i] = 0; // 無効値をゼロに設定
-            }
-          }
-        }
-      }
-      
+
       // 最終的な安全性チェック
-      for (let i = 0; i < vector.length; i++) {
-        if (isNaN(vector[i]) || !isFinite(vector[i])) {
-          vector[i] = 0;
-        } else if (vector[i] < 0) {
-          vector[i] = Math.abs(vector[i]); // 負値を絶対値に変換
+      for (let i = 0; i < originalVector.length; i++) {
+        if (isNaN(originalVector[i]) || !isFinite(originalVector[i])) {
+          originalVector[i] = 0;
+        } else if (originalVector[i] < 0) {
+          originalVector[i] = Math.abs(originalVector[i]);
         }
       }
       
       // ベクトル正規化
-      const norm = Math.sqrt(vector.reduce((sum, val) => sum + val * val, 0));
+      const norm = Math.sqrt(originalVector.reduce((sum, val) => sum + val * val, 0));
       if (norm > 0) {
-        for (let i = 0; i < vector.length; i++) {
-          vector[i] /= norm;
+        for (let i = 0; i < originalVector.length; i++) {
+          originalVector[i] /= norm;
         }
       }
-      
+
+      // ランダム射影による次元削減
+      const compressedVector = Array(this.vectorDimensions).fill(0);
+      for (let i = 0; i < this.vectorDimensions; i++) {
+        for (let j = 0; j < originalVector.length; j++) {
+          compressedVector[i] += originalVector[j] * this.randomProjectionMatrix[i][j];
+        }
+      }
+
       // デバッグ: 最初の数語彙でベクトル詳細表示
-      if (process.env.DEBUG_VERBOSE === 'true' && this.contextVectors.size < 3) {
-        console.log(`🧮 ベクトル生成: ${targetTerm} (共起数=${termCooccurrences.length}, 非ゼロ=${nonZeroValues}, norm=${norm.toFixed(3)})`);
-        console.log(`  ベクトル例: [${vector.slice(0, 5).map(v => v.toFixed(3)).join(', ')}]`);
+      if (process.env.DEBUG_VERBOSE === 'true' && this.contextVectors.size < 5) {
+        console.log(`🧮 ベクトル生成: ${targetTerm} (非ゼロ=${nonZeroValues}, norm=${norm.toFixed(3)})`);
+        console.log(`  - 元ベクトル例: [${originalVector.slice(0, 5).map(v => v.toFixed(3)).join(', ')}]`);
+        console.log(`  - 圧縮後: [${compressedVector.slice(0, 5).map(v => v.toFixed(3)).join(', ')}]`);
       }
       
-      this.contextVectors.set(targetTerm, vector);
+      this.contextVectors.set(targetTerm, compressedVector);
+      
+      // LSHインデックス登録（MinHashライブラリ対応）
+      try {
+        // MinHashは文字列の集合を期待するため、ベクトルを文字列特徴に変換
+        const vectorFeatures = compressedVector
+          .map((v, i) => `${i}:${Math.floor(v * 1000)}`)
+          .filter(f => !f.includes('0:0')); // ゼロ値を除外
+        
+        const termMinHash = new MinHash();
+        vectorFeatures.forEach(feature => termMinHash.update(feature));
+        this.lshIndex.insert(targetTerm, termMinHash);
+      } catch (error) {
+        // LSHエラー時は無視（フォールバック検索を使用）
+        if (process.env.NODE_ENV === 'development') {
+          console.warn(`⚠️ LSH登録エラー ${targetTerm}:`, error.message);
+        }
+      }
     }
     
     console.log(`✅ 分布ベクトル生成完了: ${this.contextVectors.size}語彙`);
+    console.log(`📊 LSHインデックス登録完了: ${this.contextVectors.size}語彙`);
     return { vectorCount: this.contextVectors.size, dimensions: this.vectorDimensions };
   }
 
@@ -682,16 +817,54 @@ export class NgramContextPatternAI {
     const actualThreshold = threshold || this.calculateDynamicSimilarityThreshold(candidateTerms);
     const similarities = [];
     
-    for (const candidate of candidateTerms) {
-      if (candidate === targetTerm) continue;
+    try {
+      // LSH近似検索による高速候補選択（MinHashライブラリ対応）
+      const targetVector = this.contextVectors.get(targetTerm);
+      if (targetVector) {
+        const targetFeatures = targetVector
+          .map((v, i) => `${i}:${Math.floor(v * 1000)}`)
+          .filter(f => !f.includes('0:0'));
+        
+        const targetMinHash = new MinHash();
+        targetFeatures.forEach(feature => targetMinHash.update(feature));
+        
+        const lshCandidates = this.lshIndex.query(targetMinHash, candidateTerms.length * 2);
+        const lshSet = new Set(lshCandidates);
+        
+        // LSH候補を優先的に処理
+        for (const candidate of candidateTerms) {
+          if (candidate === targetTerm) continue;
+          
+          const similarity = this.calculateCosineSimilarity(targetTerm, candidate);
+          if (similarity >= actualThreshold) {
+            similarities.push({
+              term: candidate,
+              similarity: similarity,
+              semanticStrength: similarity,
+              lshHit: lshSet.has(candidate) // LSHでヒットしたかを記録
+            });
+          }
+        }
+      } else {
+        throw new Error('Target vector not found');
+      }
       
-      const similarity = this.calculateCosineSimilarity(targetTerm, candidate);
-      if (similarity >= actualThreshold) {
-        similarities.push({
-          term: candidate,
-          similarity: similarity,
-          semanticStrength: similarity
-        });
+    } catch (error) {
+      // LSHエラー時のフォールバック: 従来の総当たり検索
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('⚠️ LSH検索エラー、フォールバック:', error.message);
+      }
+      for (const candidate of candidateTerms) {
+        if (candidate === targetTerm) continue;
+        
+        const similarity = this.calculateCosineSimilarity(targetTerm, candidate);
+        if (similarity >= actualThreshold) {
+          similarities.push({
+            term: candidate,
+            similarity: similarity,
+            semanticStrength: similarity
+          });
+        }
       }
     }
     
@@ -795,6 +968,158 @@ export class NgramContextPatternAI {
     return filteredCandidates.slice(0, maxResults);
   }
 
+  /**
+   * UCB多腕バンディット統合: 高次N-gramコンテキストでの最適語彙選択
+   * @param {Array<string>} contextTokens - 文脈トークン（高次N-gramで抽出）
+   * @param {Array<string>} candidateTerms - 候補語彙
+   * @param {Object} options - オプション
+   * @returns {Promise<Object>} 最適化された語彙選択結果
+   */
+  async selectOptimalVocabularyWithBandit(contextTokens, candidateTerms, options = {}) {
+    const maxResults = options.maxResults || 5;
+    const useSemanticFiltering = options.useSemanticFiltering !== false;
+    const banditWeight = options.banditWeight || 0.6;
+    const semanticWeight = options.semanticWeight || 0.4;
+
+    if (!this.banditIntegrationEnabled) {
+      console.warn('⚠️ UCB多腕バンディット未統合 - 意味的選択にフォールバック');
+      return await this.selectSemanticallyAppropriateVocabulary(contextTokens, candidateTerms, maxResults);
+    }
+
+    // 1. N-gramコンテキストから語彙候補を生成
+    const contextualCandidates = this.extractContextualCandidates(contextTokens, candidateTerms);
+    
+    // 2. 意味的フィルタリング（オプション）
+    let filteredCandidates = contextualCandidates;
+    if (useSemanticFiltering && this.contextVectors.size > 0) {
+      const semanticResults = await this.selectSemanticallyAppropriateVocabulary(
+        contextTokens, 
+        contextualCandidates.map(c => c.term), 
+        Math.min(candidateTerms.length, maxResults * 2)
+      );
+      
+      // 意味的スコアを統合
+      filteredCandidates = contextualCandidates.map(candidate => {
+        const semanticMatch = semanticResults.find(s => s.term === candidate.term);
+        return {
+          ...candidate,
+          semanticScore: semanticMatch ? semanticMatch.semanticScore : 0
+        };
+      });
+    }
+
+    // 3. UCBバンディットによる最適選択
+    const banditCandidates = filteredCandidates.map(c => c.term);
+    const selectedTerm = await this.vocabularyBandit.selectVocabulary(banditCandidates);
+
+    // 4. UCBスコア正規化（Infinity問題解決）
+    const ucbScores = new Map();
+    let maxFiniteUCB = 0;
+    
+    for (const candidate of filteredCandidates) {
+      const rawUCB = this.vocabularyBandit.calculateUCBValue(candidate.term);
+      if (isFinite(rawUCB)) {
+        ucbScores.set(candidate.term, rawUCB);
+        maxFiniteUCB = Math.max(maxFiniteUCB, rawUCB);
+      } else {
+        ucbScores.set(candidate.term, null); // Infinityマーク
+      }
+    }
+    
+    // Infinity値に統一された高スコアを割り当て
+    const infinityReplacement = maxFiniteUCB > 0 ? maxFiniteUCB * 1.5 : 1.0;
+    
+    // 5. ハイブリッドスコア計算
+    const results = [];
+    for (const candidate of filteredCandidates.slice(0, maxResults)) {
+      let banditScore = ucbScores.get(candidate.term);
+      if (banditScore === null) {
+        banditScore = infinityReplacement; // Infinity置換
+      }
+      
+      // 正規化: 0-1範囲に収束
+      const normalizedBanditScore = candidate.term === selectedTerm ? 1.0 : 
+        Math.min(1.0, banditScore / (maxFiniteUCB > 0 ? maxFiniteUCB * 2 : 1.0));
+
+      const semanticScore = candidate.semanticScore || 0;
+      const contextualScore = candidate.ngramScore || 0;
+      
+      const hybridScore = (normalizedBanditScore * banditWeight) + 
+                         (semanticScore * semanticWeight * 0.5) + 
+                         (contextualScore * semanticWeight * 0.5);
+
+      results.push({
+        term: candidate.term,
+        hybridScore: Math.round(hybridScore * 10000) / 10000,
+        banditScore: Math.round(normalizedBanditScore * 10000) / 10000,
+        semanticScore: Math.round(semanticScore * 10000) / 10000,
+        contextualScore: Math.round(contextualScore * 10000) / 10000,
+        isOptimal: candidate.term === selectedTerm
+      });
+    }
+
+    results.sort((a, b) => b.hybridScore - a.hybridScore);
+
+    console.log('🎯 UCB+N-gram統合語彙選択完了:', {
+      selectedTerm,
+      topResults: results.slice(0, 3).map(r => `${r.term}(${r.hybridScore})`),
+      banditWeight,
+      semanticWeight
+    });
+
+    return {
+      selectedTerm,
+      results: results.slice(0, maxResults),
+      metadata: {
+        contextTokens,
+        totalCandidates: candidateTerms.length,
+        filteredCandidates: filteredCandidates.length,
+        banditEnabled: this.banditIntegrationEnabled,
+        semanticEnabled: useSemanticFiltering
+      }
+    };
+  }
+
+  /**
+   * 高次N-gramコンテキストから語彙候補を抽出
+   * @param {Array<string>} contextTokens - 文脈トークン
+   * @param {Array<string>} candidateTerms - 候補語彙
+   * @returns {Array<Object>} コンテキストスコア付き候補
+   */
+  extractContextualCandidates(contextTokens, candidateTerms) {
+    const candidates = [];
+    
+    for (const term of candidateTerms) {
+      let maxNgramScore = 0;
+      let bestNgramOrder = 0;
+
+      // 各N-gram次数でのコンテキスト適合度を計算
+      for (let n = this.minNgramOrder; n <= this.maxNgramOrder; n++) {
+        for (let i = 0; i <= contextTokens.length - n; i++) {
+          const ngram = contextTokens.slice(i, i + n).join(' ');
+          
+          // N-gram + 候補語彙の組み合わせスコア
+          const extendedNgram = `${ngram} ${term}`;
+          const ngramScore = this.calculateKneserNeyProbability(extendedNgram, n + 1);
+          
+          if (ngramScore > maxNgramScore) {
+            maxNgramScore = ngramScore;
+            bestNgramOrder = n + 1;
+          }
+        }
+      }
+
+      candidates.push({
+        term,
+        ngramScore: maxNgramScore,
+        bestNgramOrder,
+        contextualFit: maxNgramScore * bestNgramOrder // 高次の方が重要
+      });
+    }
+
+    return candidates.sort((a, b) => b.contextualFit - a.contextualFit);
+  }
+
   // ===== ヘルパーメソッド =====
 
   getCooccurrenceKey(term1, term2) {
@@ -803,23 +1128,25 @@ export class NgramContextPatternAI {
 
   getTermCooccurrences(targetTerm) {
     const cooccurrences = new Map();
-    
-    for (const [key, count] of this.cooccurrenceMatrix) {
-      const [term1, term2] = key.split('|||');
-      if (term1 === targetTerm) {
-        cooccurrences.set(term2, count);
-      } else if (term2 === targetTerm) {
-        cooccurrences.set(term1, count);
-      }
+    const targetTermId = this.cooccurrenceMatrix.termToId.get(targetTerm);
+
+    if (targetTermId === undefined) {
+      return [];
+    }
+
+    for (const [coTerm, count] of this.cooccurrenceMatrix.getCooccurrencesByRowId(targetTermId)) {
+      cooccurrences.set(coTerm, count);
     }
     
     return Array.from(cooccurrences.entries())
       .sort((a, b) => b[1] - a[1]); // 頻度順
   }
 
-  calculatePMI(term1, term2, cooccurrenceCount, totalCooccurrences) {
-    const term1Count = this.getTermTotalCooccurrences(term1);
-    const term2Count = this.getTermTotalCooccurrences(term2);
+  calculatePMI(term1, term2, cooccurrenceCount, totalCooccurrences, term1TotalCooccurrences, term2TotalCooccurrences) {
+    if (cooccurrenceCount < this.learningConfig.minCooccurrenceForPMI) return 0; // 閾値未満は計算しない
+
+    const term1Count = term1TotalCooccurrences; // 引数から取得
+    const term2Count = term2TotalCooccurrences; // 引数から取得
     
     if (term1Count === 0 || term2Count === 0 || totalCooccurrences === 0) return 0;
     
@@ -838,13 +1165,18 @@ export class NgramContextPatternAI {
   }
 
   getTermTotalCooccurrences(term) {
+    if (NgramContextPatternAI.termTotalCooccurrencesCache.has(term)) {
+      return NgramContextPatternAI.termTotalCooccurrencesCache.get(term);
+    }
+
     let total = 0;
-    for (const [key, count] of this.cooccurrenceMatrix) {
-      const [term1, term2] = key.split('|||');
-      if (term1 === term || term2 === term) {
+    const termId = this.cooccurrenceMatrix.termToId.get(term);
+    if (termId !== undefined) {
+      for (const [coTerm, count] of this.cooccurrenceMatrix.getCooccurrencesByRowId(termId)) {
         total += count;
       }
     }
+    NgramContextPatternAI.termTotalCooccurrencesCache.set(term, total);
     return total;
   }
 
@@ -852,18 +1184,16 @@ export class NgramContextPatternAI {
    * 語彙ペア間のTF-IDFスコア計算
    * 共起頻度ベースのTF-IDF類似度測定
    */
-  calculateTermTFIDF(targetTerm, coTerm, coCount) {
+  calculateTermTFIDF(targetTerm, coTerm, coCount, targetTotalCooccurrences, coTermTotalCooccurrences) {
     // TF: 対象語彙における共起語彙の相対頻度
-    const targetTotalCooccurrences = this.getTermTotalCooccurrences(targetTerm);
     const tf = targetTotalCooccurrences > 0 ? coCount / targetTotalCooccurrences : 0;
     
     // IDF: 共起語彙の希少性（逆語彙頻度）
-    const coTermTotalCooccurrences = this.getTermTotalCooccurrences(coTerm);
     const totalTerms = this.contextVectors ? this.contextVectors.size : 1;
     const idf = coTermTotalCooccurrences > 0 ? 
       Math.log(totalTerms / (1 + coTermTotalCooccurrences)) : 0;
     
-    return tf * idf;
+    return Math.max(0, tf * idf);
   }
 
   /**
@@ -879,6 +1209,83 @@ export class NgramContextPatternAI {
     }
     // 0-1範囲の正の値に正規化
     return Math.abs(hash) / 2147483647;
+  }
+
+  /**
+   * セマンティック多様性係数計算
+   * 語彙ペア間の意味的距離と文字列類似度から多様性を評価
+   * @param {string} term1 - 語彙1
+   * @param {string} term2 - 語彙2
+   * @returns {number} 多様性係数 (0-1, 高いほど多様)
+   */
+  calculateSemanticDiversity(term1, term2) {
+    // 1. 文字列編集距離による類似度
+    const editDistance = this.calculateEditDistance(term1, term2);
+    const maxLen = Math.max(term1.length, term2.length);
+    const stringDiversity = maxLen > 0 ? editDistance / maxLen : 0;
+    
+    // 2. 語彙頻度分布による多様性
+    const freq1 = this.getTermTotalCooccurrences(term1);
+    const freq2 = this.getTermTotalCooccurrences(term2);
+    const freqRatio = freq1 > 0 && freq2 > 0 ? 
+      Math.abs(Math.log(freq1) - Math.log(freq2)) / Math.log(Math.max(freq1, freq2)) : 0.5;
+    
+    // 3. 語彙長による構造的多様性
+    const lengthDiversity = Math.abs(term1.length - term2.length) / Math.max(term1.length, term2.length, 1);
+    
+    // 4. ハッシュベース擬似ランダム多様性
+    const hash1 = this.calculateTermHash(term1);
+    const hash2 = this.calculateTermHash(term2);
+    const hashDiversity = Math.abs(hash1 - hash2);
+    
+    // 重み付き合成多様性スコア
+    const diversityScore = (stringDiversity * 0.4) + 
+                          (freqRatio * 0.3) + 
+                          (lengthDiversity * 0.2) + 
+                          (hashDiversity * 0.1);
+    
+    return Math.min(1.0, Math.max(0.0, diversityScore));
+  }
+
+  /**
+   * 編集距離計算（レーベンシュタイン距離の軽量版）
+   * @param {string} str1 - 文字列1
+   * @param {string} str2 - 文字列2
+   * @returns {number} 編集距離
+   */
+  calculateEditDistance(str1, str2) {
+    const m = str1.length;
+    const n = str2.length;
+    
+    // 長い文字列の場合は近似計算
+    if (m > 20 || n > 20) {
+      // 共通文字数ベースの近似
+      const common = new Set(str1.split('')).size + new Set(str2.split('')).size - 
+                     new Set([...str1, ...str2]).size;
+      return Math.max(m, n) - common;
+    }
+    
+    // 短い文字列は正確な編集距離
+    const dp = Array(m + 1).fill().map(() => Array(n + 1).fill(0));
+    
+    for (let i = 0; i <= m; i++) dp[i][0] = i;
+    for (let j = 0; j <= n; j++) dp[0][j] = j;
+    
+    for (let i = 1; i <= m; i++) {
+      for (let j = 1; j <= n; j++) {
+        if (str1[i - 1] === str2[j - 1]) {
+          dp[i][j] = dp[i - 1][j - 1];
+        } else {
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,     // 削除
+            dp[i][j - 1] + 1,     // 挿入
+            dp[i - 1][j - 1] + 1  // 置換
+          );
+        }
+      }
+    }
+    
+    return dp[m][n];
   }
 
   /**
@@ -942,7 +1349,6 @@ export class NgramContextPatternAI {
    */
   async buildCooccurrenceFromRelationships() {
     this.cooccurrenceMatrix.clear();
-    const processedTerms = new Set();
     
     try {
       // persistentLearningDBから関係性データを取得
@@ -955,24 +1361,19 @@ export class NgramContextPatternAI {
       for (const [keyword, relatedTerms] of Object.entries(userRelations)) {
         if (!keyword || keyword.length < 2) continue;
         
-        processedTerms.add(keyword);
-        
         for (const relatedTermData of relatedTerms) {
           const relatedTerm = relatedTermData.term || relatedTermData;
           if (!relatedTerm || typeof relatedTerm !== 'string' || relatedTerm.length < 2 || relatedTerm === keyword) continue;
           
-          const key = this.getCooccurrenceKey(keyword, relatedTerm);
-          const currentCount = this.cooccurrenceMatrix.get(key) || 0;
           // 関係性の強度に基づく重み付け（strengthまたはcountを使用）
           const weight = relatedTermData.strength || relatedTermData.count || 1.0;
-          this.cooccurrenceMatrix.set(key, currentCount + weight);
-          
-          processedTerms.add(relatedTerm);
+          this.cooccurrenceMatrix.set(keyword, relatedTerm, weight);
         }
       }
       
-      console.log(`✅ 関係性ベース共起行列構築完了: ${this.cooccurrenceMatrix.size}組, ${processedTerms.size}語彙`);
-      return { pairCount: this.cooccurrenceMatrix.size, termCount: processedTerms.size };
+      console.log(`✅ 関係性ベース共起行列構築完了: ${this.cooccurrenceMatrix.size}組, ${this.cooccurrenceMatrix.vocabularySize}語彙`);
+      this.totalCooccurrences = Array.from(this.cooccurrenceMatrix).reduce((sum, [, , count]) => sum + count, 0); // Sparse Matrixのイテレータを使用
+      return { pairCount: this.cooccurrenceMatrix.size, termCount: this.cooccurrenceMatrix.vocabularySize };
       
     } catch (error) {
       console.warn('⚠️ 関係性データ読み込みエラー:', error.message);
