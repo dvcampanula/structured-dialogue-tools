@@ -9,7 +9,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { lazyInitManager } from '../../utils/lazy-initialization-manager.js';
+import { lazyInitManager } from '../../utils/initialization/lazy-initialization-manager.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -60,12 +60,12 @@ function registerComponents() {
 
     // Level 0: データベース
     lazyInitManager.register('persistentLearningDB', async () => {
-        const { PersistentLearningDB } = await import('../../data/persistent-learning-db.js');
+        const { PersistentLearningDB } = await import('../../services/persistence/persistent-learning-db.js');
         return new PersistentLearningDB();
     }, [], 1);
 
     lazyInitManager.register('dictionaryDB', async () => {
-        const DictionaryDB = (await import('../../foundation/dictionary/dictionary-db.js')).default;
+        const { DictionaryDB } = await import('../../services/dictionary/dictionary-db.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const db = new DictionaryDB(persistentLearningDB);
         // initialize() はコンストラクタ内で呼ばれるので不要
@@ -74,37 +74,50 @@ function registerComponents() {
 
     // Level 1: 基本プロセッサ
     lazyInitManager.register('hybridProcessor', async () => {
-        const { EnhancedHybridLanguageProcessor } = await import('../../foundation/morphology/hybrid-processor.js');
+        const { EnhancedHybridLanguageProcessor } = await import('../../core/language/hybrid-processor.js');
         const processor = new EnhancedHybridLanguageProcessor();
         await processor.initialize();
         return processor;
     }, [], 2);
 
     // Level 2: コア学習モジュール
+    let ngramAIInstance = null; // インスタンスを保持する変数
     lazyInitManager.register('ngramAI', async () => {
-        const { NgramContextPatternAI } = await import('../../learning/ngram/ngram-context-pattern.js');
+        if (ngramAIInstance) return ngramAIInstance; // 既にインスタンスがあればそれを返す
+        const { NgramContextPatternAI } = await import('../../modules/ngram/ngram-context-pattern.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-        const ngramAI = new NgramContextPatternAI(3, 0.75, persistentLearningDB);
-        await ngramAI.initialize();
-        return ngramAI;
+        ngramAIInstance = new NgramContextPatternAI(3, 0.75, persistentLearningDB);
+        await ngramAIInstance.initialize();
+        if (ngramAIInstance.ngramFrequencies.size > 0) { // N-gramデータがある場合のみ分布意味論を初期化
+            console.log('🚀 Phase 3分布意味論統合開始 (LazyInitManagerから呼び出し)...');
+            await ngramAIInstance.initializeDistributionalSemantics();
+        }
+        return ngramAIInstance;
     }, ['persistentLearningDB'], 2);
 
+    // DynamicLearnerインスタンスキャッシュ
+    const learnerInstances = new Map();
+    
     lazyInitManager.register('dynamicLearner', async () => {
-        const { DynamicRelationshipLearner } = await import('../../learning/cooccurrence/dynamic-relationship-learner.js');
+        const { DynamicRelationshipLearner } = await import('../../modules/cooccurrence/dynamic-relationship-learner.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const hybridProcessor = await lazyInitManager.get('hybridProcessor');
         const ngramAI = await lazyInitManager.get('ngramAI');
-        // DynamicRelationshipLearnerはuserIdを必要とするため、ここではインスタンス化しない
-        // 代わりに、ファクトリ関数を登録する
-        return async (userId) => { // ファクトリ関数をasyncにする
-            const learner = new DynamicRelationshipLearner(persistentLearningDB, hybridProcessor, ngramAI, userId);
-            await learner.initializeLearner(userId); // userIdで初期化
-            return learner;
+        
+        // ユーザーIDベースシングルトンファクトリ
+        return async (userId) => {
+            if (!learnerInstances.has(userId)) {
+                console.log(`🔄 新しいDynamicLearner作成: ${userId}`);
+                const learner = new DynamicRelationshipLearner(persistentLearningDB, hybridProcessor, ngramAI, userId);
+                await learner.initializeLearner(userId);
+                learnerInstances.set(userId, learner);
+            }
+            return learnerInstances.get(userId);
         };
     }, ['persistentLearningDB', 'hybridProcessor', 'ngramAI'], 3);
     
     lazyInitManager.register('banditAI', async () => {
-        const { MultiArmedBanditVocabularyAI } = await import('../../learning/bandit/multi-armed-bandit-vocabulary.js');
+        const { MultiArmedBanditVocabularyAI } = await import('../../modules/bandit/multi-armed-bandit-vocabulary.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const banditAI = new MultiArmedBanditVocabularyAI(persistentLearningDB);
         await banditAI.initialize();
@@ -112,15 +125,17 @@ function registerComponents() {
     }, ['persistentLearningDB'], 2);
 
     lazyInitManager.register('bayesianAI', async () => {
-        const { BayesianPersonalizationAI } = await import('../../learning/bayesian/bayesian-personalization.js');
+        const { BayesianPersonalizationAI } = await import('../../modules/bayesian/bayesian-personalization.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const bayesianAI = new BayesianPersonalizationAI(persistentLearningDB);
         await bayesianAI.initialize();
         return bayesianAI;
     }, ['persistentLearningDB'], 2);
 
+    // IntentClassifier は削除済み - 統計学習ベースに置換予定
+
     lazyInitManager.register('qualityPredictor', async () => {
-        const { QualityPredictionModel } = await import('../../learning/quality/quality-prediction-model.js');
+        const { QualityPredictionModel } = await import('../../modules/quality/quality-prediction-model.js');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
         const ngramAI = await lazyInitManager.get('ngramAI');
         const dynamicLearnerFactory = await lazyInitManager.get('dynamicLearner'); // ファクトリを取得
@@ -135,7 +150,7 @@ function registerComponents() {
 
     // Level 3: 統合プロセッサ
     lazyInitManager.register('aiVocabularyProcessor', async () => {
-        const { AIVocabularyProcessor } = await import('../../processing/vocabulary/ai-vocabulary-processor.js');
+        const { AIVocabularyProcessor } = await import('../../services/orchestration/ai-vocabulary-processor.js');
         const banditAI = await lazyInitManager.get('banditAI');
         const ngramAI = await lazyInitManager.get('ngramAI');
         const bayesianAI = await lazyInitManager.get('bayesianAI');
@@ -153,14 +168,27 @@ function registerComponents() {
     }, ['banditAI', 'ngramAI', 'bayesianAI', 'dynamicLearner', 'qualityPredictor', 'hybridProcessor', 'dictionaryDB'], 2);
 
     // Level 4: 応答生成
+    lazyInitManager.register('syntacticGenerator', async () => {
+        const { SyntacticStructureGenerator } = await import('../../services/response/syntactic-structure-generator.js');
+        const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
+        const hybridProcessor = await lazyInitManager.get('hybridProcessor');
+        const learningConfig = await persistentLearningDB.loadSystemData('learning-config');
+        // calculateDynamicWeightsとgetLearnedRelatedTermsはStatisticalResponseGeneratorから渡されるため、ここではダミー関数を渡すか、
+        // SyntacticStructureGeneratorのコンストラクタを変更してこれらの依存関係を削除する必要がある。
+        // 今回は、StatisticalResponseGeneratorがSyntacticStructureGeneratorをインスタンス化する際に適切な関数を渡すため、
+        // ここでは簡易的なダミー関数を渡す。
+        return new SyntacticStructureGenerator(persistentLearningDB, async () => ({}), async () => ([]), hybridProcessor, learningConfig);
+    }, ['persistentLearningDB', 'hybridProcessor'], 2);
+
     lazyInitManager.register('statisticalGenerator', async () => {
-        const { StatisticalResponseGenerator } = await import('../../engines/response/statistical-response-generator.js');
+        const { StatisticalResponseGenerator } = await import('../../services/response/statistical-response-generator.js');
         const aiVocabularyProcessor = await lazyInitManager.get('aiVocabularyProcessor');
         const persistentLearningDB = await lazyInitManager.get('persistentLearningDB');
-        const learningConfig = await persistentLearningDB.loadSystemData('learning-config'); // learningConfigを読み込む
-        const syntacticGenerator = await lazyInitManager.get('syntacticGenerator'); // syntacticGeneratorを読み込む
-        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB, learningConfig, syntacticGenerator);
-    }, ['aiVocabularyProcessor', 'persistentLearningDB'], 2);
+        const learningConfig = await persistentLearningDB.loadSystemData('learning-config');
+        const syntacticGenerator = await lazyInitManager.get('syntacticGenerator');
+        // intentClassifier has been removed - passing null as StatisticalResponseGenerator will handle it
+        return new StatisticalResponseGenerator(aiVocabularyProcessor, persistentLearningDB, learningConfig, syntacticGenerator, null);
+    }, ['aiVocabularyProcessor', 'persistentLearningDB', 'syntacticGenerator'], 2);
 
     console.log('✅ コンポーネント登録完了');
 }
@@ -354,7 +382,7 @@ async function startServer() {
     registerComponents();
     
     // サーバー開始
-    server.listen(PORT, () => {
+    server.listen(PORT, '127.0.0.1', () => {
         const startupTime = Date.now() - startTime;
         console.log(`✅ サーバー起動完了: http://localhost:${PORT} (${startupTime}ms)`);
         console.log('📊 初期状況:');
