@@ -5,9 +5,10 @@ import { DynamicRelationshipLearner } from '../../modules/cooccurrence/dynamic-r
 import { QualityPredictionModel } from '../../modules/quality/quality-prediction-model.js';
 import { EnhancedHybridLanguageProcessor } from '../../core/language/hybrid-processor.js';
 import { DictionaryDB } from '../dictionary/dictionary-db.js';
+import { DataQualityMonitor } from '../../utils/data-quality/data-quality-monitor.js';
 
 export class AIVocabularyProcessor {
-  constructor(banditAI, ngramAI, bayesianAI, cooccurrenceLearner, qualityPredictor, hybridProcessor, dictionary, userId = 'default') {
+  constructor(banditAI, ngramAI, bayesianAI, cooccurrenceLearner, qualityPredictor, hybridProcessor, dictionary, persistentLearningDB, userId = 'default') {
     this.banditAI = banditAI;
     this.ngramAI = ngramAI;
     this.bayesianAI = bayesianAI;
@@ -15,7 +16,11 @@ export class AIVocabularyProcessor {
     this.qualityPredictor = qualityPredictor;
     this.hybridProcessor = hybridProcessor;
     this.dictionary = dictionary;
-    this.userId = userId; // Add this line
+    this.persistentLearningDB = persistentLearningDB;
+    this.userId = userId;
+    
+    // データ品質監視システム統合
+    this.dataQualityMonitor = new DataQualityMonitor();
 
     // TF-IDF関連のプロパティ
     this.documents = []; // 処理された文書の配列
@@ -37,7 +42,7 @@ export class AIVocabularyProcessor {
         this.ngramAI.initialize(),
         this.bayesianAI.initialize(),
         this.cooccurrenceLearner.initializeLearner(this.userId), // userIdを渡す
-        this.qualityPredictor.initializeAIModules(),
+        this.qualityPredictor.setAIModulesInitialized(this.hybridProcessor),
         this.hybridProcessor.initialize(),
         this.dictionary.initialize()
       ]);
@@ -56,6 +61,10 @@ export class AIVocabularyProcessor {
    * @returns {Promise<Object>} 統合分析結果
    */
   async processText(text, userId = 'default') {
+    if (typeof text !== 'string') {
+      console.error('❌ AIVocabularyProcessor.processText: 入力テキストが文字列ではありません:', text);
+      throw new Error('入力テキストは文字列である必要があります。');
+    }
     if (!this.isInitialized) {
       await this.initialize();
     }
@@ -126,6 +135,25 @@ export class AIVocabularyProcessor {
           relatedTerms: this.cooccurrenceLearner.getUserRelationsData()
         };
         console.log(`⏱️ 5.共起学習: ${Date.now() - step5Start}ms`);
+        
+        // 5.5. データ品質監視（新規統合）
+        const qualityStart = Date.now();
+        try {
+          const qualityReport = await this.dataQualityMonitor.monitorQuality(
+            { text, tokens, learningStats: result.cooccurrenceAnalysis.learningStats },
+            'learning_process'
+          );
+          result.qualityMonitoring = qualityReport;
+          
+          if (qualityReport.needsCleanup) {
+            console.log('🧹 データクリーンアップが推奨されています');
+          }
+          
+          console.log(`📊 データ品質スコア: ${(qualityReport.overallScore * 100).toFixed(1)}%`);
+        } catch (error) {
+          console.warn('⚠️ データ品質監視エラー:', error.message);
+        }
+        console.log(`⏱️ 5.5.品質監視: ${Date.now() - qualityStart}ms`);
         
         // 6. 品質予測
         const step6Start = Date.now();
@@ -244,6 +272,9 @@ export class AIVocabularyProcessor {
       // N-gram AIに学習させる
       const predictedContext = await this.ngramAI.predictContext(contextText); // ここで予測し直すのは、最新の学習状態を反映するため
       await this.ngramAI.learnPattern(contextText, { category: predictedContext.predictedCategory });
+      
+      // N-gramデータを永続化
+      await this.ngramAI.saveToDatabase();
 
       // ベイジアンAIに学習させる
       const features = new Map();
@@ -258,7 +289,7 @@ export class AIVocabularyProcessor {
 
       await this.bayesianAI.learnUserBehavior(userId, {
         class: predictedContext.predictedCategory,
-        features: features,
+        features: Object.fromEntries(features),
       });
       
       if (typeof vocabulary === 'string') {
@@ -268,10 +299,145 @@ export class AIVocabularyProcessor {
       // QualityPredictionModelのlearnFromFeedbackは直接呼ばれないため、ここでは呼び出さない
       // await this.qualityPredictor.learnFromFeedback(originalContent, appliedSuggestion, beforeScore, afterScore);
 
+      // 学習統計の更新
+      await this.updateLearningStatistics(vocabulary, rating, contextText);
+      
+      // 学習完了後の品質チェック（新規統合）
+      try {
+        const qualityReport = await this.dataQualityMonitor.performPostLearningQualityCheck();
+        console.log(`📊 学習後品質チェック: ファイルサイズ=${qualityReport.fileSizeMB}MB, 健全性=${qualityReport.isHealthy ? '良好' : '要注意'}`);
+        
+        if (qualityReport.needsCleanup) {
+          console.log('🧹 データクリーンアップを実行中...');
+          await this.dataQualityMonitor.performStatisticalCleanup('data/learning/ngram-data.json');
+        }
+      } catch (error) {
+        console.warn('⚠️ 学習後品質チェックエラー:', error.message);
+      }
+      
       console.log('✅ フィードバック伝播完了。');
       
     } catch (error) {
       console.error('❌ フィードバック伝播エラー:', error.message);
+    }
+  }
+
+  /**
+   * 学習統計の更新
+   */
+  async updateLearningStatistics(vocabulary, rating, contextText) {
+    try {
+      // 現在の学習統計を読み込み
+      const currentStats = await this.persistentLearningDB.loadLearningStats() || {
+        totalConversations: 0,
+        totalRelationsLearned: 0,
+        totalConceptsLearned: 0,
+        qualityScore: 0.5,
+        learningEvents: []
+      };
+
+      // 統計を更新
+      currentStats.totalConversations++;
+      
+      // 学習モジュールから実際の統計を集計
+      const banditStats = await this.getBanditLearningStats();
+      const cooccurrenceStats = await this.getCooccurrenceLearningStats();
+      const bayesianStats = await this.getBayesianLearningStats();
+      
+      currentStats.totalRelationsLearned = cooccurrenceStats.totalRelations;
+      currentStats.totalConceptsLearned = banditStats.vocabularyCount + bayesianStats.classCount;
+      
+      // 品質スコアの動的更新（評価の移動平均）
+      const alpha = 0.1; // 学習率
+      currentStats.qualityScore = currentStats.qualityScore * (1 - alpha) + rating * alpha;
+      
+      // 学習イベントの記録
+      currentStats.learningEvents.push({
+        timestamp: Date.now(),
+        vocabulary: vocabulary,
+        rating: rating,
+        contextLength: contextText.length,
+        type: 'feedback_learning'
+      });
+      
+      // 直近100件のイベントのみ保持
+      if (currentStats.learningEvents.length > 100) {
+        currentStats.learningEvents = currentStats.learningEvents.slice(-100);
+      }
+      
+      // 統計を保存
+      await this.persistentLearningDB.saveLearningStats(currentStats);
+      
+      console.log(`📊 学習統計更新: 会話数=${currentStats.totalConversations}, 関係性=${currentStats.totalRelationsLearned}, 品質=${currentStats.qualityScore.toFixed(3)}`);
+      
+    } catch (error) {
+      console.warn('⚠️ 学習統計更新エラー:', error.message);
+    }
+  }
+
+  /**
+   * バンディット学習統計取得
+   */
+  async getBanditLearningStats() {
+    try {
+      const banditData = await this.persistentLearningDB.loadBanditData();
+      return {
+        vocabularyCount: banditData ? banditData.vocabularyStats.size : 0,
+        totalSelections: banditData ? banditData.totalSelections : 0
+      };
+    } catch (error) {
+      return { vocabularyCount: 0, totalSelections: 0 };
+    }
+  }
+
+  /**
+   * 共起学習統計取得
+   */
+  async getCooccurrenceLearningStats() {
+    try {
+      const userRelations = this.persistentLearningDB.getUserRelations();
+      let totalRelations = 0;
+      
+      if (userRelations instanceof Map) {
+        for (const [userId, userData] of userRelations) {
+          if (userData && userData.userRelations) {
+            if (userData.userRelations instanceof Map) {
+              totalRelations += userData.userRelations.size;
+            } else if (typeof userData.userRelations === 'object') {
+              totalRelations += Object.keys(userData.userRelations).length;
+            }
+          }
+        }
+      }
+      
+      return { totalRelations };
+    } catch (error) {
+      return { totalRelations: 0 };
+    }
+  }
+
+  /**
+   * ベイジアン学習統計取得
+   */
+  async getBayesianLearningStats() {
+    try {
+      const profileData = await this.persistentLearningDB.loadAllUserProfiles();
+      let totalClasses = 0;
+      
+      for (const userId in profileData) {
+        const profile = profileData[userId];
+        if (profile && profile.classCounts) {
+          if (Array.isArray(profile.classCounts)) {
+            totalClasses += profile.classCounts.length;
+          } else if (profile.classCounts instanceof Map) {
+            totalClasses += profile.classCounts.size;
+          }
+        }
+      }
+      
+      return { classCount: totalClasses };
+    } catch (error) {
+      return { classCount: 0 };
     }
   }
 }
